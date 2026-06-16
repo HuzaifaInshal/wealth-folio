@@ -1,7 +1,7 @@
 "use client";
 
 import { addEdge, useEdgesState, useNodesState, type Connection, type Edge, type Node } from "@xyflow/react";
-import { DragEvent, useMemo } from "react";
+import { DragEvent, useEffect, useRef } from "react";
 import type { Pool, PoolKind, Transfer } from "../types";
 import { currencyFormat } from "../utils";
 
@@ -41,17 +41,30 @@ function buildEdges(transfers: Transfer[], format: Intl.NumberFormat): Edge[] {
 export function useFlowCanvas(pools: Pool[], transfers: Transfer[], currency: string) {
   const format = currencyFormat(currency);
 
-  const initialNodes = useMemo(() => buildNodes(pools), [pools]);
-  const initialEdges = useMemo(() => buildEdges(transfers, format), [transfers, format]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<FlowNodeData>>(buildNodes(pools));
+  const [edges, setEdges, onEdgesChange] = useEdgesState(buildEdges(transfers, format));
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  // Track a stable fingerprint so we only re-sync when data actually changes
+  const poolsKey = pools.map((p) => `${p.id}:${p.portfolioValue}:${p.netContributions}`).join("|");
+  const transfersKey = transfers.map((t) => `${t.id}:${t.amount}`).join("|");
+  const prevPoolsKey = useRef(poolsKey);
+  const prevTransfersKey = useRef(transfersKey);
 
-  // Keep canvas in sync when store data changes
-  useMemo(() => {
-    setNodes(initialNodes);
-    setEdges(initialEdges);
-  }, [initialNodes, initialEdges, setNodes, setEdges]);
+  useEffect(() => {
+    if (poolsKey !== prevPoolsKey.current) {
+      prevPoolsKey.current = poolsKey;
+      setNodes(buildNodes(pools));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poolsKey]);
+
+  useEffect(() => {
+    if (transfersKey !== prevTransfersKey.current) {
+      prevTransfersKey.current = transfersKey;
+      setEdges(buildEdges(transfers, format));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transfersKey]);
 
   function onConnect(connection: Connection) {
     setEdges((prev) => addEdge({ ...connection, animated: true }, prev));
