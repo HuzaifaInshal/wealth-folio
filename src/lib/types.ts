@@ -1,59 +1,49 @@
-export type TimelineActionType = "cash_in" | "cash_out" | "info_update";
+export type ActionType = 'cash-in' | 'cash-out' | 'info-update';
 
-export type PoolKind = "investment" | "savings" | "cash";
+export type InfoUpdateField = 'invested_capital' | 'current_value';
 
-export type InfoUpdateField = "portfolioValue" | "netContributions";
-
-export type UserProfile = {
-  name: string;
-  baseCurrency: string;
-  targetMonthlySavings: number;
-  riskStyle: "Conservative" | "Balanced" | "Growth";
-};
-
-export type Pool = {
+export interface Action {
   id: string;
-  flowId: string;
-  name: string;
-  kind: PoolKind;
-  netContributions: number;
-  portfolioValue: number;
-  notes: string;
-};
-
-export type TimelineEvent = {
-  id: string;
-  flowId: string;
+  type: ActionType;
+  amount: number;
+  timestamp: string;
   poolId: string;
-  type: TimelineActionType;
-  amount?: number;
-  field?: InfoUpdateField;
-  newValue?: number;
-  note: string;
-  happenedAt: string;
-};
+  field?: InfoUpdateField; // Only for info-update
+  note?: string;
+}
 
-export type Transfer = {
+export interface Pool {
   id: string;
+  name: string;
+  investedCapital: number;
+  currentValue: number;
   flowId: string;
+  color?: string;
+}
+
+export interface Transfer {
+  id: string;
   fromPoolId: string;
   toPoolId: string;
   amount: number;
-  note: string;
-  happenedAt: string;
-};
+  timestamp: string;
+}
 
-export type WealthFlow = {
+export interface Flow {
   id: string;
   name: string;
-  category: "Savings" | "Stocks" | "Real Estate" | "Retirement" | "Crypto";
-  description: string;
-};
-
-export type WealthData = {
-  profile: UserProfile;
-  flows: WealthFlow[];
+  description?: string;
+  createdAt: string;
   pools: Pool[];
-  events: TimelineEvent[];
+  actions: Action[];
   transfers: Transfer[];
-};
+  nodes: any[]; // React Flow nodes
+  edges: any[]; // React Flow edges
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  fullName: string;
+  currency: string;
+}
