@@ -15,6 +15,7 @@ import DistributionChart from './components/DistributionChart';
 import TransactionHistory from './components/TransactionHistory';
 import PoolFormModal from './components/PoolFormModal';
 import TransactionModal from './components/TransactionModal';
+import LedgerFlowVisualizer from './components/LedgerFlowVisualizer';
 
 // Import Icons
 import {
@@ -27,7 +28,8 @@ import {
   ListFilter,
   RefreshCw,
   AlertTriangle,
-  Info
+  Info,
+  ArrowRightLeft
 } from 'lucide-react';
 
 export default function App() {
@@ -73,6 +75,21 @@ export default function App() {
 
   // Custom Confirmation Dialog for Pool Deletion
   const [poolToDelete, setPoolToDelete] = useState<InvestmentPool | null>(null);
+
+  // --- Routing State & Hash Sync ---
+  const [currentRoute, setCurrentRoute] = useState<string>(() => {
+    return window.location.hash || '#/';
+  });
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setCurrentRoute(window.location.hash || '#/');
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
 
   // --- Financial Core Calculations ---
   const totalValuation = pools.reduce((sum, p) => sum + p.currentValuation, 0);
@@ -275,6 +292,19 @@ export default function App() {
     return matchesCategory && matchesSearch;
   });
 
+  // Render standalone flow-map subpage if we are on the separate #/flow route
+  if (currentRoute === '#/flow') {
+    return (
+      <LedgerFlowVisualizer
+        pools={pools}
+        transactions={transactions}
+        onClose={() => {
+          window.location.hash = '#/';
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F9F8F6] flex flex-col font-sans" id="app-root-container">
       
@@ -303,6 +333,14 @@ export default function App() {
             >
               <RefreshCw className="w-3 h-3" />
               <span>Defaults</span>
+            </button>
+            <button
+              onClick={() => { window.location.hash = '#/flow'; }}
+              className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1 cursor-pointer"
+              title="Visualize entire transactions & timelines flow map"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5 text-blue-700" />
+              <span>Flow Map</span>
             </button>
             <button
               onClick={() => triggerPoolForm(null)}
