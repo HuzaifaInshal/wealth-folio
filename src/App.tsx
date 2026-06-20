@@ -897,26 +897,26 @@ export default function App() {
               </div>
 
               {/* Pool Search and category quick filters */}
-              <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="mt-5 space-y-4">
                 
                 {/* Search */}
-                <div className="relative flex-1">
-                  <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3 top-3" />
+                <div className="relative w-full">
+                  <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3.5 top-3.5" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search vaults model, asset types..."
-                    className="w-full pl-9 pr-3 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold focus:outline-hidden focus:bg-white focus:border-[#1A1A1A] transition-all text-[#1A1A1A]"
+                    className="w-full pl-10 pr-4 py-3 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold focus:outline-hidden focus:bg-white focus:border-[#1A1A1A] transition-all text-[#1A1A1A]"
                   />
                 </div>
 
                 {/* Filters */}
-                <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-                  <ListFilter className="w-3.5 h-3.5 text-[#8C8C85] flex-shrink-0 hidden sm:block" />
+                <div className="flex items-center space-x-1.5 overflow-x-auto pb-2 scrollbar-none border-t border-[#F1EFEA] pt-3.5">
+                  <ListFilter className="w-3.5 h-3.5 text-[#8C8C85] flex-shrink-0" />
                   
                   {['all', ...Object.keys(CATEGORY_DETAILS)].map((cat) => {
-                    const label = cat === 'all' ? 'All Asset' : CATEGORY_DETAILS[cat as PoolCategory].label.split(' ')[0];
+                    const label = cat === 'all' ? 'All Assets' : CATEGORY_DETAILS[cat as PoolCategory].label;
                     const isActive = categoryFilter === cat;
                     return (
                       <button
