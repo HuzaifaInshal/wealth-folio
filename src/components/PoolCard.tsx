@@ -72,10 +72,6 @@ export default function PoolCard({
   const roi = pool.investedAmount > 0 ? (totalProfit / pool.investedAmount) * 100 : 0;
   const isPositiveReturn = totalProfit >= 0;
 
-  // Goal Progress
-  const progressRatio = pool.targetAmount ? (pool.currentValuation / pool.targetAmount) * 100 : 0;
-  const displayProgress = pool.targetAmount ? Math.min(progressRatio, 100) : 0;
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -166,27 +162,6 @@ export default function PoolCard({
             </span>
           </div>
         </div>
-
-        {/* Goals progress tracking progress */}
-        {pool.targetAmount && (
-          <div className="space-y-1.5 mt-3">
-            <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
-              <span className="text-[#8C8C85]">Savings Target</span>
-              <span className="text-[#1A1A1A]">
-                {displayProgress.toFixed(0)}% of {formatCurrency(pool.targetAmount)}
-              </span>
-            </div>
-            <div className="w-full bg-[#F3F1EC] h-1.5 rounded-none overflow-hidden">
-              <div 
-                className="h-full transition-all duration-500"
-                style={{ 
-                  width: `${displayProgress}%`,
-                  backgroundColor: catDetails.color 
-                }}
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Primary Pool Operations */}

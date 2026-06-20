@@ -79,7 +79,6 @@ export const INITIAL_POOLS: InvestmentPool[] = [
     name: 'Emergency Fund',
     category: 'cash',
     description: 'High-Yield Savings Account (4.5% APY) for unexpected personal emergencies.',
-    targetAmount: 15000,
     investedAmount: 10000,
     currentValuation: 10180, // Accrued interest
     createdAt: dateXDaysAgo(120),
@@ -90,7 +89,6 @@ export const INITIAL_POOLS: InvestmentPool[] = [
     name: 'Tech Growth S&P Basket',
     category: 'stocks',
     description: 'Self-directed index and growth stocks (AAPL, GOOGL, MSFT, VGT).',
-    targetAmount: 30000,
     investedAmount: 18000,
     currentValuation: 21450, // Capital appreciation
     createdAt: dateXDaysAgo(90),
@@ -101,7 +99,6 @@ export const INITIAL_POOLS: InvestmentPool[] = [
     name: 'Long-term Crypto Vault',
     category: 'crypto',
     description: 'Hardware wallet holding BTC and ETH for long term digital standard reservation.',
-    targetAmount: null,
     investedAmount: 6000,
     currentValuation: 8650, // High ROI
     createdAt: dateXDaysAgo(60),
@@ -112,7 +109,6 @@ export const INITIAL_POOLS: InvestmentPool[] = [
     name: 'Roth IRA (Index Funds)',
     category: 'retirement',
     description: 'Tax-advantaged Vanguard target retirement index fund.',
-    targetAmount: 40000,
     investedAmount: 25000,
     currentValuation: 26800,
     createdAt: dateXDaysAgo(150),

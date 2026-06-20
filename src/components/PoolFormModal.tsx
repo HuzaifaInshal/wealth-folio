@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { InvestmentPool, PoolCategory } from '../types';
 import { CATEGORY_DETAILS } from '../data';
-import { X, Trophy, Save, Plus } from 'lucide-react';
+import { X, Save, Plus } from 'lucide-react';
 
 interface PoolFormModalProps {
   isOpen: boolean;
@@ -16,7 +16,6 @@ interface PoolFormModalProps {
     name: string;
     category: PoolCategory;
     description: string;
-    targetAmount: number | null;
     initialBalance: number; // Only for new ones
   }) => void;
 }
@@ -25,7 +24,6 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
   const [name, setName] = useState('');
   const [category, setCategory] = useState<PoolCategory>('cash');
   const [description, setDescription] = useState('');
-  const [targetAmount, setTargetAmount] = useState<string>('');
   const [initialBalance, setInitialBalance] = useState<string>('0');
   const [error, setError] = useState('');
 
@@ -35,14 +33,12 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
       setName(poolToEdit.name);
       setCategory(poolToEdit.category);
       setDescription(poolToEdit.description);
-      setTargetAmount(poolToEdit.targetAmount ? poolToEdit.targetAmount.toString() : '');
       setInitialBalance('0'); // Inactive during edits
     } else {
       // Clear values for new creation
       setName('');
       setCategory('cash');
       setDescription('');
-      setTargetAmount('');
       setInitialBalance('0');
     }
     setError('');
@@ -59,12 +55,6 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
       return;
     }
 
-    const parsedTarget = targetAmount.trim() === '' ? null : parseFloat(targetAmount);
-    if (parsedTarget !== null && (isNaN(parsedTarget) || parsedTarget < 0)) {
-      setError('Target amount must be a positive number.');
-      return;
-    }
-
     const parsedInitial = parseFloat(initialBalance);
     if (isNaN(parsedInitial) || parsedInitial < 0) {
       setError('Initial capital base must be a positive amount.');
@@ -75,7 +65,6 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
       name: name.trim(),
       category,
       description: description.trim(),
-      targetAmount: parsedTarget,
       initialBalance: poolToEdit ? 0 : parsedInitial,
     });
     
@@ -162,53 +151,31 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
             />
           </div>
 
-          {/* Target Amount & Initial Capital row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
-            {/* Target Amount */}
+          {/* Initial Capital / Locked Values Message */}
+          {!poolToEdit ? (
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest flex items-center">
-                <Trophy className="w-3.5 h-3.5 mr-1 text-slate-400" />
-                Target Goal (USD)
+              <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
+                Initial Cash Injected
               </label>
               <input
                 type="number"
-                value={targetAmount}
-                onChange={(e) => setTargetAmount(e.target.value)}
-                placeholder="Optional (e.g., 10000)"
+                value={initialBalance}
+                onChange={(e) => setInitialBalance(e.target.value)}
+                placeholder="e.g. 500"
                 min="0"
                 step="any"
                 className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] font-serif"
               />
-              <span className="text-[10px] text-[#8C8C85] font-serif italic mt-0.5 block">Leave blank for no goal</span>
+              <span className="text-[10px] text-[#8C8C85] font-serif italic mt-0.5 block">Deposits this amount into the pool</span>
             </div>
-
-            {/* Initial Balance (Only visible if brand new creation) */}
-            {!poolToEdit ? (
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
-                  Initial Cash Injected
-                </label>
-                <input
-                  type="number"
-                  value={initialBalance}
-                  onChange={(e) => setInitialBalance(e.target.value)}
-                  placeholder="e.g. 500"
-                  min="0"
-                  step="any"
-                  className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] font-serif"
-                />
-                <span className="text-[10px] text-[#8C8C85] font-serif italic mt-0.5 block">Deposits this amount into the pool</span>
-              </div>
-            ) : (
-              <div className="bg-[#F9F8F6] p-3 rounded-none border border-[#DCDAD2] flex flex-col justify-center">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#1A1A1A]">Edit Locked Values</p>
-                <p className="text-[10px] text-[#8C8C85] font-serif italic mt-1 leading-normal">
-                  To adjust current balances, use the Capital Inflow, Capital Outflow, or Update Valuation actions directly.
-                </p>
-              </div>
-            )}
-          </div>
+          ) : (
+            <div className="bg-[#F9F8F6] p-3 rounded-none border border-[#DCDAD2] flex flex-col justify-center">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#1A1A1A]">Edit Locked Values</p>
+              <p className="text-[10px] text-[#8C8C85] font-serif italic mt-1 leading-normal">
+                To adjust current balances, use the Capital Inflow, Capital Outflow, or Update Valuation actions directly.
+              </p>
+            </div>
+          )}
 
           {/* Form Actions Footer buttons */}
           <div className="flex space-x-3 pt-4 border-t border-[#DCDAD2] mt-4">

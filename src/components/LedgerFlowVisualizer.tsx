@@ -46,7 +46,6 @@ interface LedgerFlowVisualizerProps {
     name: string;
     category: PoolCategory;
     description: string;
-    targetAmount: number | null;
     initialBalance: number;
   }) => void;
   onAddTransaction: (txData: {
@@ -319,7 +318,6 @@ export default function LedgerFlowVisualizer({
   const [newPoolName, setNewPoolName] = useState('');
   const [newPoolCategory, setNewPoolCategory] = useState<PoolCategory>('cash');
   const [newPoolDescription, setNewPoolDescription] = useState('');
-  const [newPoolTargetAmount, setNewPoolTargetAmount] = useState('');
   const [newPoolInitialBalance, setNewPoolInitialBalance] = useState('');
 
   // Form State: Transactions / Transfers
@@ -372,7 +370,6 @@ export default function LedgerFlowVisualizer({
     setNewPoolName('');
     setNewPoolCategory('cash');
     setNewPoolDescription('');
-    setNewPoolTargetAmount('');
     setNewPoolInitialBalance('0');
     setFormError('');
     setIsPoolModalOpen(true);
@@ -396,7 +393,6 @@ export default function LedgerFlowVisualizer({
       name: newPoolName,
       category: newPoolCategory,
       description: newPoolDescription,
-      targetAmount: newPoolTargetAmount ? parseFloat(newPoolTargetAmount) : null,
       initialBalance: initialVal,
     });
 
@@ -821,19 +817,7 @@ export default function LedgerFlowVisualizer({
                   />
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
-                    Saving Cap Target (USD)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="Optional goal target, e.g. 50000"
-                    value={newPoolTargetAmount}
-                    onChange={(e) => setNewPoolTargetAmount(e.target.value)}
-                    className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
-                  />
-                </div>
+
 
                 <div>
                   <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">

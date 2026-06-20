@@ -18,7 +18,6 @@ export interface InvestmentPool {
   name: string;
   category: PoolCategory;
   description: string;
-  targetAmount: number | null; // Optional target for savings goal
   investedAmount: number;     // The net cash capital injected (Deposits - Withdrawals)
   currentValuation: number;   // The latest net market value (can be direct sum or user-updated value)
   createdAt: string;

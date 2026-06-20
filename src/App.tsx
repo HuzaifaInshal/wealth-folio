@@ -111,7 +111,6 @@ export default function App() {
     name: string;
     category: PoolCategory;
     description: string;
-    targetAmount: number | null;
     initialBalance: number;
   }) => {
     const timestamp = new Date().toISOString();
@@ -126,7 +125,6 @@ export default function App() {
                 name: poolData.name,
                 category: poolData.category,
                 description: poolData.description,
-                targetAmount: poolData.targetAmount,
                 updatedAt: timestamp,
               }
             : p
@@ -140,7 +138,6 @@ export default function App() {
         name: poolData.name,
         category: poolData.category,
         description: poolData.description,
-        targetAmount: poolData.targetAmount,
         investedAmount: poolData.initialBalance,
         currentValuation: poolData.initialBalance,
         createdAt: timestamp,
