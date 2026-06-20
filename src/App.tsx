@@ -528,45 +528,6 @@ export default function App() {
 
         {/* Main Content */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-          {/* Page Header */}
-          <div className="space-y-1">
-            <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#8C8C85]">Overview</span>
-            <h2 className="text-3xl font-serif font-bold text-[#1A1A1A]">Consolidated Asset Groups</h2>
-            <p className="text-xs text-[#8C8C85] font-serif italic mt-0.5">Choose a group to view specific ledger transactions and vaults.</p>
-          </div>
-
-          {/* Consolidated Stats */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="overview-metrics-grid">
-            <MetricCard
-              title="Consolidated Net Worth"
-              value={consolidatedValuation}
-              type="currency"
-              theme="blue"
-              subtitle="All groups current valuation"
-            />
-            <MetricCard
-              title="Consolidated Invested"
-              value={consolidatedInvested}
-              type="currency"
-              theme="indigo"
-              subtitle="Raw net cash contributions injected"
-            />
-            <MetricCard
-              title="Consolidated Profit"
-              value={consolidatedReturns}
-              type="currency"
-              theme="emerald"
-              change={consolidatedROI}
-              subtitle="Accumulated appreciation"
-            />
-            <MetricCard
-              title="Consolidated ROI"
-              value={consolidatedROI}
-              type="percent"
-              theme="amber"
-              subtitle="Overall return on capital"
-            />
-          </section>
 
           {/* Groups Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="groups-grid">
