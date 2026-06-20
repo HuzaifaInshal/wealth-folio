@@ -5,8 +5,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { Coins, Shield, ArrowRightLeft, Folder, Scale, ChevronRight } from 'lucide-react';
-import heroIllustration from '../assets/landing_hero_illustration.png';
+import { Coins, Shield, ArrowRightLeft, Folder, Scale, ChevronRight, TrendingUp } from 'lucide-react';
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -112,19 +111,137 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
             </motion.div>
           </div>
 
-          {/* Right Image/Illustration Column */}
+          {/* Right Column: Custom Animated Nodes Diagram */}
           <div className="lg:col-span-5 flex justify-center items-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.65, ease: 'easeOut' }}
-              className="relative p-2 bg-white border border-[#DCDAD2] shadow-2xl max-w-md w-full aspect-square overflow-hidden"
+              className="relative w-full max-w-md aspect-square bg-[#F5F3EE] border border-[#DCDAD2] shadow-2xl p-6 overflow-hidden select-none"
             >
-              <img
-                src={heroIllustration}
-                alt="Wealth Folio Abstract Ledger Visual"
-                className="w-full h-full object-cover select-none pointer-events-none"
-              />
+              {/* Dot Grid Background */}
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,#EAE9E2_1px,transparent_1px),linear-gradient(to_bottom,#EAE9E2_1px,transparent_1px)] bg-[size:20px_20px] opacity-40"></div>
+              
+              {/* CSS Marching Ants Animation */}
+              <style>{`
+                @keyframes flowDash {
+                  to {
+                    stroke-dashoffset: -20;
+                  }
+                }
+                .flow-path-blue {
+                  stroke-dasharray: 6, 6;
+                  animation: flowDash 0.8s linear infinite;
+                }
+                .flow-path-emerald {
+                  stroke-dasharray: 6, 6;
+                  animation: flowDash 1.2s linear infinite;
+                }
+              `}</style>
+
+              {/* SVG Flow Connections */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Node 1 to Node 2 Path */}
+                <path
+                  d="M 180 205 C 230 205, 270 95, 320 95"
+                  stroke="#3b82f6"
+                  strokeWidth="2"
+                  className="flow-path-blue"
+                />
+                {/* Node 1 to Node 3 Path */}
+                <path
+                  d="M 180 205 C 230 205, 270 325, 320 325"
+                  stroke="#10b981"
+                  strokeWidth="2"
+                  className="flow-path-emerald"
+                />
+              </svg>
+
+              {/* Node 1: Cash/Savings source (Left) */}
+              <div className="absolute left-[4%] top-[32%] z-10 bg-white border border-[#1A1A1A] p-3 w-[160px] shadow-lg">
+                <div className="flex items-center space-x-2 border-b border-[#DCDAD2] pb-1.5 mb-2">
+                  <span className="p-1 bg-[#1A1A1A] text-white flex items-center justify-center font-bold">
+                    <Coins className="w-3.5 h-3.5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-serif font-bold text-[10px] text-[#1A1A1A] block truncate">Checking Vault</span>
+                    <span className="text-[8px] uppercase tracking-wider text-[#8C8C85] block font-mono">Cash & Savings</span>
+                  </div>
+                </div>
+                <div className="space-y-0.5 text-[9px] text-[#1A1A1A]">
+                  <div className="flex justify-between">
+                    <span className="text-[#8C8C85] font-serif italic">Ledger Value:</span>
+                    <span className="font-bold font-serif">$12,450</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8C8C85] font-serif italic">Status:</span>
+                    <span className="text-emerald-700 font-mono text-[8px] uppercase font-bold">Active Inflow</span>
+                  </div>
+                </div>
+                <div className="absolute right-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1A1A1A] rounded-full border border-white"></div>
+              </div>
+
+              {/* Node 2: Stocks/Equities target (Right Top) */}
+              <div className="absolute right-[4%] top-[12%] z-10 bg-white border border-[#DCDAD2] p-3 w-[160px] shadow-lg hover:border-[#1A1A1A] transition-colors">
+                <div className="flex items-center space-x-2 border-b border-[#DCDAD2] pb-1.5 mb-2">
+                  <span className="p-1 bg-blue-700 text-white flex items-center justify-center font-bold">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-serif font-bold text-[10px] text-[#1A1A1A] block truncate">Growth Equities</span>
+                    <span className="text-[8px] uppercase tracking-wider text-[#8C8C85] block font-mono">Stocks & Equities</span>
+                  </div>
+                </div>
+                <div className="space-y-0.5 text-[9px] text-[#1A1A1A]">
+                  <div className="flex justify-between">
+                    <span className="text-[#8C8C85] font-serif italic">Current Valuation:</span>
+                    <span className="font-bold font-serif">$32,080</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8C8C85] font-serif italic">ROI/Yield:</span>
+                    <span className="text-emerald-700 font-serif font-bold">+18.4%</span>
+                  </div>
+                </div>
+                <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1A1A1A] rounded-full border border-white"></div>
+              </div>
+
+              {/* Node 3: Retirement target (Right Bottom) */}
+              <div className="absolute right-[4%] top-[58%] z-10 bg-white border border-[#DCDAD2] p-3 w-[160px] shadow-lg hover:border-[#1A1A1A] transition-colors">
+                <div className="flex items-center space-x-2 border-b border-[#DCDAD2] pb-1.5 mb-2">
+                  <span className="p-1 bg-emerald-700 text-white flex items-center justify-center font-bold">
+                    <Shield className="w-3.5 h-3.5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-serif font-bold text-[10px] text-[#1A1A1A] block truncate">Emergency Fund</span>
+                    <span className="text-[8px] uppercase tracking-wider text-[#8C8C85] block font-mono">Secure Reserve</span>
+                  </div>
+                </div>
+                <div className="space-y-0.5 text-[9px] text-[#1A1A1A]">
+                  <div className="flex justify-between">
+                    <span className="text-[#8C8C85] font-serif italic">Current Valuation:</span>
+                    <span className="font-bold font-serif">$8,000</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8C8C85] font-serif italic">Target Cap:</span>
+                    <span className="font-mono text-[#8C8C85]">$10,000</span>
+                  </div>
+                </div>
+                <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1A1A1A] rounded-full border border-white"></div>
+              </div>
+
+              {/* Flow Path Badges */}
+              <div className="absolute left-[50%] top-[27%] -translate-x-1/2 -translate-y-1/2 bg-blue-50 border border-blue-200 text-blue-800 text-[8px] font-bold px-1.5 py-0.5 font-mono shadow-xs select-none">
+                Rebalance $500
+              </div>
+              <div className="absolute left-[50%] top-[50%] -translate-x-1/2 -translate-y-1/2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[8px] font-bold px-1.5 py-0.5 font-mono shadow-xs select-none">
+                Inflow $200
+              </div>
+
+              {/* Visual Caption Badge */}
+              <div className="absolute bottom-3 left-3 bg-white/90 border border-[#DCDAD2] px-2 py-0.5 text-[8px] text-[#8C8C85] font-serif italic flex items-center space-x-1 shadow-xs backdrop-blur-xs select-none">
+                <div className="w-1 h-1 bg-blue-600 rounded-full animate-pulse"></div>
+                <span>Interactive Ledger flow map overview</span>
+              </div>
             </motion.div>
           </div>
 
