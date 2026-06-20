@@ -33,7 +33,8 @@ import {
   ArrowRightLeft,
   Folder,
   ChevronDown,
-  Settings
+  Settings,
+  Trash2
 } from 'lucide-react';
 
 export default function App() {
@@ -144,11 +145,6 @@ export default function App() {
         if (groups.some(g => g.id === idFromHash)) {
           setActiveGroupId(idFromHash);
         }
-      } else if (hash === '#/' || hash === '') {
-        if (groups.length > 0) {
-          // If we are at root, set hash to include the active group ID
-          window.location.hash = `#/group/${activeGroupId}`;
-        }
       }
     };
 
@@ -159,7 +155,13 @@ export default function App() {
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [groups, activeGroupId]);
+  }, [groups]);
+
+  // --- Consolidated Core Calculations (Across all groups/pools) ---
+  const consolidatedValuation = pools.reduce((sum, p) => sum + p.currentValuation, 0);
+  const consolidatedInvested = pools.reduce((sum, p) => sum + p.investedAmount, 0);
+  const consolidatedReturns = consolidatedValuation - consolidatedInvested;
+  const consolidatedROI = consolidatedInvested > 0 ? (consolidatedReturns / consolidatedInvested) * 100 : 0;
 
   // --- Group Level Separation Helpers ---
   const activeGroupPools = pools.filter(p => p.groupId === activeGroupId);
@@ -188,7 +190,7 @@ export default function App() {
       setPools(INITIAL_POOLS);
       setTransactions(INITIAL_TRANSACTIONS);
       setActiveGroupId(INITIAL_GROUPS[0].id);
-      window.location.hash = `#/group/${INITIAL_GROUPS[0].id}`;
+      window.location.hash = `#/`;
     }
   };
 
@@ -207,14 +209,11 @@ export default function App() {
       !(t.destinationPoolId && poolIdsToDelete.includes(t.destinationPoolId))
     ));
 
-    // Route to another group if possible
+    // Route back to groups listing or update active group
     if (remainingGroups.length > 0) {
-      const nextActiveId = remainingGroups[0].id;
-      setActiveGroupId(nextActiveId);
-      window.location.hash = `#/group/${nextActiveId}`;
-    } else {
-      window.location.hash = '#/';
+      setActiveGroupId(remainingGroups[0].id);
     }
+    window.location.hash = '#/';
   };
 
   const handleGroupSubmit = (groupData: { title: string; description: string }) => {
@@ -483,6 +482,218 @@ export default function App() {
     );
   }
 
+  // Render Groups List Page (Base Route `#/` or empty route)
+  if (currentRoute === '#/' || currentRoute === '' || currentRoute === '#') {
+    return (
+      <div className="min-h-screen bg-[#F9F8F6] flex flex-col font-sans" id="app-root-container">
+        {/* Navigation Bar */}
+        <header className="bg-white border-b border-[#DCDAD2] sticky top-0 z-40" id="header-navigation">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-3.5 self-start sm:self-auto">
+              <div className="p-2.5 bg-[#1A1A1A] text-white rounded-none border border-[#1A1A1A]">
+                <Coins className="w-5 h-5" />
+              </div>
+              <div>
+                <h1 className="text-xl font-serif font-bold text-[#1A1A1A] tracking-tight flex items-center">
+                  Wealth <span className="font-serif italic font-normal text-[#8C8C85] ml-1.5">Folio</span>
+                </h1>
+                <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-[#8C8C85] mt-0.5">
+                  Oikos Financial Ledger & Vaults
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2.5 self-end sm:self-auto">
+              <button
+                onClick={handleResetData}
+                className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1 cursor-pointer"
+                title="Reset data to defaults"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span>Defaults</span>
+              </button>
+              <button
+                onClick={() => {
+                  setGroupToEdit(null);
+                  setIsGroupModalOpen(true);
+                }}
+                className="px-4.5 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white rounded-none text-[10px] uppercase tracking-widest font-bold shadow-xs transition-all flex items-center space-x-1.5 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create Group</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          {/* Page Header */}
+          <div className="space-y-1">
+            <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#8C8C85]">Overview</span>
+            <h2 className="text-3xl font-serif font-bold text-[#1A1A1A]">Consolidated Asset Groups</h2>
+            <p className="text-xs text-[#8C8C85] font-serif italic mt-0.5">Choose a group to view specific ledger transactions and vaults.</p>
+          </div>
+
+          {/* Consolidated Stats */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="overview-metrics-grid">
+            <MetricCard
+              title="Consolidated Net Worth"
+              value={consolidatedValuation}
+              type="currency"
+              theme="blue"
+              subtitle="All groups current valuation"
+            />
+            <MetricCard
+              title="Consolidated Invested"
+              value={consolidatedInvested}
+              type="currency"
+              theme="indigo"
+              subtitle="Raw net cash contributions injected"
+            />
+            <MetricCard
+              title="Consolidated Profit"
+              value={consolidatedReturns}
+              type="currency"
+              theme="emerald"
+              change={consolidatedROI}
+              subtitle="Accumulated appreciation"
+            />
+            <MetricCard
+              title="Consolidated ROI"
+              value={consolidatedROI}
+              type="percent"
+              theme="amber"
+              subtitle="Overall return on capital"
+            />
+          </section>
+
+          {/* Groups Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="groups-grid">
+            <AnimatePresence>
+              {groups.map((group) => {
+                const groupPools = pools.filter((p) => p.groupId === group.id);
+                const val = groupPools.reduce((sum, p) => sum + p.currentValuation, 0);
+                const inv = groupPools.reduce((sum, p) => sum + p.investedAmount, 0);
+                const ret = val - inv;
+                const roi = inv > 0 ? (ret / inv) * 100 : 0;
+                
+                const formatGroupCurrency = (amount: number) => {
+                  return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    maximumFractionDigits: 0,
+                  }).format(amount);
+                };
+
+                return (
+                  <motion.div
+                    key={group.id}
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    onClick={() => {
+                      setActiveGroupId(group.id);
+                      window.location.hash = `#/group/${group.id}`;
+                    }}
+                    className="bg-white border border-[#DCDAD2] rounded-none hover:border-[#1A1A1A] hover:shadow-md cursor-pointer transition-all duration-300 p-6 flex flex-col justify-between overflow-hidden relative group/card"
+                  >
+                    <div className="space-y-4">
+                      {/* Header */}
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1 pr-6 flex-1 min-w-0">
+                          <h4 className="text-xl font-serif font-bold text-[#1A1A1A] tracking-tight group-hover/card:text-[#8C8C85] transition-colors truncate">
+                            {group.title}
+                          </h4>
+                          <span className="inline-flex items-center text-[9px] font-bold tracking-widest uppercase text-[#8C8C85] border border-[#DCDAD2] px-2 py-0.5 bg-[#F9F8F6]">
+                            {groupPools.length} {groupPools.length === 1 ? 'Pool' : 'Pools'}
+                          </span>
+                        </div>
+
+                        {/* Quick controls */}
+                        <div className="flex items-center space-x-1 relative z-25">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setGroupToEdit(group);
+                              setIsGroupModalOpen(true);
+                            }}
+                            className="p-1.5 text-[#8C8C85] hover:text-[#1A1A1A] hover:bg-[#F9F8F6] border border-transparent hover:border-[#DCDAD2] transition-colors"
+                            title="Edit group details"
+                          >
+                            <Settings className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm(`Permanently delete group "${group.title}"?\n\nWARNING: This will permanently delete all Pools in this group and their full transaction history.`)) {
+                                handleDeleteGroup(group.id);
+                              }
+                            }}
+                            className="p-1.5 text-[#8C8C85] hover:text-rose-750 hover:bg-rose-50/50 border border-transparent hover:border-rose-250 transition-colors"
+                            title="Delete group"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-xs text-[#6B6B66] line-clamp-2 leading-relaxed font-serif italic text-pretty min-h-[32px]">
+                        {group.description || 'No description provided.'}
+                      </p>
+
+                      {/* Stats */}
+                      <div className="border-t border-[#DCDAD2] pt-4 grid grid-cols-2 gap-4 mt-2">
+                        <div>
+                          <span className="text-[9px] font-bold text-[#8C8C85] uppercase tracking-[0.12em] block">
+                            Net Valuation
+                          </span>
+                          <span className="text-lg font-serif text-[#1A1A1A] block mt-0.5">
+                            {formatGroupCurrency(val)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-bold text-[#8C8C85] uppercase tracking-[0.12em] block">
+                            ROI / Yield
+                          </span>
+                          {inv > 0 ? (
+                            <span className={`text-xs font-serif font-bold mt-1.5 block ${ret >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                              {ret >= 0 ? '+' : ''}{roi.toFixed(1)}%
+                            </span>
+                          ) : (
+                            <span className="text-xs text-[#8C8C85] mt-1.5 block">0%</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-white border-t border-[#DCDAD2] mt-16 py-8 text-center text-xs text-[#8C8C85]">
+          <div className="max-w-7xl mx-auto px-4 font-serif italic space-y-1">
+            <p>© 2026 Savings and Investment Tracker • Secured Locally via State Persistence Engine</p>
+            <p className="text-[10px] font-sans not-italic uppercase tracking-widest text-[#B5B3AC]">Designed with desktop density and micro-animations for clean wealth overview</p>
+          </div>
+        </footer>
+
+        {/* Modal Popups */}
+        <GroupFormModal
+          isOpen={isGroupModalOpen}
+          groupToEdit={groupToEdit}
+          onClose={() => { setIsGroupModalOpen(false); setGroupToEdit(null); }}
+          onSubmit={handleGroupSubmit}
+        />
+      </div>
+    );
+  }
+
+  // Render Group Detail Dashboard
   const activeGroup = groups.find((g) => g.id === activeGroupId) || groups[0];
 
   return (
@@ -649,6 +860,12 @@ export default function App() {
               className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] hover:border-[#1A1A1A] text-[#1A1A1A] font-bold uppercase tracking-wider rounded-none bg-[#F9F8F6] hover:bg-white transition-all cursor-pointer flex-1 sm:flex-none text-center"
             >
               Edit Group Details
+            </button>
+            <button
+              onClick={() => { window.location.hash = '#/'; }}
+              className="px-3.5 py-2 text-[10px] border border-[#1A1A1A] hover:bg-black text-white font-bold uppercase tracking-wider rounded-none bg-[#1A1A1A] transition-all cursor-pointer flex-1 sm:flex-none text-center"
+            >
+              ← Back to Groups
             </button>
           </div>
         </div>
