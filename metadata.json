@@ -1,0 +1,6 @@
+{
+  "name": "Wealth Folio",
+  "description": "An elegant visual platform to track savings and investment pools, manage deposits, withdrawals, transfers, and real-time market valuations with performance insights.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
