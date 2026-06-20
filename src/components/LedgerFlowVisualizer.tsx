@@ -13,6 +13,7 @@ import {
   Handle,
   type Node,
   type Edge,
+  type Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -33,16 +34,31 @@ import {
   Sparkles as GoldIcon,
   FileText,
   HelpCircle,
-  Maximize2,
-  Minimize2,
-  ZoomIn,
   Search,
-  Filter
+  Filter,
+  Info
 } from 'lucide-react';
 
 interface LedgerFlowVisualizerProps {
   pools: InvestmentPool[];
   transactions: Transaction[];
+  onAddPool: (poolData: {
+    name: string;
+    category: PoolCategory;
+    description: string;
+    targetAmount: number | null;
+    initialBalance: number;
+  }) => void;
+  onAddTransaction: (txData: {
+    type: TransactionType;
+    poolId: string;
+    sourcePoolId?: string;
+    destinationPoolId?: string;
+    amount: number;
+    newValuation?: number;
+    note: string;
+  }) => void;
+  onDeletePool: (poolId: string) => void;
   onClose: () => void;
 }
 
@@ -128,26 +144,26 @@ const getTransactionBadgeDetails = (type: TransactionType) => {
   }
 };
 
-// 1. --- Custom POOL NODE Component ---
+// 1. --- Custom POOL NODE Component with Direct Actions ---
 const PoolNodeComponent = ({ data }: { data: any }) => {
   const pool = data.pool as InvestmentPool;
   const catDetails = CATEGORY_DETAILS[pool.category];
   
   return (
-    <div className="bg-white border border-[#1A1A1A] p-4 min-w-[220px] text-left transition-all relative">
+    <div className="bg-white border border-[#1A1A1A] p-4 min-w-[240px] text-left shadow-md transition-all relative select-none">
       {/* Target handle - left */}
       <Handle type="target" position={Position.Left} className="!w-2.5 !h-2.5 !bg-[#1A1A1A]" />
       
       {/* Header */}
       <div className="flex items-center space-x-2 border-b border-[#DCDAD2] pb-2 mb-2.5">
         <span 
-          className="p-1 px-1.5 text-white flex items-center justify-center" 
-          style={{ backgroundColor: catDetails?.color || '#64748b' }}
+          className="p-1 px-1.5 text-white flex items-center justify-center font-bold" 
+          style={{ backgroundColor: catDetails?.color || '#1A1A1A' }}
         >
           {getCategoryIcon(pool.category)}
         </span>
-        <div className="min-w-0">
-          <span className="font-serif font-bold text-xs text-[#1A1A1A] block truncate max-w-[140px]">
+        <div className="min-w-0 flex-1">
+          <span className="font-serif font-bold text-xs text-[#1A1A1A] block truncate pr-2">
             {pool.name}
           </span>
           <span className="text-[9px] uppercase tracking-wider text-[#8C8C85] block font-mono">
@@ -170,14 +186,38 @@ const PoolNodeComponent = ({ data }: { data: any }) => {
             {formatCurrency(pool.investedAmount)}
           </span>
         </div>
-        {pool.targetAmount && (
-          <div className="pt-1.5 border-t border-[#F1EFEA] mt-1.5 flex justify-between items-center text-[9px]">
-            <span className="text-[#8C8C85]">Goal Progress:</span>
-            <span className="font-serif font-semibold text-[#1A1A1A]">
-              {Math.round((pool.currentValuation / pool.targetAmount) * 100)}% of {formatCurrency(pool.targetAmount)}
-            </span>
-          </div>
-        )}
+      </div>
+
+      {/* Interactivity quick-bar */}
+      <div className="mt-3.5 pt-2.5 border-t border-[#F1EFEA] flex justify-between gap-1">
+        <button 
+          onClick={(e) => { e.stopPropagation(); data.onAddTx('deposit'); }}
+          className="px-1.5 py-1 bg-[#F9F8F6] border border-[#DCDAD2] hover:border-[#1A1A1A] text-[9px] uppercase tracking-wider font-bold text-[#1A1A1A] cursor-pointer"
+          title="Deposit funds"
+        >
+          + Inflow
+        </button>
+        <button 
+          onClick={(e) => { e.stopPropagation(); data.onAddTx('withdrawal'); }}
+          className="px-1.5 py-1 bg-[#F9F8F6] border border-[#DCDAD2] hover:border-[#1A1A1A] text-[9px] uppercase tracking-wider font-bold text-[#1A1A1A] cursor-pointer"
+          title="Withdraw cash"
+        >
+          - Outflow
+        </button>
+        <button 
+          onClick={(e) => { e.stopPropagation(); data.onAddTx('valuation_adjustment'); }}
+          className="px-1.5 py-1 bg-[#F9F8F6] border border-[#DCDAD2] hover:border-[#1A1A1A] text-[9px] uppercase tracking-wider font-bold text-[#1A1A1A] cursor-pointer"
+          title="Update value balance"
+        >
+          Value
+        </button>
+        <button 
+          onClick={(e) => { e.stopPropagation(); data.onDelete(); }}
+          className="p-1 text-rose-700 hover:bg-[#FFF0F0] border border-transparent hover:border-[#FCD2D2] cursor-pointer flex items-center justify-center"
+          title="Delete this pool"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {/* Source handle - right */}
@@ -192,7 +232,6 @@ const TransactionNodeComponent = ({ data }: { data: any }) => {
   const type = tx.type;
   const badge = getTransactionBadgeDetails(type);
   
-  // Format specific content based on transaction type
   const isAdjustment = type === 'valuation_adjustment';
   const displayAmount = isAdjustment && tx.newValuation !== undefined && tx.previousValuation !== undefined
     ? tx.newValuation - tx.previousValuation
@@ -201,11 +240,9 @@ const TransactionNodeComponent = ({ data }: { data: any }) => {
   const isPositive = displayAmount >= 0;
 
   return (
-    <div className="bg-[#F9F8F6] border border-[#DCDAD2] hover:border-[#1A1A1A] p-3.5 min-w-[240px] text-left transition-all relative">
-      {/* Target handle - left */}
+    <div className="bg-[#F9F8F6] border border-[#DCDAD2] hover:border-[#1A1A1A] p-3.5 min-w-[240px] text-left transition-all relative select-none">
       <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-[#8C8C85]" />
 
-      {/* Header Row */}
       <div className="flex items-center justify-between border-b border-[#DCDAD2] pb-1.5 mb-2">
         <span className={`inline-flex items-center space-x-1 px-1.5 py-0.5 border text-[9px] font-bold uppercase tracking-widest ${badge.bg} ${badge.text}`}>
           {badge.icon}
@@ -216,7 +253,6 @@ const TransactionNodeComponent = ({ data }: { data: any }) => {
         </span>
       </div>
 
-      {/* Core values */}
       <div className="space-y-1 text-[10px]">
         {isAdjustment ? (
           <>
@@ -244,7 +280,6 @@ const TransactionNodeComponent = ({ data }: { data: any }) => {
           </div>
         )}
 
-        {/* Note */}
         {tx.note && (
           <div className="text-[9px] text-[#6B6B66] font-serif italic leading-relaxed line-clamp-2 mt-1.5 border-t border-[#EAE9E2] pt-1.5">
             &ldquo;{tx.note}&rdquo;
@@ -252,29 +287,211 @@ const TransactionNodeComponent = ({ data }: { data: any }) => {
         )}
       </div>
 
-      {/* Source handle - right */}
       <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-[#8C8C85]" />
     </div>
   );
 };
 
-// NodeTypes mapping
 const nodeTypes = {
   poolNode: PoolNodeComponent,
   transactionNode: TransactionNodeComponent,
 };
 
-export default function LedgerFlowVisualizer({ pools, transactions, onClose }: LedgerFlowVisualizerProps) {
+export default function LedgerFlowVisualizer({
+  pools,
+  transactions,
+  onAddPool,
+  onAddTransaction,
+  onDeletePool,
+  onClose,
+}: LedgerFlowVisualizerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Generate Nodes and Edges
+  // --- State for Interactive Features inside Flow ---
+  const [isActionPopupOpen, setIsActionPopupOpen] = useState(false);
+  const [isPoolModalOpen, setIsPoolModalOpen] = useState(false);
+  const [isTxModalOpen, setIsTxModalOpen] = useState(false);
+  const [txType, setTxType] = useState<TransactionType>('deposit');
+  const [selectedPool, setSelectedPool] = useState<InvestmentPool | null>(null);
+
+  // Form State: Pool creation
+  const [newPoolName, setNewPoolName] = useState('');
+  const [newPoolCategory, setNewPoolCategory] = useState<PoolCategory>('cash');
+  const [newPoolDescription, setNewPoolDescription] = useState('');
+  const [newPoolTargetAmount, setNewPoolTargetAmount] = useState('');
+  const [newPoolInitialBalance, setNewPoolInitialBalance] = useState('');
+
+  // Form State: Transactions / Transfers
+  const [txAmount, setTxAmount] = useState('');
+  const [txNote, setTxNote] = useState('');
+  const [txNewValuation, setTxNewValuation] = useState('');
+  const [sourcePoolId, setSourcePoolId] = useState('');
+  const [destinationPoolId, setDestinationPoolId] = useState('');
+  const [formError, setFormError] = useState('');
+
+  // Custom connection helper: drawing wire automatically triggers Transfer dialog
+  const handleConnect = (params: Connection) => {
+    const srcId = params.source;
+    const destId = params.target;
+
+    // Check if both are valid pools
+    const srcPool = pools.find((p) => p.id === srcId);
+    const destPool = pools.find((p) => p.id === destId);
+
+    if (srcPool && destPool && srcPool.id !== destPool.id) {
+      setTxType('transfer');
+      setSourcePoolId(srcPool.id);
+      setSelectedPool(srcPool);
+      setDestinationPoolId(destPool.id);
+      setTxAmount('');
+      setTxNote(`Rebalancing reallocation to ${destPool.name}`);
+      setFormError('');
+      setIsTxModalOpen(true);
+    }
+  };
+
+  // Setup callbacks for node triggers
+  const handleOpenAddTxModal = (pool: InvestmentPool, type: TransactionType) => {
+    setSelectedPool(pool);
+    setTxType(type);
+    setSourcePoolId('');
+    setDestinationPoolId('');
+    setTxAmount('');
+    setTxNote('');
+    setFormError('');
+    if (type === 'valuation_adjustment') {
+      setTxNewValuation(pool.currentValuation.toString());
+    } else {
+      setTxNewValuation('');
+    }
+    setIsTxModalOpen(true);
+  };
+
+  const handleOpenAddPoolModal = () => {
+    setNewPoolName('');
+    setNewPoolCategory('cash');
+    setNewPoolDescription('');
+    setNewPoolTargetAmount('');
+    setNewPoolInitialBalance('0');
+    setFormError('');
+    setIsPoolModalOpen(true);
+  };
+
+  // Form Submitters
+  const handlePoolFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPoolName.trim()) {
+      setFormError('Name is required.');
+      return;
+    }
+
+    const initialVal = parseFloat(newPoolInitialBalance) || 0;
+    if (initialVal < 0) {
+      setFormError('Initial capital cannot be negative.');
+      return;
+    }
+
+    onAddPool({
+      name: newPoolName,
+      category: newPoolCategory,
+      description: newPoolDescription,
+      targetAmount: newPoolTargetAmount ? parseFloat(newPoolTargetAmount) : null,
+      initialBalance: initialVal,
+    });
+
+    setIsPoolModalOpen(false);
+  };
+
+  const handleTxFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (txType === 'transfer') {
+      const srcIdToUse = sourcePoolId || (selectedPool ? selectedPool.id : '');
+      const destIdToUse = destinationPoolId;
+
+      if (!srcIdToUse || !destIdToUse) {
+        setFormError('You must specify both Source and Target pools.');
+        return;
+      }
+      if (srcIdToUse === destIdToUse) {
+        setFormError('Source and Target pools cannot be identical.');
+        return;
+      }
+
+      const amt = parseFloat(txAmount);
+      if (isNaN(amt) || amt <= 0) {
+        setFormError('Please input a valid amount greater than zero.');
+        return;
+      }
+
+      const srcPool = pools.find((p) => p.id === srcIdToUse);
+      if (srcPool && srcPool.currentValuation < amt) {
+        setFormError(`Insufficient balance. Max transferable is ${formatCurrency(srcPool.currentValuation)}.`);
+        return;
+      }
+
+      onAddTransaction({
+        type: 'transfer',
+        poolId: srcIdToUse, // Source pool acts as primary anchor
+        sourcePoolId: srcIdToUse,
+        destinationPoolId: destIdToUse,
+        amount: amt,
+        note: txNote || `Transferred assets internally`,
+      });
+
+    } else {
+      // Deposit, Withdrawal, Valuation Adjustment
+      if (!selectedPool) {
+        setFormError('Source pool is unresolved.');
+        return;
+      }
+
+      if (txType === 'valuation_adjustment') {
+        const newVal = parseFloat(txNewValuation);
+        if (isNaN(newVal) || newVal < 0) {
+          setFormError('Please enter a valid ending valuation balance.');
+          return;
+        }
+
+        onAddTransaction({
+          type: 'valuation_adjustment',
+          poolId: selectedPool.id,
+          amount: 0,
+          newValuation: newVal,
+          note: txNote || 'Revalued account statement balance',
+        });
+
+      } else {
+        const amt = parseFloat(txAmount);
+        if (isNaN(amt) || amt <= 0) {
+          setFormError('Please input a valid transaction amount.');
+          return;
+        }
+
+        if (txType === 'withdrawal' && selectedPool.currentValuation < amt) {
+          setFormError(`Withdrawing too much! Max available from this vault is ${formatCurrency(selectedPool.currentValuation)}.`);
+          return;
+        }
+
+        onAddTransaction({
+          type: txType,
+          poolId: selectedPool.id,
+          amount: amt,
+          note: txNote || `${txType === 'deposit' ? 'Capital deposit' : 'Atm cash withdrawal'}`,
+        });
+      }
+    }
+
+    setIsTxModalOpen(false);
+  };
+
+  // Generate Nodes and Edges based on state
   const { nodes, edges } = useMemo(() => {
     const listNodes: Node[] = [];
     const listEdges: Edge[] = [];
 
-    // Filter pools
+    // Filter pools dynamically
     const filteredPools = pools.filter((p) => {
       const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -286,16 +503,23 @@ export default function LedgerFlowVisualizer({ pools, transactions, onClose }: L
     filteredPools.forEach((pool, poolIndex) => {
       const yOffset = poolIndex * 260 + 100;
 
-      // Pool Node
+      // Pool Node containing the dynamic handlers inside data
       listNodes.push({
         id: pool.id,
         type: 'poolNode',
         position: { x: 50, y: yOffset },
-        data: { pool },
+        data: { 
+          pool,
+          onAddTx: (type: TransactionType) => handleOpenAddTxModal(pool, type),
+          onDelete: () => {
+            if (window.confirm(`Are you sure you want to permanently delete pool "${pool.name}"? This deletes its history.`)) {
+              onDeletePool(pool.id);
+            }
+          }
+        },
       });
 
       // Filter transactions for this pool
-      // Direct transactions
       const directTxs = transactions.filter(
         (tx) => tx.poolId === pool.id || tx.sourcePoolId === pool.id || tx.destinationPoolId === pool.id
       );
@@ -308,7 +532,7 @@ export default function LedgerFlowVisualizer({ pools, transactions, onClose }: L
       // Map Transactions horizontally as children in timeline
       sortedTxs.forEach((tx, txIndex) => {
         const txNodeId = `node-${tx.id}-${pool.id}`; // custom node id per lane instance
-        const xOffset = 360 + txIndex * 290;
+        const xOffset = 390 + txIndex * 290;
 
         listNodes.push({
           id: txNodeId,
@@ -342,7 +566,6 @@ export default function LedgerFlowVisualizer({ pools, transactions, onClose }: L
         if (tx.type === 'transfer' && tx.sourcePoolId === pool.id && tx.destinationPoolId) {
           // If this is the origin node, draw a directed edge from this transfer transaction node
           // to the destination pool root node!
-          // But check if destination pool is loaded in the filtered preview list
           const destPoolExists = filteredPools.some((p) => p.id === tx.destinationPoolId);
           if (destPoolExists) {
             listEdges.push({
@@ -369,82 +592,60 @@ export default function LedgerFlowVisualizer({ pools, transactions, onClose }: L
       className="fixed inset-0 bg-[#FAF9F5] flex flex-col h-screen w-screen overflow-hidden text-left z-40"
       id="ledger-flow-visualizer-page"
     >
-      <div className="flex-1 flex flex-col h-full w-full">
-        {/* Header toolbar */}
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between px-6 py-4 border-b border-[#DCDAD2] gap-4 bg-white">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-[#1A1A1A] text-white rounded-none">
-              <ArrowRightLeft className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="font-serif font-bold text-base text-[#1A1A1A] flex items-center">
-                Visual Ledger Flow Map
-                <span className="ml-2 text-[9px] uppercase tracking-widest font-sans font-bold bg-[#F9F8F6] border border-[#DCDAD2] px-1.5 py-0.5 text-[#8C8C85]">
-                  React Flow Route
-                </span>
-              </h3>
-              <p className="text-[11px] text-[#8C8C85] font-serif italic">
-                Interactive chronological timelines and rebalancing routes across all accounts
-              </p>
-            </div>
+      <div className="flex-1 flex flex-col h-full w-full relative">
+        {/* --- DYNAMIC FLOATING SEARCH / FILTER BAR --- */}
+        <div className="absolute top-4 right-4 z-20 flex items-center space-x-3 bg-white p-2.5 border border-[#DCDAD2] shadow-md">
+          {/* Search */}
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3 top-2.5" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search pools..."
+              className="pl-8 pr-3 py-1 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs text-[#1A1A1A] focus:outline-hidden focus:bg-white focus:border-[#1A1A1A] w-40 sm:w-48 transition-all"
+            />
           </div>
 
-          {/* Controls */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Search */}
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3 top-2.5" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search mapped pools..."
-                className="pl-8 pr-3 py-1.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs text-[#1A1A1A] focus:outline-hidden focus:bg-white focus:border-[#1A1A1A] w-48 transition-all"
-              />
-            </div>
-
-            {/* Filter Category */}
-            <div className="flex items-center space-x-1 border border-[#DCDAD2] p-1 bg-white">
-              <Filter className="w-3 h-3 text-[#8C8C85] ml-1" />
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="text-[10px] uppercase tracking-wider font-bold text-[#1A1A1A] bg-transparent focus:outline-hidden pr-3 cursor-pointer"
-              >
-                <option value="all">All Groups</option>
-                {Object.keys(CATEGORY_DETAILS).map((cat) => (
-                  <option key={cat} value={cat}>
-                    {CATEGORY_DETAILS[cat as PoolCategory].label.split(' ')[0]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-[#F9F8F6] text-[#1A1A1A] hover:text-black border border-[#1A1A1A] transition-colors cursor-pointer flex items-center space-x-1.5 text-xs font-bold uppercase tracking-wider px-4"
+          {/* Filter Category */}
+          <div className="flex items-center space-x-1 border border-[#DCDAD2] p-0.5 bg-white">
+            <Filter className="w-3 h-3 text-[#8C8C85] ml-1" />
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="text-[10px] uppercase tracking-wider font-bold text-[#1A1A1A] bg-transparent focus:outline-hidden pr-3 cursor-pointer"
             >
-              <Home className="w-3.5 h-3.5" />
-              <span>Back to Dashboard</span>
-            </button>
+              <option value="all">All Groups</option>
+              {Object.keys(CATEGORY_DETAILS).map((cat) => (
+                <option key={cat} value={cat}>
+                  {CATEGORY_DETAILS[cat as PoolCategory].label.split(' ')[0]}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {/* Informative micro header */}
-        <div className="bg-[#F9F8F6] border-b border-[#DCDAD2] px-6 py-2.5 flex items-center justify-between text-[11px] text-[#6B6B66] font-serif italic">
-          <div className="flex items-center space-x-1">
-            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-            <span>Map layout: Rows reflect separate assets lanes chronologically. Dashed blue lines indicate cash transfers tracking ledger paths.</span>
+        {/* --- FLOATING TOP-LEFT BACK BUTTON ONLY (NO STATIC NAVBAR) --- */}
+        <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+          <button
+            onClick={onClose}
+            className="p-2.5 bg-[#1A1A1A] text-white hover:bg-black transition-all cursor-pointer flex items-center space-x-2 text-xs font-bold uppercase tracking-wider shadow-md"
+            title="Return to primary ledger dashboard view"
+          >
+            <Home className="w-4 h-4 bg-white text-[#1A1A1A] p-0.5 rounded-xs" />
+            <span>Back to Dashboard</span>
+          </button>
+          
+          <div className="hidden lg:flex items-center space-x-1.5 bg-white border border-[#DCDAD2]/80 px-2.5 py-1 text-[10px] text-[#8C8C85] font-serif italic max-w-sm rounded-none shadow-xs">
+            <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse shrink-0" />
+            <span>Drag from one Pool Node to another to transfer funds internally.</span>
           </div>
-          <span className="text-[9px] uppercase tracking-widest font-sans font-bold text-[#8C8C85]">
-            Use scroll wheel to zoom • Drag canvas to pan
-          </span>
         </div>
 
         {/* Visualizer canvas */}
-        <div className="flex-1 min-h-[400px] bg-[#FAF9F5] relative select-none">
+        <div className="flex-1 w-full h-full bg-[#FAF9F5] relative select-none">
           {nodes.length === 0 ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-10 bg-[#FAF9F5]/90">
               <div className="p-3 bg-[#F9F8F6] border border-[#DCDAD2] text-[#8C8C85] mb-3">
                 <HelpCircle className="w-6 h-6" />
               </div>
@@ -452,6 +653,12 @@ export default function LedgerFlowVisualizer({ pools, transactions, onClose }: L
               <p className="text-xs text-[#8C8C85] mt-1.5 max-w-sm font-serif italic leading-relaxed">
                 Try widening your category filters or creating new saving / investment pools with active transactional history.
               </p>
+              <button
+                onClick={handleOpenAddPoolModal}
+                className="mt-4 p-2.5 bg-[#1A1A1A] text-white text-[10px] uppercase font-bold tracking-widest cursor-pointer hover:bg-black border border-[#1A1A1A]"
+              >
+                + Create Asset Pool Node
+              </button>
             </div>
           ) : (
             <ReactFlow
@@ -462,6 +669,7 @@ export default function LedgerFlowVisualizer({ pools, transactions, onClose }: L
               minZoom={0.1}
               maxZoom={2}
               fitViewOptions={{ padding: 0.2 }}
+              onConnect={handleConnect}
             >
               <Background color="#DCDAD2" gap={16} size={1} />
               <Controls className="!bg-white !rounded-none !border !border-[#DCDAD2] !shadow-xs" />
@@ -474,6 +682,363 @@ export default function LedgerFlowVisualizer({ pools, transactions, onClose }: L
             </ReactFlow>
           )}
         </div>
+
+        {/* --- BOTTOM LEFT FIXED POPUP LAUNCHER --- */}
+        <div className="absolute bottom-6 left-6 z-30 flex flex-col items-start">
+          {isActionPopupOpen && (
+            <div className="mb-2.5 bg-white border border-[#1A1A1A] p-4 w-72 flex flex-col text-left space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-150 shadow-2xl">
+              <div className="flex items-center justify-between border-b border-[#DCDAD2] pb-1.5 mb-1.5">
+                <h4 className="font-serif font-bold text-xs text-[#1A1A1A] uppercase tracking-wider">
+                  Create / Connect Entry
+                </h4>
+                <button 
+                  onClick={() => setIsActionPopupOpen(false)}
+                  className="text-[#8C8C85] hover:text-[#1A1A1A] cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <button
+                onClick={() => { setIsActionPopupOpen(false); handleOpenAddPoolModal(); }}
+                className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span>Create New Savings/Asset Pool</span>
+              </button>
+              <button
+                onClick={() => { setIsActionPopupOpen(false); setTxType('deposit'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
+                className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={pools.length === 0}
+              >
+                <Plus className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Inflow Capital Contribution</span>
+              </button>
+              <button
+                onClick={() => { setIsActionPopupOpen(false); setTxType('withdrawal'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
+                className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={pools.length === 0}
+              >
+                <Minus className="w-3.5 h-3.5 text-rose-700" />
+                <span>Outflow Capital Withdrawal</span>
+              </button>
+              <button
+                onClick={() => { setIsActionPopupOpen(false); setTxType('transfer'); setSourcePoolId(pools[0]?.id || ''); setDestinationPoolId(pools[1]?.id || ''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
+                className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={pools.length < 2}
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5 text-blue-700" />
+                <span>Capital Route Rebalancing</span>
+              </button>
+              <button
+                onClick={() => { setIsActionPopupOpen(false); setTxType('valuation_adjustment'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxNote(''); setFormError(''); if (pools[0]) setTxNewValuation(pools[0].currentValuation.toString()); setIsTxModalOpen(true); }}
+                className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={pools.length === 0}
+              >
+                <Scale className="w-3.5 h-3.5 text-[#1A1A1A]" />
+                <span>Asset Valuation Adjustment</span>
+              </button>
+            </div>
+          )}
+          <button 
+            onClick={() => setIsActionPopupOpen(!isActionPopupOpen)}
+            className="p-3 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white shadow-2xl flex items-center space-x-2 font-bold text-[11px] uppercase tracking-wider cursor-pointer border border-[#1A1A1A]"
+          >
+            <Plus className="w-4 h-4 bg-white text-[#1A1A1A] p-0.5" />
+            <span>Add Element Ledger</span>
+          </button>
+        </div>
+
+        {/* --- MODAL DIALOGS EMBEDDED --- */}
+
+        {/* 1. COMPACT ADD POOL MODAL */}
+        {isPoolModalOpen && (
+          <div className="fixed inset-0 bg-[#1A1A1A]/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <div className="bg-white border border-[#DCDAD2] w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-[#DCDAD2] pb-3 mb-4">
+                <h3 className="font-serif font-bold text-[#1A1A1A] text-base">
+                  Create Saving / Asset Vault
+                </h3>
+                <button 
+                  type="button"
+                  onClick={() => setIsPoolModalOpen(false)}
+                  className="p-1 text-[#8C8C85] hover:text-[#1A1A1A]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {formError && (
+                <div className="p-3 bg-[#FFF0F0] text-rose-800 text-xs font-serif italic border border-[#FCD2D2] mb-3">
+                  {formError}
+                </div>
+              )}
+
+              <form onSubmit={handlePoolFormSubmit} className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                    Pool Vault Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. S&P Index Fund, Offshore Savings"
+                    value={newPoolName}
+                    onChange={(e) => setNewPoolName(e.target.value)}
+                    className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                    Asset Group Class
+                  </label>
+                  <select
+                    value={newPoolCategory}
+                    onChange={(e) => setNewPoolCategory(e.target.value as PoolCategory)}
+                    className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
+                  >
+                    {Object.keys(CATEGORY_DETAILS).map((cat) => (
+                      <option key={cat} value={cat}>
+                        {CATEGORY_DETAILS[cat as PoolCategory].label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                    Initial Invested Capital (USD)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={newPoolInitialBalance}
+                    onChange={(e) => setNewPoolInitialBalance(e.target.value)}
+                    className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                    Saving Cap Target (USD)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Optional goal target, e.g. 50000"
+                    value={newPoolTargetAmount}
+                    onChange={(e) => setNewPoolTargetAmount(e.target.value)}
+                    className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                    Vault Description / Purpose
+                  </label>
+                  <textarea
+                    rows={2}
+                    maxLength={120}
+                    placeholder="e.g. For index compound returns..."
+                    value={newPoolDescription}
+                    onChange={(e) => setNewPoolDescription(e.target.value)}
+                    className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-3 border-t border-[#DCDAD2]">
+                  <button
+                    type="button"
+                    onClick={() => setIsPoolModalOpen(false)}
+                    className="flex-1 py-2 border border-[#DCDAD2] text-[10px] uppercase font-bold tracking-widest hover:bg-[#F9F8F6]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white text-[10px] uppercase font-bold tracking-widest"
+                  >
+                    Add Pool Node
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* 2. COMPACT TRANSACTION / TRANSFER MODAL */}
+        {isTxModalOpen && (
+          <div className="fixed inset-0 bg-[#1A1A1A]/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <div className="bg-white border border-[#DCDAD2] w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-[#DCDAD2] pb-3 mb-4">
+                <h3 className="font-serif font-bold text-[#1A1A1A] text-base capitalize flex items-center">
+                  {txType === 'deposit' && 'Inflow capital contribution (Deposit)'}
+                  {txType === 'withdrawal' && 'Outflow capital withdrawal'}
+                  {txType === 'transfer' && 'Route fund rebalancing'}
+                  {txType === 'valuation_adjustment' && 'Asset Valuation statement adjust'}
+                </h3>
+                <button 
+                  type="button"
+                  onClick={() => setIsTxModalOpen(false)}
+                  className="p-1 text-[#8C8C85] hover:text-[#1A1A1A]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {formError && (
+                <div className="p-3 bg-[#FFF0F0] text-rose-800 text-xs font-serif italic border border-[#FCD2D2] mb-3">
+                  {formError}
+                </div>
+              )}
+
+              <form onSubmit={handleTxFormSubmit} className="space-y-4">
+                {/* Source selection */}
+                {txType !== 'transfer' ? (
+                  <div>
+                    <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                      Target Vault Node
+                    </label>
+                    <select
+                      value={selectedPool?.id || ''}
+                      onChange={(e) => {
+                        const matched = pools.find((p) => p.id === e.target.value);
+                        setSelectedPool(matched || null);
+                        if (txType === 'valuation_adjustment' && matched) {
+                          setTxNewValuation(matched.currentValuation.toString());
+                        }
+                      }}
+                      className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm font-semibold text-[#1A1A1A]"
+                    >
+                      {pools.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({formatCurrency(p.currentValuation)})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  // Transfer selects
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                        From Pool (Source)
+                      </label>
+                      <select
+                        value={sourcePoolId || selectedPool?.id || ''}
+                        onChange={(e) => setSourcePoolId(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
+                      >
+                        {pools.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} ({formatCurrency(p.currentValuation)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                        To Pool (Target)
+                      </label>
+                      <select
+                        value={destinationPoolId}
+                        onChange={(e) => setDestinationPoolId(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
+                      >
+                        <option value="">-- Select Destination --</option>
+                        {pools
+                          .filter((p) => p.id !== (sourcePoolId || selectedPool?.id))
+                          .map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Amount / balance adjustment */}
+                {txType !== 'valuation_adjustment' ? (
+                  <div>
+                    <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                      Transaction Amount (USD)
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="0.01"
+                      step="any"
+                      placeholder="e.g. 500"
+                      value={txAmount}
+                      onChange={(e) => setTxAmount(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm font-bold text-[#1A1A1A]"
+                    />
+                    {txType === 'withdrawal' && selectedPool && (
+                      <span className="text-[10px] text-[#8C8C85] italic font-serif mt-1 block">
+                        Max withdrawable balance: {formatCurrency(selectedPool.currentValuation)}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                      Statement Balance (New Total USD)
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      step="any"
+                      placeholder="e.g. 10000"
+                      value={txNewValuation}
+                      onChange={(e) => setTxNewValuation(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm font-bold text-[#1A1A1A]"
+                    />
+                    {selectedPool && (
+                      <span className="text-[10px] text-[#8C8C85] italic font-serif mt-1 block">
+                        Previous statement value: {formatCurrency(selectedPool.currentValuation)}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Notes */}
+                <div>
+                  <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                    Notes / Description
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={60}
+                    placeholder="Payday savings, portfolio gains..."
+                    value={txNote}
+                    onChange={(e) => setTxNote(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-3 border-t border-[#DCDAD2]">
+                  <button
+                    type="button"
+                    onClick={() => setIsTxModalOpen(false)}
+                    className="flex-1 py-2 border border-[#DCDAD2] text-[10px] uppercase font-bold tracking-widest hover:bg-[#F9F8F6]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white text-[10px] uppercase font-bold tracking-widest"
+                  >
+                    Post Transaction
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

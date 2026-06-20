@@ -298,6 +298,24 @@ export default function App() {
       <LedgerFlowVisualizer
         pools={pools}
         transactions={transactions}
+        onAddPool={(poolData) => {
+          // If we have an edit or creation, handlePoolSubmit expects a state setting for poolToEdit inside App.tsx
+          // But on flow visualizer, we can just pass new parameters or let handlePoolSubmit take care of it.
+          // Since poolToEdit might be null, handlePoolSubmit creates a new pool.
+          // Let's pass helper wrapper:
+          handlePoolSubmit(poolData);
+        }}
+        onAddTransaction={handleTransactionSubmit}
+        onDeletePool={(poolId) => {
+          const poolObj = pools.find(p => p.id === poolId);
+          if (poolObj) {
+            setPoolToDelete(poolObj);
+            handleConfirmDeletePool(); // Direct execution
+            // Alternatively let's do direct state updates inline to guarantee clean delete
+            setPools((prev) => prev.filter((p) => p.id !== poolId));
+            setTransactions((prev) => prev.filter(t => t.poolId !== poolId && t.sourcePoolId !== poolId && t.destinationPoolId !== poolId));
+          }
+        }}
         onClose={() => {
           window.location.hash = '#/';
         }}
