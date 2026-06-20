@@ -108,6 +108,7 @@ export default function App() {
   // --- Filtering & UI States ---
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [groupSearchQuery, setGroupSearchQuery] = useState('');
   
   // Modals ControllerStates
   const [isPoolModalOpen, setIsPoolModalOpen] = useState(false);
@@ -529,108 +530,148 @@ export default function App() {
         {/* Main Content */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
+          {/* Group Search Bar */}
+          <div className="relative w-full">
+            <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3.5 top-3.5" />
+            <input
+              type="text"
+              value={groupSearchQuery}
+              onChange={(e) => setGroupSearchQuery(e.target.value)}
+              placeholder="Search segregation groups by title or description..."
+              className="w-full pl-10 pr-4 py-3 bg-white border border-[#DCDAD2] rounded-none text-xs font-semibold focus:outline-hidden focus:border-[#1A1A1A] transition-all text-[#1A1A1A]"
+            />
+          </div>
+
           {/* Groups Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="groups-grid">
             <AnimatePresence>
-              {groups.map((group) => {
-                const groupPools = pools.filter((p) => p.groupId === group.id);
-                const val = groupPools.reduce((sum, p) => sum + p.currentValuation, 0);
-                const inv = groupPools.reduce((sum, p) => sum + p.investedAmount, 0);
-                const ret = val - inv;
-                const roi = inv > 0 ? (ret / inv) * 100 : 0;
-                
-                const formatGroupCurrency = (amount: number) => {
-                  return new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                    maximumFractionDigits: 0,
-                  }).format(amount);
-                };
+              {(() => {
+                const filteredGroups = groups.filter((group) => {
+                  const query = groupSearchQuery.toLowerCase().trim();
+                  return group.title.toLowerCase().includes(query) || 
+                         (group.description && group.description.toLowerCase().includes(query));
+                });
 
-                return (
-                  <motion.div
-                    key={group.id}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    onClick={() => {
-                      setActiveGroupId(group.id);
-                      window.location.hash = `#/group/${group.id}`;
-                    }}
-                    className="bg-white border border-[#DCDAD2] rounded-none hover:border-[#1A1A1A] hover:shadow-md cursor-pointer transition-all duration-300 p-6 flex flex-col justify-between overflow-hidden relative group/card"
-                  >
-                    <div className="space-y-4">
-                      {/* Header */}
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1 pr-6 flex-1 min-w-0">
-                          <h4 className="text-xl font-serif font-bold text-[#1A1A1A] tracking-tight group-hover/card:text-[#8C8C85] transition-colors truncate">
-                            {group.title}
-                          </h4>
-                          <span className="inline-flex items-center text-[9px] font-bold tracking-widest uppercase text-[#8C8C85] border border-[#DCDAD2] px-2 py-0.5 bg-[#F9F8F6]">
-                            {groupPools.length} {groupPools.length === 1 ? 'Pool' : 'Pools'}
-                          </span>
-                        </div>
-
-                        {/* Quick controls */}
-                        <div className="flex items-center space-x-1 relative z-25">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setGroupToEdit(group);
-                              setIsGroupModalOpen(true);
-                            }}
-                            className="p-1.5 text-[#8C8C85] hover:text-[#1A1A1A] hover:bg-[#F9F8F6] border border-transparent hover:border-[#DCDAD2] transition-colors"
-                            title="Edit group details"
-                          >
-                            <Settings className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm(`Permanently delete group "${group.title}"?\n\nWARNING: This will permanently delete all Pools in this group and their full transaction history.`)) {
-                                handleDeleteGroup(group.id);
-                              }
-                            }}
-                            className="p-1.5 text-[#8C8C85] hover:text-rose-750 hover:bg-rose-50/50 border border-transparent hover:border-rose-250 transition-colors"
-                            title="Delete group"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                if (filteredGroups.length === 0) {
+                  return (
+                    <div className="bg-white border border-dashed border-[#DCDAD2] rounded-none p-12 text-center max-w-lg mx-auto w-full col-span-full">
+                      <div className="w-12 h-12 bg-[#F9F8F6] border border-[#DCDAD2] flex items-center justify-center mx-auto text-[#8C8C85] mb-4">
+                        <Info className="w-5 h-5" />
                       </div>
-
-                      {/* Description */}
-                      <p className="text-xs text-[#6B6B66] line-clamp-2 leading-relaxed font-serif italic text-pretty min-h-[32px]">
-                        {group.description || 'No description provided.'}
+                      <h4 className="text-base font-serif font-bold text-[#1A1A1A]">No groups match your query</h4>
+                      <p className="text-xs text-[#8C8C85] mt-1.5 max-w-sm mx-auto font-serif italic">
+                        Try clearing your search query or creating a brand-new asset group.
                       </p>
+                      <button
+                        onClick={() => setGroupSearchQuery('')}
+                        className="mt-4 text-[10px] uppercase tracking-wider font-bold px-4 py-2 bg-white border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] transition-colors cursor-pointer"
+                      >
+                        Clear Group Search
+                      </button>
+                    </div>
+                  );
+                }
 
-                      {/* Stats */}
-                      <div className="border-t border-[#DCDAD2] pt-4 grid grid-cols-2 gap-4 mt-2">
-                        <div>
-                          <span className="text-[9px] font-bold text-[#8C8C85] uppercase tracking-[0.12em] block">
-                            Net Valuation
-                          </span>
-                          <span className="text-lg font-serif text-[#1A1A1A] block mt-0.5">
-                            {formatGroupCurrency(val)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[9px] font-bold text-[#8C8C85] uppercase tracking-[0.12em] block">
-                            ROI / Yield
-                          </span>
-                          {inv > 0 ? (
-                            <span className={`text-xs font-serif font-bold mt-1.5 block ${ret >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                              {ret >= 0 ? '+' : ''}{roi.toFixed(1)}%
+                return filteredGroups.map((group) => {
+                  const groupPools = pools.filter((p) => p.groupId === group.id);
+                  const val = groupPools.reduce((sum, p) => sum + p.currentValuation, 0);
+                  const inv = groupPools.reduce((sum, p) => sum + p.investedAmount, 0);
+                  const ret = val - inv;
+                  const roi = inv > 0 ? (ret / inv) * 100 : 0;
+                  
+                  const formatGroupCurrency = (amount: number) => {
+                    return new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD',
+                      maximumFractionDigits: 0,
+                    }).format(amount);
+                  };
+
+                  return (
+                    <motion.div
+                      key={group.id}
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      onClick={() => {
+                        setActiveGroupId(group.id);
+                        window.location.hash = `#/group/${group.id}`;
+                      }}
+                      className="bg-white border border-[#DCDAD2] rounded-none hover:border-[#1A1A1A] hover:shadow-md cursor-pointer transition-all duration-300 p-6 flex flex-col justify-between overflow-hidden relative group/card"
+                    >
+                      <div className="space-y-4">
+                        {/* Header */}
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1 pr-6 flex-1 min-w-0">
+                            <h4 className="text-xl font-serif font-bold text-[#1A1A1A] tracking-tight group-hover/card:text-[#8C8C85] transition-colors truncate">
+                              {group.title}
+                            </h4>
+                            <span className="inline-flex items-center text-[9px] font-bold tracking-widest uppercase text-[#8C8C85] border border-[#DCDAD2] px-2 py-0.5 bg-[#F9F8F6]">
+                              {groupPools.length} {groupPools.length === 1 ? 'Pool' : 'Pools'}
                             </span>
-                          ) : (
-                            <span className="text-xs text-[#8C8C85] mt-1.5 block">0%</span>
-                          )}
+                          </div>
+
+                          {/* Quick controls */}
+                          <div className="flex items-center space-x-1 relative z-25">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setGroupToEdit(group);
+                                setIsGroupModalOpen(true);
+                              }}
+                              className="p-1.5 text-[#8C8C85] hover:text-[#1A1A1A] hover:bg-[#F9F8F6] border border-transparent hover:border-[#DCDAD2] transition-colors"
+                              title="Edit group details"
+                            >
+                              <Settings className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`Permanently delete group "${group.title}"?\n\nWARNING: This will permanently delete all Pools in this group and their full transaction history.`)) {
+                                  handleDeleteGroup(group.id);
+                                }
+                              }}
+                              className="p-1.5 text-[#8C8C85] hover:text-rose-750 hover:bg-rose-50/50 border border-transparent hover:border-rose-250 transition-colors"
+                              title="Delete group"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-xs text-[#6B6B66] line-clamp-2 leading-relaxed font-serif italic text-pretty min-h-[32px]">
+                          {group.description || 'No description provided.'}
+                        </p>
+
+                        {/* Stats */}
+                        <div className="border-t border-[#DCDAD2] pt-4 grid grid-cols-2 gap-4 mt-2">
+                          <div>
+                            <span className="text-[9px] font-bold text-[#8C8C85] uppercase tracking-[0.12em] block">
+                              Net Valuation
+                            </span>
+                            <span className="text-lg font-serif text-[#1A1A1A] block mt-0.5">
+                              {formatGroupCurrency(val)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-bold text-[#8C8C85] uppercase tracking-[0.12em] block">
+                              ROI / Yield
+                            </span>
+                            {inv > 0 ? (
+                              <span className={`text-xs font-serif font-bold mt-1.5 block ${ret >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                {ret >= 0 ? '+' : ''}{roi.toFixed(1)}%
+                              </span>
+                            ) : (
+                              <span className="text-xs text-[#8C8C85] mt-1.5 block">0%</span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                    </motion.div>
+                  );
+                });
+              })()}
             </AnimatePresence>
           </div>
         </main>
