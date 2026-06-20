@@ -13,8 +13,17 @@ export type PoolCategory =
   | 'bonds'
   | 'other';
 
+export interface Group {
+  id: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface InvestmentPool {
   id: string;
+  groupId: string;            // Segregation parent group ID
   name: string;
   category: PoolCategory;
   description: string;

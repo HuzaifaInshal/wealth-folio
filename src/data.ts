@@ -1,9 +1,4 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { InvestmentPool, Transaction, PoolCategory } from './types';
+import { InvestmentPool, Transaction, PoolCategory, Group } from './types';
 
 export const CATEGORY_DETAILS: Record<
   PoolCategory,
@@ -73,9 +68,27 @@ const dateXDaysAgo = (days: number): string => {
   return d.toISOString();
 };
 
+export const INITIAL_GROUPS: Group[] = [
+  {
+    id: 'group-1',
+    title: 'Personal Finances',
+    description: 'Daily expenses, emergency reserve, and personal growth stocks.',
+    createdAt: dateXDaysAgo(150),
+    updatedAt: dateXDaysAgo(5),
+  },
+  {
+    id: 'group-2',
+    title: 'Retirement & Long-term',
+    description: 'Tax-sheltered accounts, retirement plans, and metals.',
+    createdAt: dateXDaysAgo(150),
+    updatedAt: dateXDaysAgo(1),
+  }
+];
+
 export const INITIAL_POOLS: InvestmentPool[] = [
   {
     id: 'pool-1',
+    groupId: 'group-1',
     name: 'Emergency Fund',
     category: 'cash',
     description: 'High-Yield Savings Account (4.5% APY) for unexpected personal emergencies.',
@@ -86,6 +99,7 @@ export const INITIAL_POOLS: InvestmentPool[] = [
   },
   {
     id: 'pool-2',
+    groupId: 'group-1',
     name: 'Tech Growth S&P Basket',
     category: 'stocks',
     description: 'Self-directed index and growth stocks (AAPL, GOOGL, MSFT, VGT).',
@@ -96,6 +110,7 @@ export const INITIAL_POOLS: InvestmentPool[] = [
   },
   {
     id: 'pool-3',
+    groupId: 'group-2',
     name: 'Long-term Crypto Vault',
     category: 'crypto',
     description: 'Hardware wallet holding BTC and ETH for long term digital standard reservation.',
@@ -106,6 +121,7 @@ export const INITIAL_POOLS: InvestmentPool[] = [
   },
   {
     id: 'pool-4',
+    groupId: 'group-2',
     name: 'Roth IRA (Index Funds)',
     category: 'retirement',
     description: 'Tax-advantaged Vanguard target retirement index fund.',

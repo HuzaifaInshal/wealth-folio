@@ -5,8 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { InvestmentPool, Transaction, PoolCategory, TransactionType } from './types';
-import { INITIAL_POOLS, INITIAL_TRANSACTIONS, CATEGORY_DETAILS } from './data';
+import { InvestmentPool, Transaction, PoolCategory, TransactionType, Group } from './types';
+import { INITIAL_POOLS, INITIAL_TRANSACTIONS, CATEGORY_DETAILS, INITIAL_GROUPS } from './data';
 
 // Import Components
 import MetricCard from './components/MetricCard';
@@ -16,6 +16,7 @@ import TransactionHistory from './components/TransactionHistory';
 import PoolFormModal from './components/PoolFormModal';
 import TransactionModal from './components/TransactionModal';
 import LedgerFlowVisualizer from './components/LedgerFlowVisualizer';
+import GroupFormModal from './components/GroupFormModal';
 
 // Import Icons
 import {
@@ -29,15 +30,49 @@ import {
   RefreshCw,
   AlertTriangle,
   Info,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Folder,
+  ChevronDown,
+  Settings
 } from 'lucide-react';
 
 export default function App() {
   // --- Persistent States ---
+  const [groups, setGroups] = useState<Group[]>(() => {
+    try {
+      const saved = localStorage.getItem('savings_tracker_groups');
+      return saved ? JSON.parse(saved) : INITIAL_GROUPS;
+    } catch {
+      return INITIAL_GROUPS;
+    }
+  });
+
+  const [activeGroupId, setActiveGroupId] = useState<string>(() => {
+    try {
+      const savedActive = localStorage.getItem('savings_tracker_active_group_id');
+      if (savedActive) {
+        // Verify group exists
+        const savedGroups = localStorage.getItem('savings_tracker_groups');
+        const parsedGroups = savedGroups ? JSON.parse(savedGroups) : INITIAL_GROUPS;
+        if (parsedGroups.some((g: any) => g.id === savedActive)) {
+          return savedActive;
+        }
+      }
+    } catch {}
+    return INITIAL_GROUPS[0]?.id || 'group-1';
+  });
+
   const [pools, setPools] = useState<InvestmentPool[]>(() => {
     try {
       const saved = localStorage.getItem('savings_tracker_pools');
-      return saved ? JSON.parse(saved) : INITIAL_POOLS;
+      const parsed = saved ? JSON.parse(saved) : INITIAL_POOLS;
+      // Migration: Ensure every pool has a groupId
+      return parsed.map((p: any) => {
+        if (!p.groupId) {
+          return { ...p, groupId: 'group-1' };
+        }
+        return p;
+      });
     } catch {
       return INITIAL_POOLS;
     }
@@ -53,6 +88,14 @@ export default function App() {
   });
 
   // Sync to Storage
+  useEffect(() => {
+    localStorage.setItem('savings_tracker_groups', JSON.stringify(groups));
+  }, [groups]);
+
+  useEffect(() => {
+    localStorage.setItem('savings_tracker_active_group_id', activeGroupId);
+  }, [activeGroupId]);
+
   useEffect(() => {
     localStorage.setItem('savings_tracker_pools', JSON.stringify(pools));
   }, [pools]);
@@ -73,6 +116,11 @@ export default function App() {
   const [txModalTab, setTxModalTab] = useState<'deposit' | 'withdrawal' | 'transfer' | 'valuation_adjustment'>('deposit');
   const [txSelectedPool, setTxSelectedPool] = useState<InvestmentPool | null>(null);
 
+  // Group Switcher Modal/Dropdown state
+  const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [groupToEdit, setGroupToEdit] = useState<Group | null>(null);
+
   // Custom Confirmation Dialog for Pool Deletion
   const [poolToDelete, setPoolToDelete] = useState<InvestmentPool | null>(null);
 
@@ -83,17 +131,48 @@ export default function App() {
 
   useEffect(() => {
     const handleHashChange = () => {
-      setCurrentRoute(window.location.hash || '#/');
+      const hash = window.location.hash || '#/';
+      setCurrentRoute(hash);
+
+      // Parse Group ID from route changes
+      const groupMatch = hash.match(/^#\/group\/([^?\/]+)/);
+      const flowMatch = hash.match(/^#\/flow\/([^?\/]+)/);
+      const idFromHash = (groupMatch && groupMatch[1]) || (flowMatch && flowMatch[1]);
+
+      if (idFromHash) {
+        // Verify group exists
+        if (groups.some(g => g.id === idFromHash)) {
+          setActiveGroupId(idFromHash);
+        }
+      } else if (hash === '#/' || hash === '') {
+        if (groups.length > 0) {
+          // If we are at root, set hash to include the active group ID
+          window.location.hash = `#/group/${activeGroupId}`;
+        }
+      }
     };
+
     window.addEventListener('hashchange', handleHashChange);
+    // Execute immediately on mount to parse initial hash
+    handleHashChange();
+
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, []);
+  }, [groups, activeGroupId]);
 
-  // --- Financial Core Calculations ---
-  const totalValuation = pools.reduce((sum, p) => sum + p.currentValuation, 0);
-  const totalInvested = pools.reduce((sum, p) => sum + p.investedAmount, 0);
+  // --- Group Level Separation Helpers ---
+  const activeGroupPools = pools.filter(p => p.groupId === activeGroupId);
+  const poolIdsInGroup = activeGroupPools.map(p => p.id);
+  const activeGroupTransactions = transactions.filter(t => 
+    poolIdsInGroup.includes(t.poolId) ||
+    (t.sourcePoolId && poolIdsInGroup.includes(t.sourcePoolId)) ||
+    (t.destinationPoolId && poolIdsInGroup.includes(t.destinationPoolId))
+  );
+
+  // --- Financial Core Calculations (Scoped to active Group) ---
+  const totalValuation = activeGroupPools.reduce((sum, p) => sum + p.currentValuation, 0);
+  const totalInvested = activeGroupPools.reduce((sum, p) => sum + p.investedAmount, 0);
   const overallReturns = totalValuation - totalInvested;
   const overallROI = totalInvested > 0 ? (overallReturns / totalInvested) * 100 : 0;
 
@@ -101,9 +180,68 @@ export default function App() {
 
   const handleResetData = () => {
     if (confirm("Reset application data to original mock defaults? Any changes will be overwritten.")) {
+      localStorage.removeItem('savings_tracker_groups');
+      localStorage.removeItem('savings_tracker_pools');
+      localStorage.removeItem('savings_tracker_transactions');
+      localStorage.removeItem('savings_tracker_active_group_id');
+      setGroups(INITIAL_GROUPS);
       setPools(INITIAL_POOLS);
       setTransactions(INITIAL_TRANSACTIONS);
+      setActiveGroupId(INITIAL_GROUPS[0].id);
+      window.location.hash = `#/group/${INITIAL_GROUPS[0].id}`;
     }
+  };
+
+  const handleDeleteGroup = (id: string) => {
+    const remainingGroups = groups.filter(g => g.id !== id);
+    setGroups(remainingGroups);
+
+    // Delete pools and transactions associated with this group
+    const poolsToDelete = pools.filter(p => p.groupId === id);
+    const poolIdsToDelete = poolsToDelete.map(p => p.id);
+
+    setPools(prev => prev.filter(p => p.groupId !== id));
+    setTransactions(prev => prev.filter(t => 
+      !poolIdsToDelete.includes(t.poolId) &&
+      !(t.sourcePoolId && poolIdsToDelete.includes(t.sourcePoolId)) &&
+      !(t.destinationPoolId && poolIdsToDelete.includes(t.destinationPoolId))
+    ));
+
+    // Route to another group if possible
+    if (remainingGroups.length > 0) {
+      const nextActiveId = remainingGroups[0].id;
+      setActiveGroupId(nextActiveId);
+      window.location.hash = `#/group/${nextActiveId}`;
+    } else {
+      window.location.hash = '#/';
+    }
+  };
+
+  const handleGroupSubmit = (groupData: { title: string; description: string }) => {
+    const timestamp = new Date().toISOString();
+
+    if (groupToEdit) {
+      setGroups(prev =>
+        prev.map(g =>
+          g.id === groupToEdit.id
+            ? { ...g, title: groupData.title, description: groupData.description, updatedAt: timestamp }
+            : g
+        )
+      );
+    } else {
+      const newGroupId = `group-${Date.now()}`;
+      const newGroup: Group = {
+        id: newGroupId,
+        title: groupData.title,
+        description: groupData.description,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      setGroups(prev => [...prev, newGroup]);
+      setActiveGroupId(newGroupId);
+      window.location.hash = `#/group/${newGroupId}`;
+    }
+    setGroupToEdit(null);
   };
 
   // Create or Update Pool details
@@ -135,6 +273,7 @@ export default function App() {
       const newPoolId = `pool-${Date.now()}`;
       const newPool: InvestmentPool = {
         id: newPoolId,
+        groupId: activeGroupId,  // Auto-link with active group
         name: poolData.name,
         category: poolData.category,
         description: poolData.description,
@@ -253,7 +392,7 @@ export default function App() {
     // Remove pool
     setPools((prev) => prev.filter((p) => p.id !== poolToDelete.id));
 
-    // Remove pool transaction entries as well to keep ledger clean (optional, keeping history makes it trace correct, but removing prevents errors)
+    // Remove pool transaction entries
     setTransactions((prev) =>
       prev.filter(
         (t) =>
@@ -282,43 +421,69 @@ export default function App() {
   };
 
   // --- Filter Pool Results ---
-  const filteredPools = pools.filter((p) => {
+  const filteredPools = activeGroupPools.filter((p) => {
     const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  // Render standalone flow-map subpage if we are on the separate #/flow route
-  if (currentRoute === '#/flow') {
+  // Render standalone flow-map subpage if we are on the flow route
+  if (currentRoute.startsWith('#/flow')) {
     return (
       <LedgerFlowVisualizer
-        pools={pools}
-        transactions={transactions}
+        pools={activeGroupPools}
+        transactions={activeGroupTransactions}
         onAddPool={(poolData) => {
-          // If we have an edit or creation, handlePoolSubmit expects a state setting for poolToEdit inside App.tsx
-          // But on flow visualizer, we can just pass new parameters or let handlePoolSubmit take care of it.
-          // Since poolToEdit might be null, handlePoolSubmit creates a new pool.
-          // Let's pass helper wrapper:
           handlePoolSubmit(poolData);
         }}
         onAddTransaction={handleTransactionSubmit}
         onDeletePool={(poolId) => {
-          const poolObj = pools.find(p => p.id === poolId);
-          if (poolObj) {
-            setPoolToDelete(poolObj);
-            handleConfirmDeletePool(); // Direct execution
-            // Alternatively let's do direct state updates inline to guarantee clean delete
-            setPools((prev) => prev.filter((p) => p.id !== poolId));
-            setTransactions((prev) => prev.filter(t => t.poolId !== poolId && t.sourcePoolId !== poolId && t.destinationPoolId !== poolId));
-          }
+          setPools((prev) => prev.filter((p) => p.id !== poolId));
+          setTransactions((prev) => prev.filter(t => t.poolId !== poolId && t.sourcePoolId !== poolId && t.destinationPoolId !== poolId));
         }}
         onClose={() => {
-          window.location.hash = '#/';
+          window.location.hash = `#/group/${activeGroupId}`;
         }}
       />
     );
   }
+
+  // Render empty state if there are no groups
+  if (groups.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#F9F8F6] flex items-center justify-center p-6" id="empty-groups-state">
+        <div className="bg-white border border-[#DCDAD2] p-12 max-w-md w-full text-center space-y-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="mx-auto w-12 h-12 bg-[#F9F8F6] border border-[#DCDAD2] text-[#1A1A1A] flex items-center justify-center">
+            <Folder className="w-5 h-5" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-serif font-bold text-[#1A1A1A]">Create Your First Group</h2>
+            <p className="text-xs text-[#8C8C85] leading-relaxed font-serif italic">
+              Wealth Folio tracks assets inside segregated groups. Create an asset group (such as "Personal Finances" or "Business Holdings") to begin tracking your pools.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setGroupToEdit(null);
+              setIsGroupModalOpen(true);
+            }}
+            className="w-full py-3 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white font-bold uppercase tracking-widest text-[10px] cursor-pointer border border-[#1A1A1A]"
+          >
+            + Create New Group
+          </button>
+          <GroupFormModal
+            isOpen={isGroupModalOpen}
+            groupToEdit={null}
+            onClose={() => setIsGroupModalOpen(false)}
+            onSubmit={handleGroupSubmit}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const activeGroup = groups.find((g) => g.id === activeGroupId) || groups[0];
 
   return (
     <div className="min-h-screen bg-[#F9F8F6] flex flex-col font-sans" id="app-root-container">
@@ -326,17 +491,109 @@ export default function App() {
       {/* Visual Navigation Bar */}
       <header className="bg-white border-b border-[#DCDAD2] sticky top-0 z-40" id="header-navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center space-x-3.5 self-start sm:self-auto">
-            <div className="p-2.5 bg-[#1A1A1A] text-white rounded-none border border-[#1A1A1A]">
-              <Coins className="w-5 h-5" />
+          
+          <div className="flex items-center space-x-6 self-start sm:self-auto">
+            <div className="flex items-center space-x-3.5">
+              <div className="p-2.5 bg-[#1A1A1A] text-white rounded-none border border-[#1A1A1A]">
+                <Coins className="w-5 h-5" />
+              </div>
+              <div>
+                <h1 className="text-xl font-serif font-bold text-[#1A1A1A] tracking-tight flex items-center">
+                  Wealth <span className="font-serif italic font-normal text-[#8C8C85] ml-1.5">Folio</span>
+                </h1>
+                <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-[#8C8C85] mt-0.5">
+                  Oikos Financial Ledger & Vaults
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-serif font-bold text-[#1A1A1A] tracking-tight flex items-center">
-                Wealth <span className="font-serif italic font-normal text-[#8C8C85] ml-1.5">Folio</span>
-              </h1>
-              <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-[#8C8C85] mt-0.5">
-                Oikos Financial Ledger & Vaults
-              </p>
+
+            {/* Premium Group Switcher dropdown */}
+            <div className="relative border-l border-[#DCDAD2] pl-6 flex items-center">
+              <button
+                onClick={() => setIsGroupDropdownOpen(!isGroupDropdownOpen)}
+                className="flex items-center space-x-2 text-[#1A1A1A] hover:text-[#8C8C85] transition-colors cursor-pointer text-left focus:outline-hidden"
+                title="Switch or manage active finance group"
+              >
+                <Folder className="w-4 h-4 text-[#8C8C85]" />
+                <span className="font-serif font-bold text-sm tracking-tight border-b border-dashed border-[#8C8C85] pb-0.5 select-none">
+                  {activeGroup?.title || 'Select Group'}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-[#8C8C85]" />
+              </button>
+
+              {isGroupDropdownOpen && (
+                <div className="absolute left-6 top-8 mt-1 bg-white border border-[#1A1A1A] w-64 shadow-2xl z-50 flex flex-col divide-y divide-[#F1EFEA] animate-in fade-in slide-in-from-top-1 duration-100">
+                  <div className="max-h-60 overflow-y-auto">
+                    {groups.map((group) => {
+                      const isSelected = group.id === activeGroupId;
+                      return (
+                        <div
+                          key={group.id}
+                          className={`p-3.5 flex items-start justify-between group/item cursor-pointer transition-colors ${
+                            isSelected ? 'bg-[#F9F8F6]' : 'hover:bg-[#F9F8F6]/60'
+                          }`}
+                          onClick={() => {
+                            setActiveGroupId(group.id);
+                            setIsGroupDropdownOpen(false);
+                            window.location.hash = `#/group/${group.id}`;
+                          }}
+                        >
+                          <div className="flex-1 min-w-0 pr-2">
+                            <span className={`text-xs font-serif block truncate ${isSelected ? 'font-bold text-[#1A1A1A]' : 'text-[#6B6B66] group-hover/item:text-[#1A1A1A]'}`}>
+                              {group.title}
+                            </span>
+                            {group.description && (
+                              <span className="text-[10px] text-[#8C8C85] font-serif italic block truncate mt-0.5">
+                                {group.description}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setGroupToEdit(group);
+                                setIsGroupModalOpen(true);
+                                setIsGroupDropdownOpen(false);
+                              }}
+                              className="p-1 hover:bg-[#DCDAD2]/50 text-[#8C8C85] hover:text-[#1A1A1A] transition-colors"
+                              title="Edit group title and description"
+                            >
+                              <Settings className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="p-2 bg-[#F9F8F6]/85 flex justify-between gap-1 text-[10px]">
+                    <button
+                      onClick={() => {
+                        setGroupToEdit(null);
+                        setIsGroupModalOpen(true);
+                        setIsGroupDropdownOpen(false);
+                      }}
+                      className="flex-1 text-center py-1.5 border border-[#DCDAD2] hover:border-[#1A1A1A] bg-white text-[#1A1A1A] font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                      + Create Group
+                    </button>
+                    {groups.length > 1 && (
+                      <button
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to permanently delete group "${activeGroup.title}"?\n\nWARNING: This will permanently delete all Pools in this group and their full transaction history.`)) {
+                            handleDeleteGroup(activeGroupId);
+                          }
+                          setIsGroupDropdownOpen(false);
+                        }}
+                        className="px-2 text-center py-1.5 bg-rose-850 hover:bg-rose-950 text-white font-bold uppercase tracking-wider cursor-pointer flex items-center justify-center"
+                        title="Delete active group and all its pools"
+                      >
+                        Delete Active
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -350,7 +607,7 @@ export default function App() {
               <span>Defaults</span>
             </button>
             <button
-              onClick={() => { window.location.hash = '#/flow'; }}
+              onClick={() => { window.location.hash = `#/flow/${activeGroupId}`; }}
               className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1 cursor-pointer"
               title="Visualize entire transactions & timelines flow map"
             >
@@ -365,12 +622,37 @@ export default function App() {
               <span>Create Pool</span>
             </button>
           </div>
+
         </div>
       </header>
 
       {/* Main Container Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         
+        {/* Active Group Description Header banner */}
+        <div className="bg-white border border-[#DCDAD2] p-6 rounded-none relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="space-y-1">
+            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8C8C85]">Active segregation group</span>
+            <h2 className="text-2xl font-serif font-bold text-[#1A1A1A] mt-0.5">{activeGroup.title}</h2>
+            {activeGroup.description && (
+              <p className="text-xs text-[#6B6B66] font-serif italic leading-relaxed mt-1.5 max-w-xl text-balance">
+                &ldquo;{activeGroup.description}&rdquo;
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2 self-stretch sm:self-auto">
+            <button
+              onClick={() => {
+                setGroupToEdit(activeGroup);
+                setIsGroupModalOpen(true);
+              }}
+              className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] hover:border-[#1A1A1A] text-[#1A1A1A] font-bold uppercase tracking-wider rounded-none bg-[#F9F8F6] hover:bg-white transition-all cursor-pointer flex-1 sm:flex-none text-center"
+            >
+              Edit Group Details
+            </button>
+          </div>
+        </div>
+
         {/* Core Overview metrics */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="overview-metrics-grid">
           <MetricCard
@@ -421,13 +703,14 @@ export default function App() {
                 <div className="flex space-x-2">
                   <button
                     onClick={() => triggerTxForm('deposit')}
-                    className="px-3 py-2 bg-[#F9F8F6] hover:bg-[#F3F1EC] text-[#1A1A1A] border border-[#DCDAD2] text-[10px] uppercase tracking-wider font-bold transition-colors cursor-pointer"
+                    disabled={activeGroupPools.length === 0}
+                    className="px-3 py-2 bg-[#F9F8F6] hover:bg-[#F3F1EC] text-[#1A1A1A] border border-[#DCDAD2] text-[10px] uppercase tracking-wider font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >
                     + Capital Inflow
                   </button>
                   <button
                     onClick={() => triggerTxForm('transfer')}
-                    disabled={pools.length < 2}
+                    disabled={activeGroupPools.length < 2}
                     className="px-3 py-2 bg-[#F9F8F6] hover:bg-[#F3F1EC] text-[#1A1A1A] border border-[#DCDAD2] text-[10px] uppercase tracking-wider font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Transfer Funds
@@ -518,14 +801,14 @@ export default function App() {
             
             {/* Asset Donut distribution */}
             <section id="allocation-card">
-              <DistributionChart pools={pools} />
+              <DistributionChart pools={activeGroupPools} />
             </section>
 
             {/* Historical ledgers listing */}
             <section id="ledger-history-card">
               <TransactionHistory
-                transactions={transactions}
-                pools={pools}
+                transactions={activeGroupTransactions}
+                pools={activeGroupPools}
               />
             </section>
 
@@ -555,14 +838,22 @@ export default function App() {
       {/* 2. Operational Transactions tabbed sheets */}
       <TransactionModal
         isOpen={isTxModalOpen}
-        pools={pools}
+        pools={activeGroupPools}
         initialPool={txSelectedPool}
         initialTab={txModalTab}
         onClose={() => { setIsTxModalOpen(false); setTxSelectedPool(null); }}
         onSubmit={handleTransactionSubmit}
       />
 
-      {/* 3. Custom beautiful Deletion verification modal to avoid blocking window.confirm */}
+      {/* 3. Group Form Modal */}
+      <GroupFormModal
+        isOpen={isGroupModalOpen}
+        groupToEdit={groupToEdit}
+        onClose={() => { setIsGroupModalOpen(false); setGroupToEdit(null); }}
+        onSubmit={handleGroupSubmit}
+      />
+
+      {/* 4. Custom Deletion verification modal */}
       <AnimatePresence>
         {poolToDelete && (
           <div className="fixed inset-0 bg-[#1A1A1A]/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
