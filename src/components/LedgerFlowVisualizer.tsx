@@ -625,20 +625,87 @@ export default function LedgerFlowVisualizer({
           </div>
         </div>
 
-        {/* --- FLOATING TOP-LEFT BACK BUTTON ONLY (NO STATIC NAVBAR) --- */}
-        <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-          <button
-            onClick={onClose}
-            className="p-2.5 bg-[#1A1A1A] text-white hover:bg-black transition-all cursor-pointer flex items-center space-x-2 text-xs font-bold uppercase tracking-wider shadow-md"
-            title="Return to primary ledger dashboard view"
-          >
-            <Home className="w-4 h-4 bg-white text-[#1A1A1A] p-0.5 rounded-xs" />
-            <span>Back to Dashboard</span>
-          </button>
-          
+        {/* --- FLOATING TOP-LEFT CONTROLS CONTAINER --- */}
+        <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 items-start">
+          {/* Instruction Box */}
           <div className="hidden lg:flex items-center space-x-1.5 bg-white border border-[#DCDAD2]/80 px-2.5 py-1 text-[10px] text-[#8C8C85] font-serif italic max-w-sm rounded-none shadow-xs">
             <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse shrink-0" />
             <span>Drag from one Pool Node to another to transfer funds internally.</span>
+          </div>
+
+          {/* Back to Dashboard */}
+          <button
+            onClick={onClose}
+            className="p-2.5 bg-[#1A1A1A] text-white hover:bg-black transition-all cursor-pointer flex items-center justify-center shadow-md border border-[#1A1A1A]"
+            title="Back to Dashboard"
+          >
+            <Home className="w-4 h-4" />
+          </button>
+
+          {/* Add Element Ledger Button with Dropdown Popup */}
+          <div className="relative">
+            <button 
+              onClick={() => setIsActionPopupOpen(!isActionPopupOpen)}
+              className="p-2.5 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white shadow-md flex items-center justify-center cursor-pointer border border-[#1A1A1A]"
+              title="Add Element Ledger"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            
+            {isActionPopupOpen && (
+              <div className="absolute left-0 mt-2 bg-white border border-[#1A1A1A] p-4 w-72 flex flex-col text-left space-y-2 animate-in fade-in slide-in-from-top-2 duration-150 shadow-2xl z-30">
+                <div className="flex items-center justify-between border-b border-[#DCDAD2] pb-1.5 mb-1.5">
+                  <h4 className="font-serif font-bold text-xs text-[#1A1A1A] uppercase tracking-wider">
+                    Create / Connect Entry
+                  </h4>
+                  <button 
+                    onClick={() => setIsActionPopupOpen(false)}
+                    className="text-[#8C8C85] hover:text-[#1A1A1A] cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <button
+                  onClick={() => { setIsActionPopupOpen(false); handleOpenAddPoolModal(); }}
+                  className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Create New Savings/Asset Pool</span>
+                </button>
+                <button
+                  onClick={() => { setIsActionPopupOpen(false); setTxType('deposit'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
+                  className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  disabled={pools.length === 0}
+                >
+                  <Plus className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Inflow Capital Contribution</span>
+                </button>
+                <button
+                  onClick={() => { setIsActionPopupOpen(false); setTxType('withdrawal'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
+                  className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  disabled={pools.length === 0}
+                >
+                  <Minus className="w-3.5 h-3.5 text-rose-700" />
+                  <span>Outflow Capital Withdrawal</span>
+                </button>
+                <button
+                  onClick={() => { setIsActionPopupOpen(false); setTxType('transfer'); setSourcePoolId(pools[0]?.id || ''); setDestinationPoolId(pools[1]?.id || ''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
+                  className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  disabled={pools.length < 2}
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5 text-blue-700" />
+                  <span>Capital Route Rebalancing</span>
+                </button>
+                <button
+                  onClick={() => { setIsActionPopupOpen(false); setTxType('valuation_adjustment'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxNote(''); setFormError(''); if (pools[0]) setTxNewValuation(pools[0].currentValuation.toString()); setIsTxModalOpen(true); }}
+                  className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  disabled={pools.length === 0}
+                >
+                  <Scale className="w-3.5 h-3.5 text-[#1A1A1A]" />
+                  <span>Asset Valuation Adjustment</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -672,7 +739,7 @@ export default function LedgerFlowVisualizer({
               onConnect={handleConnect}
             >
               <Background color="#DCDAD2" gap={16} size={1} />
-              <Controls className="!bg-white !rounded-none !border !border-[#DCDAD2] !shadow-xs" />
+              <Controls orientation="horizontal" position="bottom-center" className="!bg-white !rounded-none !border !border-[#DCDAD2] !shadow-xs" />
               <MiniMap 
                 nodeColor={() => '#F9F8F6'} 
                 nodeStrokeColor={(node) => (node.type === 'poolNode' ? '#1A1A1A' : '#DCDAD2')} 
@@ -681,71 +748,6 @@ export default function LedgerFlowVisualizer({
               />
             </ReactFlow>
           )}
-        </div>
-
-        {/* --- BOTTOM LEFT FIXED POPUP LAUNCHER --- */}
-        <div className="absolute bottom-6 left-6 z-30 flex flex-col items-start">
-          {isActionPopupOpen && (
-            <div className="mb-2.5 bg-white border border-[#1A1A1A] p-4 w-72 flex flex-col text-left space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-150 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-[#DCDAD2] pb-1.5 mb-1.5">
-                <h4 className="font-serif font-bold text-xs text-[#1A1A1A] uppercase tracking-wider">
-                  Create / Connect Entry
-                </h4>
-                <button 
-                  onClick={() => setIsActionPopupOpen(false)}
-                  className="text-[#8C8C85] hover:text-[#1A1A1A] cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <button
-                onClick={() => { setIsActionPopupOpen(false); handleOpenAddPoolModal(); }}
-                className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>Create New Savings/Asset Pool</span>
-              </button>
-              <button
-                onClick={() => { setIsActionPopupOpen(false); setTxType('deposit'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
-                className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                disabled={pools.length === 0}
-              >
-                <Plus className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Inflow Capital Contribution</span>
-              </button>
-              <button
-                onClick={() => { setIsActionPopupOpen(false); setTxType('withdrawal'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
-                className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                disabled={pools.length === 0}
-              >
-                <Minus className="w-3.5 h-3.5 text-rose-700" />
-                <span>Outflow Capital Withdrawal</span>
-              </button>
-              <button
-                onClick={() => { setIsActionPopupOpen(false); setTxType('transfer'); setSourcePoolId(pools[0]?.id || ''); setDestinationPoolId(pools[1]?.id || ''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
-                className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                disabled={pools.length < 2}
-              >
-                <ArrowRightLeft className="w-3.5 h-3.5 text-blue-700" />
-                <span>Capital Route Rebalancing</span>
-              </button>
-              <button
-                onClick={() => { setIsActionPopupOpen(false); setTxType('valuation_adjustment'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxNote(''); setFormError(''); if (pools[0]) setTxNewValuation(pools[0].currentValuation.toString()); setIsTxModalOpen(true); }}
-                className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                disabled={pools.length === 0}
-              >
-                <Scale className="w-3.5 h-3.5 text-[#1A1A1A]" />
-                <span>Asset Valuation Adjustment</span>
-              </button>
-            </div>
-          )}
-          <button 
-            onClick={() => setIsActionPopupOpen(!isActionPopupOpen)}
-            className="p-3 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white shadow-2xl flex items-center space-x-2 font-bold text-[11px] uppercase tracking-wider cursor-pointer border border-[#1A1A1A]"
-          >
-            <Plus className="w-4 h-4 bg-white text-[#1A1A1A] p-0.5" />
-            <span>Add Element Ledger</span>
-          </button>
         </div>
 
         {/* --- MODAL DIALOGS EMBEDDED --- */}
