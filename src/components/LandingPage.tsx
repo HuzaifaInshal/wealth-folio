@@ -6,6 +6,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Coins, Shield, ArrowRightLeft, Folder, Scale, ChevronRight } from 'lucide-react';
+import heroIllustration from '../assets/landing_hero_illustration.png';
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -120,7 +121,7 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
               className="relative p-2 bg-white border border-[#DCDAD2] shadow-2xl max-w-md w-full aspect-square overflow-hidden"
             >
               <img
-                src="/home/huzaifai/.gemini/antigravity-ide/brain/9953650e-a44c-4da1-bd2b-3127fff7a37b/landing_hero_illustration_1781988113229.png"
+                src={heroIllustration}
                 alt="Wealth Folio Abstract Ledger Visual"
                 className="w-full h-full object-cover select-none pointer-events-none"
               />
