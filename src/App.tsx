@@ -17,6 +17,7 @@ import PoolFormModal from './components/PoolFormModal';
 import TransactionModal from './components/TransactionModal';
 import LedgerFlowVisualizer from './components/LedgerFlowVisualizer';
 import GroupFormModal from './components/GroupFormModal';
+import LandingPage from './components/LandingPage';
 
 // Import Icons
 import {
@@ -428,6 +429,17 @@ export default function App() {
     return matchesCategory && matchesSearch;
   });
 
+  // Render landing page
+  if (currentRoute === '#/landing-page') {
+    return (
+      <LandingPage
+        onEnterApp={() => {
+          window.location.hash = '#/';
+        }}
+      />
+    );
+  }
+
   // Render standalone flow-map subpage if we are on the flow route
   if (currentRoute.startsWith('#/flow')) {
     return (
@@ -504,13 +516,21 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex items-center space-x-2.5 self-end sm:self-auto">
+             <div className="flex items-center space-x-2.5 self-end sm:self-auto">
+              <button
+                onClick={() => { window.location.hash = '#/landing-page'; }}
+                className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] text-[#8C8C85] hover:text-[#1A1A1A] hover:bg-[#F9F8F6] font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1 cursor-pointer"
+                title="View product info & capabilities landing page"
+              >
+                <Info className="w-3 h-3 text-[#8C8C85]" />
+                <span>Info</span>
+              </button>
               <button
                 onClick={handleResetData}
                 className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1 cursor-pointer"
                 title="Reset data to defaults"
               >
-                <RefreshCw className="w-3 h-3" />
+                <RefreshCw className="w-3.5 h-3.5" />
                 <span>Defaults</span>
               </button>
               <button
