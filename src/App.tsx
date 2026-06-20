@@ -18,6 +18,7 @@ import TransactionModal from './components/TransactionModal';
 import LedgerFlowVisualizer from './components/LedgerFlowVisualizer';
 import GroupFormModal from './components/GroupFormModal';
 import LandingPage from './components/LandingPage';
+import AuthPage from './components/AuthPage';
 
 // Import Icons
 import {
@@ -35,7 +36,8 @@ import {
   Folder,
   ChevronDown,
   Settings,
-  Trash2
+  Trash2,
+  Lock
 } from 'lucide-react';
 
 export default function App() {
@@ -110,6 +112,37 @@ export default function App() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [groupSearchQuery, setGroupSearchQuery] = useState('');
+
+  // --- Authentication States ---
+  const [savedPasscode, setSavedPasscode] = useState<string>(() => {
+    return localStorage.getItem('savings_tracker_passcode') || '';
+  });
+
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    return sessionStorage.getItem('savings_tracker_is_logged_in') === 'true';
+  });
+
+  const handleAuthenticate = (passcode: string): string | void => {
+    if (!savedPasscode) {
+      // Sign Up
+      localStorage.setItem('savings_tracker_passcode', passcode);
+      setSavedPasscode(passcode);
+      sessionStorage.setItem('savings_tracker_is_logged_in', 'true');
+      setIsLoggedIn(true);
+      window.location.hash = '#/';
+      return;
+    } else {
+      // Sign In
+      if (passcode === savedPasscode) {
+        sessionStorage.setItem('savings_tracker_is_logged_in', 'true');
+        setIsLoggedIn(true);
+        window.location.hash = '#/';
+        return;
+      } else {
+        return 'Invalid access passcode.';
+      }
+    }
+  };
   
   // Modals ControllerStates
   const [isPoolModalOpen, setIsPoolModalOpen] = useState(false);
@@ -137,6 +170,17 @@ export default function App() {
       const hash = window.location.hash || '#/';
       setCurrentRoute(hash);
 
+      // Routing Guard Redirect logic
+      if (!isLoggedIn && hash !== '#/auth' && hash !== '#/landing-page') {
+        window.location.hash = '#/auth';
+        return;
+      }
+
+      if (isLoggedIn && hash === '#/auth') {
+        window.location.hash = '#/';
+        return;
+      }
+
       // Parse Group ID from route changes
       const groupMatch = hash.match(/^#\/group\/([^?\/]+)/);
       const flowMatch = hash.match(/^#\/flow\/([^?\/]+)/);
@@ -157,7 +201,7 @@ export default function App() {
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [groups]);
+  }, [groups, isLoggedIn]);
 
   // --- Consolidated Core Calculations (Across all groups/pools) ---
   const consolidatedValuation = pools.reduce((sum, p) => sum + p.currentValuation, 0);
@@ -440,6 +484,16 @@ export default function App() {
     );
   }
 
+  // Render authentication page
+  if (currentRoute === '#/auth') {
+    return (
+      <AuthPage
+        onAuthenticate={handleAuthenticate}
+        savedPasscodeExists={!!savedPasscode}
+      />
+    );
+  }
+
   // Render standalone flow-map subpage if we are on the flow route
   if (currentRoute.startsWith('#/flow')) {
     return (
@@ -524,6 +578,18 @@ export default function App() {
               >
                 <Info className="w-3 h-3 text-[#8C8C85]" />
                 <span>Info</span>
+              </button>
+              <button
+                onClick={() => {
+                  sessionStorage.removeItem('savings_tracker_is_logged_in');
+                  setIsLoggedIn(false);
+                  window.location.hash = '#/auth';
+                }}
+                className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] text-[#8C8C85] hover:text-rose-700 hover:bg-rose-50/50 hover:border-rose-250 font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1 cursor-pointer"
+                title="Lock ledger vaults and log out"
+              >
+                <Lock className="w-3.5 h-3.5 text-[#8C8C85] hover:text-rose-700" />
+                <span>Lock</span>
               </button>
               <button
                 onClick={handleResetData}
@@ -831,6 +897,18 @@ export default function App() {
           </div>
 
           <div className="flex items-center space-x-2.5 self-end sm:self-auto">
+            <button
+              onClick={() => {
+                sessionStorage.removeItem('savings_tracker_is_logged_in');
+                setIsLoggedIn(false);
+                window.location.hash = '#/auth';
+              }}
+              className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] text-[#8C8C85] hover:text-rose-700 hover:bg-rose-50/50 hover:border-rose-250 font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1 cursor-pointer"
+              title="Lock ledger vaults and log out"
+            >
+              <Lock className="w-3.5 h-3.5 text-[#8C8C85] hover:text-rose-700" />
+              <span>Lock</span>
+            </button>
             <button
               onClick={handleResetData}
               className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1 cursor-pointer"
