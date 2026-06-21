@@ -41,11 +41,24 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  // --- Persistent States ---
+  // --- Persistent States & Migrations ---
   const [pools, setPools] = useState<Pool[]>(() => {
     try {
-      const saved = localStorage.getItem('savings_tracker_pools');
-      return saved ? JSON.parse(saved) : INITIAL_POOLS;
+      const savedV2 = localStorage.getItem('savings_tracker_pools_v2');
+      if (savedV2) return JSON.parse(savedV2);
+
+      const legacyGroups = localStorage.getItem('savings_tracker_groups');
+      if (legacyGroups) {
+        const parsed = JSON.parse(legacyGroups);
+        return parsed.map((g: any) => ({
+          id: g.id.replace('group-', 'pool-'),
+          title: g.title,
+          description: g.description,
+          createdAt: g.createdAt,
+          updatedAt: g.updatedAt
+        }));
+      }
+      return INITIAL_POOLS;
     } catch {
       return INITIAL_POOLS;
     }
@@ -53,30 +66,41 @@ export default function App() {
 
   const [activePoolId, setActivePoolId] = useState<string>(() => {
     try {
-      const savedActive = localStorage.getItem('savings_tracker_active_pool_id');
-      if (savedActive) {
-        // Verify group exists
-        const savedPools = localStorage.getItem('savings_tracker_pools');
-        const parsedPools = savedPools ? JSON.parse(savedPools) : INITIAL_POOLS;
-        if (parsedPools.some((g: any) => g.id === savedActive)) {
-          return savedActive;
-        }
+      const savedActiveV2 = localStorage.getItem('savings_tracker_active_pool_id');
+      if (savedActiveV2) return savedActiveV2;
+
+      const legacyActive = localStorage.getItem('savings_tracker_active_group_id');
+      if (legacyActive) {
+        return legacyActive.replace('group-', 'pool-');
       }
     } catch {}
-    return INITIAL_POOLS[0]?.id || 'holding-1';
+    return INITIAL_POOLS[0]?.id || 'pool-1';
   });
 
   const [holdings, setHoldings] = useState<Holding[]>(() => {
     try {
-      const saved = localStorage.getItem('savings_tracker_holdings');
-      const parsed = saved ? JSON.parse(saved) : INITIAL_HOLDINGS;
-      // Migration: Ensure every pool has a poolId
-      return parsed.map((p: any) => {
-        if (!p.poolId) {
-          return { ...p, poolId: 'holding-1' };
-        }
-        return p;
-      });
+      const savedV2 = localStorage.getItem('savings_tracker_holdings_v2');
+      if (savedV2) return JSON.parse(savedV2);
+
+      const legacyPools = localStorage.getItem('savings_tracker_pools');
+      if (legacyPools) {
+        const parsed = JSON.parse(legacyPools);
+        return parsed.map((p: any) => {
+          const pid = p.poolId || p.groupId || 'pool-1';
+          return {
+            id: p.id.replace('pool-', 'holding-'),
+            poolId: pid.replace('group-', 'pool-'),
+            name: p.name || p.title || 'Untitled',
+            category: (p.category || 'cash') as HoldingCategory,
+            description: p.description || '',
+            investedAmount: p.investedAmount || 0,
+            currentValuation: p.currentValuation || 0,
+            createdAt: p.createdAt,
+            updatedAt: p.updatedAt
+          };
+        });
+      }
+      return INITIAL_HOLDINGS;
     } catch {
       return INITIAL_HOLDINGS;
     }
@@ -85,7 +109,31 @@ export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
       const saved = localStorage.getItem('savings_tracker_transactions');
-      return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map((t: any) => {
+          const updated: any = {
+            id: t.id,
+            type: t.type,
+            amount: t.amount,
+            note: t.note,
+            timestamp: t.timestamp
+          };
+          if (t.previousValuation !== undefined) updated.previousValuation = t.previousValuation;
+          if (t.newValuation !== undefined) updated.newValuation = t.newValuation;
+
+          const originalPoolId = t.holdingId || t.poolId;
+          const originalSourcePoolId = t.sourceHoldingId || t.sourcePoolId;
+          const originalDestinationPoolId = t.destinationHoldingId || t.destinationPoolId;
+
+          if (originalPoolId) updated.holdingId = originalPoolId.replace('pool-', 'holding-');
+          if (originalSourcePoolId) updated.sourceHoldingId = originalSourcePoolId.replace('pool-', 'holding-');
+          if (originalDestinationPoolId) updated.destinationHoldingId = originalDestinationPoolId.replace('pool-', 'holding-');
+
+          return updated as Transaction;
+        });
+      }
+      return INITIAL_TRANSACTIONS;
     } catch {
       return INITIAL_TRANSACTIONS;
     }
@@ -93,7 +141,7 @@ export default function App() {
 
   // Sync to Storage
   useEffect(() => {
-    localStorage.setItem('savings_tracker_pools', JSON.stringify(pools));
+    localStorage.setItem('savings_tracker_pools_v2', JSON.stringify(pools));
   }, [pools]);
 
   useEffect(() => {
@@ -101,7 +149,7 @@ export default function App() {
   }, [activePoolId]);
 
   useEffect(() => {
-    localStorage.setItem('savings_tracker_holdings', JSON.stringify(holdings));
+    localStorage.setItem('savings_tracker_holdings_v2', JSON.stringify(holdings));
   }, [holdings]);
 
   useEffect(() => {
@@ -228,10 +276,13 @@ export default function App() {
 
   const handleResetData = () => {
     if (confirm("Reset application data to original mock defaults? Any changes will be overwritten.")) {
+      localStorage.removeItem('savings_tracker_pools_v2');
+      localStorage.removeItem('savings_tracker_holdings_v2');
+      localStorage.removeItem('savings_tracker_groups');
       localStorage.removeItem('savings_tracker_pools');
-      localStorage.removeItem('savings_tracker_holdings');
       localStorage.removeItem('savings_tracker_transactions');
       localStorage.removeItem('savings_tracker_active_pool_id');
+      localStorage.removeItem('savings_tracker_active_group_id');
       setPools(INITIAL_POOLS);
       setHoldings(INITIAL_HOLDINGS);
       setTransactions(INITIAL_TRANSACTIONS);
