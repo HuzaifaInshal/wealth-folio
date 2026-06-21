@@ -27,7 +27,7 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
                 Wealth <span className="font-serif italic font-normal text-[#8C8C85] ml-1.5">Folio</span>
               </h1>
               <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-[#8C8C85] mt-0.5">
-                Oikos Financial Ledger & Vaults
+                Oikos Financial Ledger & Holdings
               </p>
             </div>
           </div>
@@ -64,7 +64,7 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
                 A beautifully segregated, visual ledger for <span className="italic font-normal text-[#8C8C85]">your wealth.</span>
               </h2>
               <p className="text-base sm:text-lg text-[#6B6B66] font-serif italic leading-relaxed max-w-2xl text-pretty pt-2">
-                Wealth Folio structure empowers you to manage discrete asset groups, visualize internal capital rebalancing, and track performance indicators from a single unified local dashboard.
+                Wealth Folio structure empowers you to manage discrete asset pools, visualize internal capital rebalancing, and track performance indicators from a single unified local dashboard.
               </p>
             </motion.div>
 
@@ -78,14 +78,14 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
                 onClick={onEnterApp}
                 className="px-8 py-4 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white font-bold uppercase tracking-widest text-xs transition-all cursor-pointer border border-[#1A1A1A] shadow-md flex items-center justify-center space-x-2"
               >
-                <span>Enter Your Vaults</span>
+                <span>Enter Your Pools</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
               <button
                 onClick={() => { window.location.hash = '#/'; }}
                 className="px-8 py-4 bg-white border border-[#DCDAD2] hover:border-[#1A1A1A] text-[#1A1A1A] font-bold uppercase tracking-widest text-xs transition-all cursor-pointer flex items-center justify-center"
               >
-                Explore Active Groups
+                Explore Active Pools
               </button>
             </motion.div>
 
@@ -164,7 +164,7 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
                     <Coins className="w-3.5 h-3.5" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <span className="font-serif font-bold text-[10px] text-[#1A1A1A] block truncate">Checking Vault</span>
+                    <span className="font-serif font-bold text-[10px] text-[#1A1A1A] block truncate">Checking Holding</span>
                     <span className="text-[8px] uppercase tracking-wider text-[#8C8C85] block font-mono">Cash & Savings</span>
                   </div>
                 </div>
@@ -212,7 +212,7 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
                     <Shield className="w-3.5 h-3.5" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <span className="font-serif font-bold text-[10px] text-[#1A1A1A] block truncate">Emergency Fund</span>
+                    <span className="font-serif font-bold text-[10px] text-[#1A1A1A] block truncate">Emergency Holding</span>
                     <span className="text-[8px] uppercase tracking-wider text-[#8C8C85] block font-mono">Secure Reserve</span>
                   </div>
                 </div>
@@ -269,7 +269,7 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
                 <div className="space-y-1.5">
                   <h4 className="text-base font-serif font-bold text-[#1A1A1A]">Asset Segregation</h4>
                   <p className="text-xs text-[#6B6B66] leading-relaxed font-serif italic">
-                    Group assets by context (e.g. personal expenses, business, retirement accounts) to maintain strict barrier isolations.
+                    Pool assets by context (e.g. personal expenses, business, retirement accounts) to maintain strict barrier isolations.
                   </p>
                 </div>
               </div>
@@ -293,7 +293,7 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
                   <Shield className="w-5 h-5 text-emerald-700" />
                 </div>
                 <div className="space-y-1.5">
-                  <h4 className="text-base font-serif font-bold text-[#1A1A1A]">Local Storage Engine</h4>
+                  <h4 className="text-base font-serif font-bold text-[#1A1A1A]">Local Storage Persistence</h4>
                   <p className="text-xs text-[#6B6B66] leading-relaxed font-serif italic">
                     Your financial statement balances are secured entirely on your machine. Data persistence with zero cloud risk.
                   </p>

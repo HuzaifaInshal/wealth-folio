@@ -4,9 +4,9 @@
  */
 
 import { useState } from 'react';
-import { Transaction, InvestmentPool, TransactionType } from '../types';
+import { Transaction, Holding, TransactionType } from '../types';
 import { CATEGORY_DETAILS } from '../data';
-import { getCategoryIcon } from './PoolCard';
+import { getCategoryIcon } from './HoldingCard';
 import {
   Search,
   SlidersHorizontal,
@@ -21,18 +21,18 @@ import {
 
 interface TransactionHistoryProps {
   transactions: Transaction[];
-  pools: InvestmentPool[];
+  holdings: Holding[];
   onClearAll?: () => void;
 }
 
-export default function TransactionHistory({ transactions, pools, onClearAll }: TransactionHistoryProps) {
+export default function TransactionHistory({ transactions, holdings, onClearAll }: TransactionHistoryProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [poolFilter, setPoolFilter] = useState<string>('all');
+  const [holdingFilter, setHoldingFilter] = useState<string>('all');
 
-  const getPoolName = (id: string) => {
-    const p = pools.find((pool) => pool.id === id);
-    return p ? p.name : 'Unknown Pool';
+  const getHoldingName = (id: string) => {
+    const h = holdings.find((holding) => holding.id === id);
+    return h ? h.name : 'Unknown Holding';
   };
 
   const getTransactionBadge = (type: TransactionType) => {
@@ -98,15 +98,15 @@ export default function TransactionHistory({ transactions, pools, onClearAll }: 
   const filteredTransactions = [...transactions]
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .filter((tx) => {
-      // Search matching pool name, note, or type
+      // Search matching holding name, note, or type
       const searchLower = searchTerm.toLowerCase();
-      const poolName = getPoolName(tx.poolId).toLowerCase();
-      const srcName = tx.sourcePoolId ? getPoolName(tx.sourcePoolId).toLowerCase() : '';
-      const destName = tx.destinationPoolId ? getPoolName(tx.destinationPoolId).toLowerCase() : '';
+      const holdingName = getHoldingName(tx.holdingId).toLowerCase();
+      const srcName = tx.sourceHoldingId ? getHoldingName(tx.sourceHoldingId).toLowerCase() : '';
+      const destName = tx.destinationHoldingId ? getHoldingName(tx.destinationHoldingId).toLowerCase() : '';
       const note = tx.note.toLowerCase();
       
       const matchesSearch =
-        poolName.includes(searchLower) ||
+        holdingName.includes(searchLower) ||
         srcName.includes(searchLower) ||
         destName.includes(searchLower) ||
         note.includes(searchLower);
@@ -114,14 +114,14 @@ export default function TransactionHistory({ transactions, pools, onClearAll }: 
       // Filter by type
       const matchesType = typeFilter === 'all' || tx.type === typeFilter;
 
-      // Filter by pool
-      const matchesPool =
-        poolFilter === 'all' ||
-        tx.poolId === poolFilter ||
-        tx.sourcePoolId === poolFilter ||
-        tx.destinationPoolId === poolFilter;
+      // Filter by holding
+      const matchesHolding =
+        holdingFilter === 'all' ||
+        tx.holdingId === holdingFilter ||
+        tx.sourceHoldingId === holdingFilter ||
+        tx.destinationHoldingId === holdingFilter;
 
-      return matchesSearch && matchesType && matchesPool;
+      return matchesSearch && matchesType && matchesHolding;
     });
 
   return (
@@ -171,23 +171,23 @@ export default function TransactionHistory({ transactions, pools, onClearAll }: 
             <option value="all">Any Transaction Type</option>
             <option value="deposit">Deposit (Inflow)</option>
             <option value="withdrawal">Withdrawal (Outflow)</option>
-            <option value="transfer">Pool Transfer</option>
+            <option value="transfer">Holding Transfer</option>
             <option value="valuation_adjustment">Status Updates</option>
-            <option value="creation">Pool Inceptions</option>
+            <option value="creation">Holding Inceptions</option>
           </select>
         </div>
 
-        {/* Pool Selector */}
+        {/* Holding Selector */}
         <div>
           <select
-            value={poolFilter}
-            onChange={(e) => setPoolFilter(e.target.value)}
+            value={holdingFilter}
+            onChange={(e) => setHoldingFilter(e.target.value)}
             className="w-full px-3 py-2 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold text-[#1A1A1A] focus:outline-hidden focus:bg-white cursor-pointer"
           >
-            <option value="all">All Pools / Vaults</option>
-            {pools.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
+            <option value="all">All Holdings / Vaults</option>
+            {holdings.map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.name}
               </option>
             ))}
           </select>
@@ -202,7 +202,7 @@ export default function TransactionHistory({ transactions, pools, onClearAll }: 
             <FolderOpen className="w-8 h-8 text-[#8C8C85] mb-2" />
             <p className="text-sm font-medium text-[#8C8C85]">No transactions match your filters</p>
             <button
-              onClick={() => { setSearchTerm(''); setTypeFilter('all'); setPoolFilter('all'); }}
+              onClick={() => { setSearchTerm(''); setTypeFilter('all'); setHoldingFilter('all'); }}
               className="text-xs text-blue-800 hover:text-blue-900 font-serif italic mt-2 underline"
             >
               Reset Filters
@@ -257,17 +257,17 @@ export default function TransactionHistory({ transactions, pools, onClearAll }: 
                         {tx.note}
                       </p>
 
-                      {/* Display Affected pools details */}
+                      {/* Display Affected holdings details */}
                       <p className="text-xs text-[#6B6B66] mt-1 font-sans">
                         {isTransfer ? (
                           <span className="inline-flex items-center">
-                            <strong className="text-[#1A1A1A] font-semibold">{getPoolName(tx.sourcePoolId || '')}</strong>
+                            <strong className="text-[#1A1A1A] font-semibold">{getHoldingName(tx.sourceHoldingId || '')}</strong>
                             <span className="mx-1">→</span>
-                            <strong className="text-[#1A1A1A] font-semibold">{getPoolName(tx.destinationPoolId || '')}</strong>
+                            <strong className="text-[#1A1A1A] font-semibold">{getHoldingName(tx.destinationHoldingId || '')}</strong>
                           </span>
                         ) : (
                           <span>
-                            Vault: <strong className="text-[#1A1A1A] font-semibold">{getPoolName(tx.poolId)}</strong>
+                            Holding: <strong className="text-[#1A1A1A] font-semibold">{getHoldingName(tx.holdingId)}</strong>
                           </span>
                         )}
                       </p>

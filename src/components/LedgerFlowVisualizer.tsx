@@ -17,7 +17,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { InvestmentPool, Transaction, PoolCategory, TransactionType } from '../types';
+import { Holding, Transaction, HoldingCategory, TransactionType } from '../types';
 import { CATEGORY_DETAILS } from '../data';
 import {
   Sparkles,
@@ -40,24 +40,24 @@ import {
 } from 'lucide-react';
 
 interface LedgerFlowVisualizerProps {
-  pools: InvestmentPool[];
+  holdings: Holding[];
   transactions: Transaction[];
-  onAddPool: (poolData: {
+  onAddHolding: (holdingData: {
     name: string;
-    category: PoolCategory;
+    category: HoldingCategory;
     description: string;
     initialBalance: number;
   }) => void;
   onAddTransaction: (txData: {
     type: TransactionType;
-    poolId: string;
-    sourcePoolId?: string;
-    destinationPoolId?: string;
+    holdingId: string;
+    sourceHoldingId?: string;
+    destinationHoldingId?: string;
     amount: number;
     newValuation?: number;
     note: string;
   }) => void;
-  onDeletePool: (poolId: string) => void;
+  onDeleteHolding: (holdingId: string) => void;
   onClose: () => void;
 }
 
@@ -144,9 +144,9 @@ const getTransactionBadgeDetails = (type: TransactionType) => {
 };
 
 // 1. --- Custom POOL NODE Component with Direct Actions ---
-const PoolNodeComponent = ({ data }: { data: any }) => {
-  const pool = data.pool as InvestmentPool;
-  const catDetails = CATEGORY_DETAILS[pool.category];
+const HoldingNodeComponent = ({ data }: { data: any }) => {
+  const holding = data.holding as Holding;
+  const catDetails = CATEGORY_DETAILS[holding.category];
   
   return (
     <div className="bg-white border border-[#1A1A1A] p-4 min-w-[240px] text-left shadow-md transition-all relative select-none">
@@ -159,14 +159,14 @@ const PoolNodeComponent = ({ data }: { data: any }) => {
           className="p-1 px-1.5 text-white flex items-center justify-center font-bold" 
           style={{ backgroundColor: catDetails?.color || '#1A1A1A' }}
         >
-          {getCategoryIcon(pool.category)}
+          {getCategoryIcon(holding.category)}
         </span>
         <div className="min-w-0 flex-1">
           <span className="font-serif font-bold text-xs text-[#1A1A1A] block truncate pr-2">
-            {pool.name}
+            {holding.name}
           </span>
           <span className="text-[9px] uppercase tracking-wider text-[#8C8C85] block font-mono">
-            {catDetails?.label || 'Asset Group'}
+            {catDetails?.label || 'Asset Category'}
           </span>
         </div>
       </div>
@@ -176,13 +176,13 @@ const PoolNodeComponent = ({ data }: { data: any }) => {
         <div className="flex justify-between text-[10px]">
           <span className="text-[#8C8C85] font-serif italic">Ledger Value:</span>
           <span className="font-bold text-[#1A1A1A] font-serif pr-1">
-            {formatCurrency(pool.currentValuation)}
+            {formatCurrency(holding.currentValuation)}
           </span>
         </div>
         <div className="flex justify-between text-[10px]">
           <span className="text-[#8C8C85] font-serif italic">Raw Cost Basis:</span>
           <span className="font-bold text-[#6B6B66] font-serif pr-1">
-            {formatCurrency(pool.investedAmount)}
+            {formatCurrency(holding.investedAmount)}
           </span>
         </div>
       </div>
@@ -213,7 +213,7 @@ const PoolNodeComponent = ({ data }: { data: any }) => {
         <button 
           onClick={(e) => { e.stopPropagation(); data.onDelete(); }}
           className="p-1 text-rose-700 hover:bg-[#FFF0F0] border border-transparent hover:border-[#FCD2D2] cursor-pointer flex items-center justify-center"
-          title="Delete this pool"
+          title="Delete this holding"
         >
           <X className="w-3.5 h-3.5" />
         </button>
@@ -292,16 +292,16 @@ const TransactionNodeComponent = ({ data }: { data: any }) => {
 };
 
 const nodeTypes = {
-  poolNode: PoolNodeComponent,
+  holdingNode: HoldingNodeComponent,
   transactionNode: TransactionNodeComponent,
 };
 
 export default function LedgerFlowVisualizer({
-  pools,
+  holdings,
   transactions,
-  onAddPool,
+  onAddHolding,
   onAddTransaction,
-  onDeletePool,
+  onDeleteHolding,
   onClose,
 }: LedgerFlowVisualizerProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -309,23 +309,23 @@ export default function LedgerFlowVisualizer({
 
   // --- State for Interactive Features inside Flow ---
   const [isActionPopupOpen, setIsActionPopupOpen] = useState(false);
-  const [isPoolModalOpen, setIsPoolModalOpen] = useState(false);
+  const [isHoldingModalOpen, setIsHoldingModalOpen] = useState(false);
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
   const [txType, setTxType] = useState<TransactionType>('deposit');
-  const [selectedPool, setSelectedPool] = useState<InvestmentPool | null>(null);
+  const [selectedHolding, setSelectedHolding] = useState<Holding | null>(null);
 
-  // Form State: Pool creation
-  const [newPoolName, setNewPoolName] = useState('');
-  const [newPoolCategory, setNewPoolCategory] = useState<PoolCategory>('cash');
-  const [newPoolDescription, setNewPoolDescription] = useState('');
-  const [newPoolInitialBalance, setNewPoolInitialBalance] = useState('');
+  // Form State: Holding creation
+  const [newHoldingName, setNewHoldingName] = useState('');
+  const [newHoldingCategory, setNewHoldingCategory] = useState<HoldingCategory>('cash');
+  const [newHoldingDescription, setNewHoldingDescription] = useState('');
+  const [newHoldingInitialBalance, setNewHoldingInitialBalance] = useState('');
 
   // Form State: Transactions / Transfers
   const [txAmount, setTxAmount] = useState('');
   const [txNote, setTxNote] = useState('');
   const [txNewValuation, setTxNewValuation] = useState('');
-  const [sourcePoolId, setSourcePoolId] = useState('');
-  const [destinationPoolId, setDestinationPoolId] = useState('');
+  const [sourceHoldingId, setSourceHoldingId] = useState('');
+  const [destinationHoldingId, setDestinationHoldingId] = useState('');
   const [formError, setFormError] = useState('');
 
   // Custom connection helper: drawing wire automatically triggers Transfer dialog
@@ -333,85 +333,85 @@ export default function LedgerFlowVisualizer({
     const srcId = params.source;
     const destId = params.target;
 
-    // Check if both are valid pools
-    const srcPool = pools.find((p) => p.id === srcId);
-    const destPool = pools.find((p) => p.id === destId);
+    // Check if both are valid holdings
+    const srcHolding = holdings.find((p) => p.id === srcId);
+    const destHolding = holdings.find((p) => p.id === destId);
 
-    if (srcPool && destPool && srcPool.id !== destPool.id) {
+    if (srcHolding && destHolding && srcHolding.id !== destHolding.id) {
       setTxType('transfer');
-      setSourcePoolId(srcPool.id);
-      setSelectedPool(srcPool);
-      setDestinationPoolId(destPool.id);
+      setSourceHoldingId(srcHolding.id);
+      setSelectedHolding(srcHolding);
+      setDestinationHoldingId(destHolding.id);
       setTxAmount('');
-      setTxNote(`Rebalancing reallocation to ${destPool.name}`);
+      setTxNote(`Rebalancing reallocation to ${destHolding.name}`);
       setFormError('');
       setIsTxModalOpen(true);
     }
   };
 
   // Setup callbacks for node triggers
-  const handleOpenAddTxModal = (pool: InvestmentPool, type: TransactionType) => {
-    setSelectedPool(pool);
+  const handleOpenAddTxModal = (holding: Holding, type: TransactionType) => {
+    setSelectedHolding(holding);
     setTxType(type);
-    setSourcePoolId('');
-    setDestinationPoolId('');
+    setSourceHoldingId('');
+    setDestinationHoldingId('');
     setTxAmount('');
     setTxNote('');
     setFormError('');
     if (type === 'valuation_adjustment') {
-      setTxNewValuation(pool.currentValuation.toString());
+      setTxNewValuation(holding.currentValuation.toString());
     } else {
       setTxNewValuation('');
     }
     setIsTxModalOpen(true);
   };
 
-  const handleOpenAddPoolModal = () => {
-    setNewPoolName('');
-    setNewPoolCategory('cash');
-    setNewPoolDescription('');
-    setNewPoolInitialBalance('0');
+  const handleOpenAddHoldingModal = () => {
+    setNewHoldingName('');
+    setNewHoldingCategory('cash');
+    setNewHoldingDescription('');
+    setNewHoldingInitialBalance('0');
     setFormError('');
-    setIsPoolModalOpen(true);
+    setIsHoldingModalOpen(true);
   };
 
   // Form Submitters
-  const handlePoolFormSubmit = (e: React.FormEvent) => {
+  const handleHoldingFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPoolName.trim()) {
+    if (!newHoldingName.trim()) {
       setFormError('Name is required.');
       return;
     }
 
-    const initialVal = parseFloat(newPoolInitialBalance) || 0;
+    const initialVal = parseFloat(newHoldingInitialBalance) || 0;
     if (initialVal < 0) {
       setFormError('Initial capital cannot be negative.');
       return;
     }
 
-    onAddPool({
-      name: newPoolName,
-      category: newPoolCategory,
-      description: newPoolDescription,
+    onAddHolding({
+      name: newHoldingName,
+      category: newHoldingCategory,
+      description: newHoldingDescription,
       initialBalance: initialVal,
     });
 
-    setIsPoolModalOpen(false);
+    setIsHoldingModalOpen(false);
   };
 
   const handleTxFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (txType === 'transfer') {
-      const srcIdToUse = sourcePoolId || (selectedPool ? selectedPool.id : '');
-      const destIdToUse = destinationPoolId;
+      const srcIdToUse = sourceHoldingId || (selectedHolding ? selectedHolding.id : '');
+      const destIdToUse = destinationHoldingId;
 
       if (!srcIdToUse || !destIdToUse) {
-        setFormError('You must specify both Source and Target pools.');
+        setFormError('You must specify both Source and Target holdings.');
         return;
       }
       if (srcIdToUse === destIdToUse) {
-        setFormError('Source and Target pools cannot be identical.');
+        setFormError('Source and Target holdings cannot be identical.');
         return;
       }
 
@@ -421,25 +421,25 @@ export default function LedgerFlowVisualizer({
         return;
       }
 
-      const srcPool = pools.find((p) => p.id === srcIdToUse);
-      if (srcPool && srcPool.currentValuation < amt) {
-        setFormError(`Insufficient balance. Max transferable is ${formatCurrency(srcPool.currentValuation)}.`);
+      const srcHolding = holdings.find((p) => p.id === srcIdToUse);
+      if (srcHolding && srcHolding.currentValuation < amt) {
+        setFormError(`Insufficient balance. Max transferable is ${formatCurrency(srcHolding.currentValuation)}.`);
         return;
       }
 
       onAddTransaction({
         type: 'transfer',
-        poolId: srcIdToUse, // Source pool acts as primary anchor
-        sourcePoolId: srcIdToUse,
-        destinationPoolId: destIdToUse,
+        holdingId: srcIdToUse, // Source holding acts as primary anchor
+        sourceHoldingId: srcIdToUse,
+        destinationHoldingId: destIdToUse,
         amount: amt,
         note: txNote || `Transferred assets internally`,
       });
 
     } else {
       // Deposit, Withdrawal, Valuation Adjustment
-      if (!selectedPool) {
-        setFormError('Source pool is unresolved.');
+      if (!selectedHolding) {
+        setFormError('Source holding is unresolved.');
         return;
       }
 
@@ -452,7 +452,7 @@ export default function LedgerFlowVisualizer({
 
         onAddTransaction({
           type: 'valuation_adjustment',
-          poolId: selectedPool.id,
+          holdingId: selectedHolding.id,
           amount: 0,
           newValuation: newVal,
           note: txNote || 'Revalued account statement balance',
@@ -465,14 +465,14 @@ export default function LedgerFlowVisualizer({
           return;
         }
 
-        if (txType === 'withdrawal' && selectedPool.currentValuation < amt) {
-          setFormError(`Withdrawing too much! Max available from this vault is ${formatCurrency(selectedPool.currentValuation)}.`);
+        if (txType === 'withdrawal' && selectedHolding.currentValuation < amt) {
+          setFormError(`Withdrawing too much! Max available from this vault is ${formatCurrency(selectedHolding.currentValuation)}.`);
           return;
         }
 
         onAddTransaction({
           type: txType,
-          poolId: selectedPool.id,
+          holdingId: selectedHolding.id,
           amount: amt,
           note: txNote || `${txType === 'deposit' ? 'Capital deposit' : 'Atm cash withdrawal'}`,
         });
@@ -487,37 +487,37 @@ export default function LedgerFlowVisualizer({
     const listNodes: Node[] = [];
     const listEdges: Edge[] = [];
 
-    // Filter pools dynamically
-    const filteredPools = pools.filter((p) => {
+    // Filter holdings dynamically
+    const filteredHoldings = holdings.filter((p) => {
       const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             p.description.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
 
-    // 1. Render Row of Pool Lanes
-    filteredPools.forEach((pool, poolIndex) => {
-      const yOffset = poolIndex * 260 + 100;
+    // 1. Render Row of Holding Lanes
+    filteredHoldings.forEach((holding, holdingIndex) => {
+      const yOffset = holdingIndex * 260 + 100;
 
-      // Pool Node containing the dynamic handlers inside data
+      // Holding Node containing the dynamic handlers inside data
       listNodes.push({
-        id: pool.id,
-        type: 'poolNode',
+        id: holding.id,
+        type: 'holdingNode',
         position: { x: 50, y: yOffset },
         data: { 
-          pool,
-          onAddTx: (type: TransactionType) => handleOpenAddTxModal(pool, type),
+          holding,
+          onAddTx: (type: TransactionType) => handleOpenAddTxModal(holding, type),
           onDelete: () => {
-            if (window.confirm(`Are you sure you want to permanently delete pool "${pool.name}"? This deletes its history.`)) {
-              onDeletePool(pool.id);
+            if (window.confirm(`Are you sure you want to permanently delete holding "${holding.name}"? This deletes its history.`)) {
+              onDeleteHolding(holding.id);
             }
           }
         },
       });
 
-      // Filter transactions for this pool
+      // Filter transactions for this holding
       const directTxs = transactions.filter(
-        (tx) => tx.poolId === pool.id || tx.sourcePoolId === pool.id || tx.destinationPoolId === pool.id
+        (tx) => tx.holdingId === holding.id || tx.sourceHoldingId === holding.id || tx.destinationHoldingId === holding.id
       );
 
       // Sort transactions chronologically ascending
@@ -527,7 +527,7 @@ export default function LedgerFlowVisualizer({
 
       // Map Transactions horizontally as children in timeline
       sortedTxs.forEach((tx, txIndex) => {
-        const txNodeId = `node-${tx.id}-${pool.id}`; // custom node id per lane instance
+        const txNodeId = `node-${tx.id}-${holding.id}`; // custom node id per lane instance
         const xOffset = 390 + txIndex * 290;
 
         listNodes.push({
@@ -539,17 +539,17 @@ export default function LedgerFlowVisualizer({
 
         // 2. Draw standard transaction connection edges (horizontal chain)
         if (txIndex === 0) {
-          // Connect Pool Root to First Transaction
+          // Connect Holding Root to First Transaction
           listEdges.push({
-            id: `edge-${pool.id}-${txNodeId}`,
-            source: pool.id,
+            id: `edge-${holding.id}-${txNodeId}`,
+            source: holding.id,
             target: txNodeId,
             animated: true,
             style: { stroke: '#1A1A1A', strokeWidth: 1.5 },
           });
         } else {
           // Connect previous transaction node to current transaction node
-          const prevTxNodeId = `node-${sortedTxs[txIndex - 1].id}-${pool.id}`;
+          const prevTxNodeId = `node-${sortedTxs[txIndex - 1].id}-${holding.id}`;
           listEdges.push({
             id: `edge-${prevTxNodeId}-${txNodeId}`,
             source: prevTxNodeId,
@@ -558,16 +558,16 @@ export default function LedgerFlowVisualizer({
           });
         }
 
-        // 3. Draw inter-pool TRANSFER connection edges (crossing lanes)
-        if (tx.type === 'transfer' && tx.sourcePoolId === pool.id && tx.destinationPoolId) {
+        // 3. Draw inter-holding TRANSFER connection edges (crossing lanes)
+        if (tx.type === 'transfer' && tx.sourceHoldingId === holding.id && tx.destinationHoldingId) {
           // If this is the origin node, draw a directed edge from this transfer transaction node
-          // to the destination pool root node!
-          const destPoolExists = filteredPools.some((p) => p.id === tx.destinationPoolId);
-          if (destPoolExists) {
+          // to the destination holding root node!
+          const destHoldingExists = filteredHoldings.some((p) => p.id === tx.destinationHoldingId);
+          if (destHoldingExists) {
             listEdges.push({
               id: `transfer-edge-${tx.id}`,
               source: txNodeId,
-              target: tx.destinationPoolId,
+              target: tx.destinationHoldingId,
               label: `Transfer ${formatCurrency(tx.amount)}`,
               animated: true,
               labelBgPadding: [4, 2],
@@ -581,7 +581,7 @@ export default function LedgerFlowVisualizer({
     });
 
     return { nodes: listNodes, edges: listEdges };
-  }, [pools, transactions, categoryFilter, searchQuery]);
+  }, [holdings, transactions, categoryFilter, searchQuery]);
 
   return (
     <div 
@@ -598,7 +598,7 @@ export default function LedgerFlowVisualizer({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search pools..."
+              placeholder="Search holdings..."
               className="pl-8 pr-3 py-1 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs text-[#1A1A1A] focus:outline-hidden focus:bg-white focus:border-[#1A1A1A] w-40 sm:w-48 transition-all"
             />
           </div>
@@ -611,10 +611,10 @@ export default function LedgerFlowVisualizer({
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="text-[10px] uppercase tracking-wider font-bold text-[#1A1A1A] bg-transparent focus:outline-hidden pr-3 cursor-pointer"
             >
-              <option value="all">All Groups</option>
+              <option value="all">All Categories</option>
               {Object.keys(CATEGORY_DETAILS).map((cat) => (
                 <option key={cat} value={cat}>
-                  {CATEGORY_DETAILS[cat as PoolCategory].label.split(' ')[0]}
+                  {CATEGORY_DETAILS[cat as HoldingCategory].label.split(' ')[0]}
                 </option>
               ))}
             </select>
@@ -626,7 +626,7 @@ export default function LedgerFlowVisualizer({
           {/* Instruction Box */}
           <div className="hidden lg:flex items-center space-x-1.5 bg-white border border-[#DCDAD2]/80 px-2.5 py-1 text-[10px] text-[#8C8C85] font-serif italic max-w-sm rounded-none shadow-xs">
             <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse shrink-0" />
-            <span>Drag from one Pool Node to another to transfer funds internally.</span>
+            <span>Drag from one Holding Node to another to transfer funds internally.</span>
           </div>
 
           {/* Back to Dashboard */}
@@ -662,40 +662,40 @@ export default function LedgerFlowVisualizer({
                   </button>
                 </div>
                 <button
-                  onClick={() => { setIsActionPopupOpen(false); handleOpenAddPoolModal(); }}
+                  onClick={() => { setIsActionPopupOpen(false); handleOpenAddHoldingModal(); }}
                   className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Create New Savings/Asset Pool</span>
+                  <span>Create New Savings/Asset Holding</span>
                 </button>
                 <button
-                  onClick={() => { setIsActionPopupOpen(false); setTxType('deposit'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
+                  onClick={() => { setIsActionPopupOpen(false); setTxType('deposit'); setSelectedHolding(holdings[0] || null); setSourceHoldingId(''); setDestinationHoldingId(''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
                   className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  disabled={pools.length === 0}
+                  disabled={holdings.length === 0}
                 >
                   <Plus className="w-3.5 h-3.5 text-emerald-700" />
                   <span>Inflow Capital Contribution</span>
                 </button>
                 <button
-                  onClick={() => { setIsActionPopupOpen(false); setTxType('withdrawal'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
+                  onClick={() => { setIsActionPopupOpen(false); setTxType('withdrawal'); setSelectedHolding(holdings[0] || null); setSourceHoldingId(''); setDestinationHoldingId(''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
                   className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  disabled={pools.length === 0}
+                  disabled={holdings.length === 0}
                 >
                   <Minus className="w-3.5 h-3.5 text-rose-700" />
                   <span>Outflow Capital Withdrawal</span>
                 </button>
                 <button
-                  onClick={() => { setIsActionPopupOpen(false); setTxType('transfer'); setSourcePoolId(pools[0]?.id || ''); setDestinationPoolId(pools[1]?.id || ''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
+                  onClick={() => { setIsActionPopupOpen(false); setTxType('transfer'); setSourceHoldingId(holdings[0]?.id || ''); setDestinationHoldingId(holdings[1]?.id || ''); setTxAmount(''); setTxNote(''); setFormError(''); setIsTxModalOpen(true); }}
                   className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  disabled={pools.length < 2}
+                  disabled={holdings.length < 2}
                 >
                   <ArrowRightLeft className="w-3.5 h-3.5 text-blue-700" />
                   <span>Capital Route Rebalancing</span>
                 </button>
                 <button
-                  onClick={() => { setIsActionPopupOpen(false); setTxType('valuation_adjustment'); setSelectedPool(pools[0] || null); setSourcePoolId(''); setDestinationPoolId(''); setTxNote(''); setFormError(''); if (pools[0]) setTxNewValuation(pools[0].currentValuation.toString()); setIsTxModalOpen(true); }}
+                  onClick={() => { setIsActionPopupOpen(false); setTxType('valuation_adjustment'); setSelectedHolding(holdings[0] || null); setSourceHoldingId(''); setDestinationHoldingId(''); setTxNote(''); setFormError(''); if (holdings[0]) setTxNewValuation(holdings[0].currentValuation.toString()); setIsTxModalOpen(true); }}
                   className="w-full text-left p-2.5 hover:bg-[#F9F8F6] text-[11px] font-bold text-[#1A1A1A] border border-[#DCDAD2] flex items-center space-x-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  disabled={pools.length === 0}
+                  disabled={holdings.length === 0}
                 >
                   <Scale className="w-3.5 h-3.5 text-[#1A1A1A]" />
                   <span>Asset Valuation Adjustment</span>
@@ -714,13 +714,13 @@ export default function LedgerFlowVisualizer({
               </div>
               <p className="text-sm font-semibold text-[#1A1A1A]">No active nodes matched your query</p>
               <p className="text-xs text-[#8C8C85] mt-1.5 max-w-sm font-serif italic leading-relaxed">
-                Try widening your category filters or creating new saving / investment pools with active transactional history.
+                Try widening your category filters or creating new saving / investment holdings with active transactional history.
               </p>
               <button
-                onClick={handleOpenAddPoolModal}
+                onClick={handleOpenAddHoldingModal}
                 className="mt-4 p-2.5 bg-[#1A1A1A] text-white text-[10px] uppercase font-bold tracking-widest cursor-pointer hover:bg-black border border-[#1A1A1A]"
               >
-                + Create Asset Pool Node
+                + Create Asset Holding Node
               </button>
             </div>
           ) : (
@@ -738,7 +738,7 @@ export default function LedgerFlowVisualizer({
               <Controls orientation="horizontal" position="bottom-center" className="!bg-white !rounded-none !border !border-[#DCDAD2] !shadow-xs" />
               <MiniMap 
                 nodeColor={() => '#F9F8F6'} 
-                nodeStrokeColor={(node) => (node.type === 'poolNode' ? '#1A1A1A' : '#DCDAD2')} 
+                nodeStrokeColor={(node) => (node.type === 'holdingNode' ? '#1A1A1A' : '#DCDAD2')} 
                 maskColor="rgba(26, 26, 26, 0.05)"
                 className="!bg-white !rounded-none !border !border-[#DCDAD2] !shadow-xs"
               />
@@ -749,7 +749,7 @@ export default function LedgerFlowVisualizer({
         {/* --- MODAL DIALOGS EMBEDDED --- */}
 
         {/* 1. COMPACT ADD POOL MODAL */}
-        {isPoolModalOpen && (
+        {isHoldingModalOpen && (
           <div className="fixed inset-0 bg-[#1A1A1A]/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
             <div className="bg-white border border-[#DCDAD2] w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-[#DCDAD2] pb-3 mb-4">
@@ -758,7 +758,7 @@ export default function LedgerFlowVisualizer({
                 </h3>
                 <button 
                   type="button"
-                  onClick={() => setIsPoolModalOpen(false)}
+                  onClick={() => setIsHoldingModalOpen(false)}
                   className="p-1 text-[#8C8C85] hover:text-[#1A1A1A]"
                 >
                   <X className="w-4 h-4" />
@@ -771,33 +771,33 @@ export default function LedgerFlowVisualizer({
                 </div>
               )}
 
-              <form onSubmit={handlePoolFormSubmit} className="space-y-4">
+              <form onSubmit={handleHoldingFormSubmit} className="space-y-4">
                 <div>
                   <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
-                    Pool Vault Name
+                    Holding Vault Name
                   </label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. S&P Index Fund, Offshore Savings"
-                    value={newPoolName}
-                    onChange={(e) => setNewPoolName(e.target.value)}
+                    value={newHoldingName}
+                    onChange={(e) => setNewHoldingName(e.target.value)}
                     className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
                   />
                 </div>
 
                 <div>
                   <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
-                    Asset Group Class
+                    Asset Class
                   </label>
                   <select
-                    value={newPoolCategory}
-                    onChange={(e) => setNewPoolCategory(e.target.value as PoolCategory)}
+                    value={newHoldingCategory}
+                    onChange={(e) => setNewHoldingCategory(e.target.value as HoldingCategory)}
                     className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
                   >
                     {Object.keys(CATEGORY_DETAILS).map((cat) => (
                       <option key={cat} value={cat}>
-                        {CATEGORY_DETAILS[cat as PoolCategory].label}
+                        {CATEGORY_DETAILS[cat as HoldingCategory].label}
                       </option>
                     ))}
                   </select>
@@ -811,8 +811,8 @@ export default function LedgerFlowVisualizer({
                     type="number"
                     min="0"
                     placeholder="0"
-                    value={newPoolInitialBalance}
-                    onChange={(e) => setNewPoolInitialBalance(e.target.value)}
+                    value={newHoldingInitialBalance}
+                    onChange={(e) => setNewHoldingInitialBalance(e.target.value)}
                     className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
                   />
                 </div>
@@ -827,8 +827,8 @@ export default function LedgerFlowVisualizer({
                     rows={2}
                     maxLength={120}
                     placeholder="e.g. For index compound returns..."
-                    value={newPoolDescription}
-                    onChange={(e) => setNewPoolDescription(e.target.value)}
+                    value={newHoldingDescription}
+                    onChange={(e) => setNewHoldingDescription(e.target.value)}
                     className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
                   />
                 </div>
@@ -836,7 +836,7 @@ export default function LedgerFlowVisualizer({
                 <div className="flex space-x-3 pt-3 border-t border-[#DCDAD2]">
                   <button
                     type="button"
-                    onClick={() => setIsPoolModalOpen(false)}
+                    onClick={() => setIsHoldingModalOpen(false)}
                     className="flex-1 py-2 border border-[#DCDAD2] text-[10px] uppercase font-bold tracking-widest hover:bg-[#F9F8F6]"
                   >
                     Cancel
@@ -845,7 +845,7 @@ export default function LedgerFlowVisualizer({
                     type="submit"
                     className="flex-1 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white text-[10px] uppercase font-bold tracking-widest"
                   >
-                    Add Pool Node
+                    Add Holding Node
                   </button>
                 </div>
               </form>
@@ -887,17 +887,17 @@ export default function LedgerFlowVisualizer({
                       Target Vault Node
                     </label>
                     <select
-                      value={selectedPool?.id || ''}
+                      value={selectedHolding?.id || ''}
                       onChange={(e) => {
-                        const matched = pools.find((p) => p.id === e.target.value);
-                        setSelectedPool(matched || null);
+                        const matched = holdings.find((p) => p.id === e.target.value);
+                        setSelectedHolding(matched || null);
                         if (txType === 'valuation_adjustment' && matched) {
                           setTxNewValuation(matched.currentValuation.toString());
                         }
                       }}
                       className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm font-semibold text-[#1A1A1A]"
                     >
-                      {pools.map((p) => (
+                      {holdings.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name} ({formatCurrency(p.currentValuation)})
                         </option>
@@ -909,14 +909,14 @@ export default function LedgerFlowVisualizer({
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
-                        From Pool (Source)
+                        From Holding (Source)
                       </label>
                       <select
-                        value={sourcePoolId || selectedPool?.id || ''}
-                        onChange={(e) => setSourcePoolId(e.target.value)}
+                        value={sourceHoldingId || selectedHolding?.id || ''}
+                        onChange={(e) => setSourceHoldingId(e.target.value)}
                         className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
                       >
-                        {pools.map((p) => (
+                        {holdings.map((p) => (
                           <option key={p.id} value={p.id}>
                             {p.name} ({formatCurrency(p.currentValuation)})
                           </option>
@@ -926,16 +926,16 @@ export default function LedgerFlowVisualizer({
 
                     <div>
                       <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
-                        To Pool (Target)
+                        To Holding (Target)
                       </label>
                       <select
-                        value={destinationPoolId}
-                        onChange={(e) => setDestinationPoolId(e.target.value)}
+                        value={destinationHoldingId}
+                        onChange={(e) => setDestinationHoldingId(e.target.value)}
                         className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
                       >
                         <option value="">-- Select Destination --</option>
-                        {pools
-                          .filter((p) => p.id !== (sourcePoolId || selectedPool?.id))
+                        {holdings
+                          .filter((p) => p.id !== (sourceHoldingId || selectedHolding?.id))
                           .map((p) => (
                             <option key={p.id} value={p.id}>
                               {p.name}
@@ -962,9 +962,9 @@ export default function LedgerFlowVisualizer({
                       onChange={(e) => setTxAmount(e.target.value)}
                       className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm font-bold text-[#1A1A1A]"
                     />
-                    {txType === 'withdrawal' && selectedPool && (
+                    {txType === 'withdrawal' && selectedHolding && (
                       <span className="text-[10px] text-[#8C8C85] italic font-serif mt-1 block">
-                        Max withdrawable balance: {formatCurrency(selectedPool.currentValuation)}
+                        Max withdrawable balance: {formatCurrency(selectedHolding.currentValuation)}
                       </span>
                     )}
                   </div>
@@ -983,9 +983,9 @@ export default function LedgerFlowVisualizer({
                       onChange={(e) => setTxNewValuation(e.target.value)}
                       className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm font-bold text-[#1A1A1A]"
                     />
-                    {selectedPool && (
+                    {selectedHolding && (
                       <span className="text-[10px] text-[#8C8C85] italic font-serif mt-1 block">
-                        Previous statement value: {formatCurrency(selectedPool.currentValuation)}
+                        Previous statement value: {formatCurrency(selectedHolding.currentValuation)}
                       </span>
                     )}
                   </div>

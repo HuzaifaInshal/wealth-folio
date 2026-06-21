@@ -5,26 +5,26 @@
 
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { InvestmentPool, PoolCategory } from '../types';
+import { Holding, HoldingCategory } from '../types';
 import { CATEGORY_DETAILS } from '../data';
 import { PieChart, List, TrendingUp, Info } from 'lucide-react';
 
 interface DistributionChartProps {
-  pools: InvestmentPool[];
+  holdings: Holding[];
 }
 
-export default function DistributionChart({ pools }: DistributionChartProps) {
-  const [hoveredCategory, setHoveredCategory] = useState<PoolCategory | null>(null);
+export default function DistributionChart({ holdings }: DistributionChartProps) {
+  const [hoveredCategory, setHoveredCategory] = useState<HoldingCategory | null>(null);
   const [viewType, setViewType] = useState<'chart' | 'grid'>('chart');
 
-  // Group pools by category
-  const categoryTotals = pools.reduce<Record<PoolCategory, { valuation: number; invested: number }>>(
-    (acc, pool) => {
-      if (!acc[pool.category]) {
-        acc[pool.category] = { valuation: 0, invested: 0 };
+  // Group holdings by category
+  const categoryTotals = holdings.reduce<Record<HoldingCategory, { valuation: number; invested: number }>>(
+    (acc, holding) => {
+      if (!acc[holding.category]) {
+        acc[holding.category] = { valuation: 0, invested: 0 };
       }
-      acc[pool.category].valuation += pool.currentValuation;
-      acc[pool.category].invested += pool.investedAmount;
+      acc[holding.category].valuation += holding.currentValuation;
+      acc[holding.category].invested += holding.investedAmount;
       return acc;
     },
     {} as any
@@ -33,7 +33,7 @@ export default function DistributionChart({ pools }: DistributionChartProps) {
   const totalValuation = Object.values(categoryTotals).reduce((sum, item) => sum + item.valuation, 0);
 
   // Convert to array and calculate allocation %
-  const currentCategories = (Object.keys(CATEGORY_DETAILS) as PoolCategory[])
+  const currentCategories = (Object.keys(CATEGORY_DETAILS) as HoldingCategory[])
     .map((catKey) => {
       const data = categoryTotals[catKey] || { valuation: 0, invested: 0 };
       const percentage = totalValuation > 0 ? (data.valuation / totalValuation) * 100 : 0;
@@ -112,7 +112,7 @@ export default function DistributionChart({ pools }: DistributionChartProps) {
           </div>
           <p className="text-sm font-medium text-[#1A1A1A]">No assets tracked yet</p>
           <p className="text-xs text-[#8C8C85] max-w-xs mt-1.5 leading-relaxed font-serif italic">
-            Create an investment or savings pool and deposit funds to see your asset distribution.
+            Create an investment or savings holding and deposit funds to see your asset distribution.
           </p>
         </div>
       ) : (

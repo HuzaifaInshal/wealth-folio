@@ -5,18 +5,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { InvestmentPool, Transaction, PoolCategory, TransactionType, Group } from './types';
-import { INITIAL_POOLS, INITIAL_TRANSACTIONS, CATEGORY_DETAILS, INITIAL_GROUPS } from './data';
+import { Holding, Transaction, HoldingCategory, TransactionType, Pool } from './types';
+import { INITIAL_HOLDINGS, INITIAL_TRANSACTIONS, CATEGORY_DETAILS, INITIAL_POOLS } from './data';
 
 // Import Components
 import MetricCard from './components/MetricCard';
-import PoolCard from './components/PoolCard';
+import HoldingCard from './components/HoldingCard';
 import DistributionChart from './components/DistributionChart';
 import TransactionHistory from './components/TransactionHistory';
-import PoolFormModal from './components/PoolFormModal';
+import HoldingFormModal from './components/HoldingFormModal';
 import TransactionModal from './components/TransactionModal';
 import LedgerFlowVisualizer from './components/LedgerFlowVisualizer';
-import GroupFormModal from './components/GroupFormModal';
+import PoolFormModal from './components/PoolFormModal';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
 
@@ -42,43 +42,43 @@ import {
 
 export default function App() {
   // --- Persistent States ---
-  const [groups, setGroups] = useState<Group[]>(() => {
+  const [pools, setPools] = useState<Pool[]>(() => {
     try {
-      const saved = localStorage.getItem('savings_tracker_groups');
-      return saved ? JSON.parse(saved) : INITIAL_GROUPS;
+      const saved = localStorage.getItem('savings_tracker_pools');
+      return saved ? JSON.parse(saved) : INITIAL_POOLS;
     } catch {
-      return INITIAL_GROUPS;
+      return INITIAL_POOLS;
     }
   });
 
-  const [activeGroupId, setActiveGroupId] = useState<string>(() => {
+  const [activePoolId, setActivePoolId] = useState<string>(() => {
     try {
-      const savedActive = localStorage.getItem('savings_tracker_active_group_id');
+      const savedActive = localStorage.getItem('savings_tracker_active_pool_id');
       if (savedActive) {
         // Verify group exists
-        const savedGroups = localStorage.getItem('savings_tracker_groups');
-        const parsedGroups = savedGroups ? JSON.parse(savedGroups) : INITIAL_GROUPS;
-        if (parsedGroups.some((g: any) => g.id === savedActive)) {
+        const savedPools = localStorage.getItem('savings_tracker_pools');
+        const parsedPools = savedPools ? JSON.parse(savedPools) : INITIAL_POOLS;
+        if (parsedPools.some((g: any) => g.id === savedActive)) {
           return savedActive;
         }
       }
     } catch {}
-    return INITIAL_GROUPS[0]?.id || 'group-1';
+    return INITIAL_POOLS[0]?.id || 'holding-1';
   });
 
-  const [pools, setPools] = useState<InvestmentPool[]>(() => {
+  const [holdings, setHoldings] = useState<Holding[]>(() => {
     try {
-      const saved = localStorage.getItem('savings_tracker_pools');
-      const parsed = saved ? JSON.parse(saved) : INITIAL_POOLS;
-      // Migration: Ensure every pool has a groupId
+      const saved = localStorage.getItem('savings_tracker_holdings');
+      const parsed = saved ? JSON.parse(saved) : INITIAL_HOLDINGS;
+      // Migration: Ensure every pool has a poolId
       return parsed.map((p: any) => {
-        if (!p.groupId) {
-          return { ...p, groupId: 'group-1' };
+        if (!p.poolId) {
+          return { ...p, poolId: 'holding-1' };
         }
         return p;
       });
     } catch {
-      return INITIAL_POOLS;
+      return INITIAL_HOLDINGS;
     }
   });
 
@@ -93,16 +93,16 @@ export default function App() {
 
   // Sync to Storage
   useEffect(() => {
-    localStorage.setItem('savings_tracker_groups', JSON.stringify(groups));
-  }, [groups]);
-
-  useEffect(() => {
-    localStorage.setItem('savings_tracker_active_group_id', activeGroupId);
-  }, [activeGroupId]);
-
-  useEffect(() => {
     localStorage.setItem('savings_tracker_pools', JSON.stringify(pools));
   }, [pools]);
+
+  useEffect(() => {
+    localStorage.setItem('savings_tracker_active_pool_id', activePoolId);
+  }, [activePoolId]);
+
+  useEffect(() => {
+    localStorage.setItem('savings_tracker_holdings', JSON.stringify(holdings));
+  }, [holdings]);
 
   useEffect(() => {
     localStorage.setItem('savings_tracker_transactions', JSON.stringify(transactions));
@@ -111,7 +111,7 @@ export default function App() {
   // --- Filtering & UI States ---
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [groupSearchQuery, setGroupSearchQuery] = useState('');
+  const [poolSearchQuery, setPoolSearchQuery] = useState('');
 
   // --- Authentication States ---
   const [savedPasscode, setSavedPasscode] = useState<string>(() => {
@@ -145,20 +145,20 @@ export default function App() {
   };
   
   // Modals ControllerStates
-  const [isPoolModalOpen, setIsPoolModalOpen] = useState(false);
-  const [poolToEdit, setPoolToEdit] = useState<InvestmentPool | null>(null);
+  const [isHoldingModalOpen, setIsHoldingModalOpen] = useState(false);
+  const [holdingToEdit, setHoldingToEdit] = useState<Holding | null>(null);
 
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
   const [txModalTab, setTxModalTab] = useState<'deposit' | 'withdrawal' | 'transfer' | 'valuation_adjustment'>('deposit');
-  const [txSelectedPool, setTxSelectedPool] = useState<InvestmentPool | null>(null);
+  const [txSelectedHolding, setTxSelectedHolding] = useState<Holding | null>(null);
 
-  // Group Switcher Modal/Dropdown state
-  const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
-  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
-  const [groupToEdit, setGroupToEdit] = useState<Group | null>(null);
+  // Pool Switcher Modal/Dropdown state
+  const [isPoolDropdownOpen, setIsPoolDropdownOpen] = useState(false);
+  const [isPoolModalOpen, setIsPoolModalOpen] = useState(false);
+  const [poolToEdit, setPoolToEdit] = useState<Pool | null>(null);
 
   // Custom Confirmation Dialog for Pool Deletion
-  const [poolToDelete, setPoolToDelete] = useState<InvestmentPool | null>(null);
+  const [holdingToDelete, setHoldingToDelete] = useState<Holding | null>(null);
 
   // --- Routing State & Hash Sync ---
   const [currentRoute, setCurrentRoute] = useState<string>(() => {
@@ -181,15 +181,15 @@ export default function App() {
         return;
       }
 
-      // Parse Group ID from route changes
-      const groupMatch = hash.match(/^#\/group\/([^?\/]+)/);
+      // Parse Pool ID from route changes
+      const poolMatch = hash.match(/^#\/group\/([^?\/]+)/);
       const flowMatch = hash.match(/^#\/flow\/([^?\/]+)/);
-      const idFromHash = (groupMatch && groupMatch[1]) || (flowMatch && flowMatch[1]);
+      const idFromHash = (poolMatch && poolMatch[1]) || (flowMatch && flowMatch[1]);
 
       if (idFromHash) {
         // Verify group exists
-        if (groups.some(g => g.id === idFromHash)) {
-          setActiveGroupId(idFromHash);
+        if (pools.some(g => g.id === idFromHash)) {
+          setActivePoolId(idFromHash);
         }
       }
     };
@@ -201,26 +201,26 @@ export default function App() {
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [groups, isLoggedIn]);
+  }, [pools, isLoggedIn]);
 
-  // --- Consolidated Core Calculations (Across all groups/pools) ---
-  const consolidatedValuation = pools.reduce((sum, p) => sum + p.currentValuation, 0);
-  const consolidatedInvested = pools.reduce((sum, p) => sum + p.investedAmount, 0);
+  // --- Consolidated Core Calculations (Across all pools/holdings) ---
+  const consolidatedValuation = holdings.reduce((sum, p) => sum + p.currentValuation, 0);
+  const consolidatedInvested = holdings.reduce((sum, p) => sum + p.investedAmount, 0);
   const consolidatedReturns = consolidatedValuation - consolidatedInvested;
   const consolidatedROI = consolidatedInvested > 0 ? (consolidatedReturns / consolidatedInvested) * 100 : 0;
 
-  // --- Group Level Separation Helpers ---
-  const activeGroupPools = pools.filter(p => p.groupId === activeGroupId);
-  const poolIdsInGroup = activeGroupPools.map(p => p.id);
-  const activeGroupTransactions = transactions.filter(t => 
-    poolIdsInGroup.includes(t.poolId) ||
-    (t.sourcePoolId && poolIdsInGroup.includes(t.sourcePoolId)) ||
-    (t.destinationPoolId && poolIdsInGroup.includes(t.destinationPoolId))
+  // --- Pool Level Separation Helpers ---
+  const activePoolHoldings = holdings.filter(p => p.poolId === activePoolId);
+  const holdingIdsInPool = activePoolHoldings.map(p => p.id);
+  const activePoolTransactions = transactions.filter(t => 
+    holdingIdsInPool.includes(t.holdingId) ||
+    (t.sourceHoldingId && holdingIdsInPool.includes(t.sourceHoldingId)) ||
+    (t.destinationHoldingId && holdingIdsInPool.includes(t.destinationHoldingId))
   );
 
-  // --- Financial Core Calculations (Scoped to active Group) ---
-  const totalValuation = activeGroupPools.reduce((sum, p) => sum + p.currentValuation, 0);
-  const totalInvested = activeGroupPools.reduce((sum, p) => sum + p.investedAmount, 0);
+  // --- Financial Core Calculations (Scoped to active Pool) ---
+  const totalValuation = activePoolHoldings.reduce((sum, p) => sum + p.currentValuation, 0);
+  const totalInvested = activePoolHoldings.reduce((sum, p) => sum + p.investedAmount, 0);
   const overallReturns = totalValuation - totalInvested;
   const overallROI = totalInvested > 0 ? (overallReturns / totalInvested) * 100 : 0;
 
@@ -228,81 +228,81 @@ export default function App() {
 
   const handleResetData = () => {
     if (confirm("Reset application data to original mock defaults? Any changes will be overwritten.")) {
-      localStorage.removeItem('savings_tracker_groups');
       localStorage.removeItem('savings_tracker_pools');
+      localStorage.removeItem('savings_tracker_holdings');
       localStorage.removeItem('savings_tracker_transactions');
-      localStorage.removeItem('savings_tracker_active_group_id');
-      setGroups(INITIAL_GROUPS);
+      localStorage.removeItem('savings_tracker_active_pool_id');
       setPools(INITIAL_POOLS);
+      setHoldings(INITIAL_HOLDINGS);
       setTransactions(INITIAL_TRANSACTIONS);
-      setActiveGroupId(INITIAL_GROUPS[0].id);
+      setActivePoolId(INITIAL_POOLS[0].id);
       window.location.hash = `#/`;
     }
   };
 
-  const handleDeleteGroup = (id: string) => {
-    const remainingGroups = groups.filter(g => g.id !== id);
-    setGroups(remainingGroups);
+  const handleDeletePool = (id: string) => {
+    const remainingPools = pools.filter(g => g.id !== id);
+    setPools(remainingPools);
 
-    // Delete pools and transactions associated with this group
-    const poolsToDelete = pools.filter(p => p.groupId === id);
-    const poolIdsToDelete = poolsToDelete.map(p => p.id);
+    // Delete holdings and transactions associated with this group
+    const holdingsToDelete = holdings.filter(p => p.poolId === id);
+    const holdingIdsToDelete = holdingsToDelete.map(p => p.id);
 
-    setPools(prev => prev.filter(p => p.groupId !== id));
+    setHoldings(prev => prev.filter(p => p.poolId !== id));
     setTransactions(prev => prev.filter(t => 
-      !poolIdsToDelete.includes(t.poolId) &&
-      !(t.sourcePoolId && poolIdsToDelete.includes(t.sourcePoolId)) &&
-      !(t.destinationPoolId && poolIdsToDelete.includes(t.destinationPoolId))
+      !holdingIdsToDelete.includes(t.holdingId) &&
+      !(t.sourceHoldingId && holdingIdsToDelete.includes(t.sourceHoldingId)) &&
+      !(t.destinationHoldingId && holdingIdsToDelete.includes(t.destinationHoldingId))
     ));
 
-    // Route back to groups listing or update active group
-    if (remainingGroups.length > 0) {
-      setActiveGroupId(remainingGroups[0].id);
+    // Route back to pools listing or update active group
+    if (remainingPools.length > 0) {
+      setActivePoolId(remainingPools[0].id);
     }
     window.location.hash = '#/';
   };
 
-  const handleGroupSubmit = (groupData: { title: string; description: string }) => {
+  const handlePoolSubmit = (groupData: { title: string; description: string }) => {
     const timestamp = new Date().toISOString();
 
-    if (groupToEdit) {
-      setGroups(prev =>
+    if (poolToEdit) {
+      setPools(prev =>
         prev.map(g =>
-          g.id === groupToEdit.id
+          g.id === poolToEdit.id
             ? { ...g, title: groupData.title, description: groupData.description, updatedAt: timestamp }
             : g
         )
       );
     } else {
-      const newGroupId = `group-${Date.now()}`;
-      const newGroup: Group = {
-        id: newGroupId,
+      const newPoolId = `holding-${Date.now()}`;
+      const newPool: Pool = {
+        id: newPoolId,
         title: groupData.title,
         description: groupData.description,
         createdAt: timestamp,
         updatedAt: timestamp,
       };
-      setGroups(prev => [...prev, newGroup]);
-      setActiveGroupId(newGroupId);
-      window.location.hash = `#/group/${newGroupId}`;
+      setPools(prev => [...prev, newPool]);
+      setActivePoolId(newPoolId);
+      window.location.hash = `#/pool/${newPoolId}`;
     }
-    setGroupToEdit(null);
+    setPoolToEdit(null);
   };
 
   // Create or Update Pool details
-  const handlePoolSubmit = (poolData: {
+  const handleHoldingSubmit = (poolData: {
     name: string;
-    category: PoolCategory;
+    category: HoldingCategory;
     description: string;
     initialBalance: number;
   }) => {
     const timestamp = new Date().toISOString();
 
-    if (poolToEdit) {
+    if (holdingToEdit) {
       // Edit mode
-      setPools((prev) =>
+      setHoldings((prev) =>
         prev.map((p) =>
-          p.id === poolToEdit.id
+          p.id === holdingToEdit.id
             ? {
                 ...p,
                 name: poolData.name,
@@ -315,10 +315,10 @@ export default function App() {
       );
     } else {
       // Create mode
-      const newPoolId = `pool-${Date.now()}`;
-      const newPool: InvestmentPool = {
+      const newPoolId = `holding-${Date.now()}`;
+      const newPool: Holding = {
         id: newPoolId,
-        groupId: activeGroupId,  // Auto-link with active group
+        poolId: activePoolId,  // Auto-link with active group
         name: poolData.name,
         category: poolData.category,
         description: poolData.description,
@@ -328,13 +328,13 @@ export default function App() {
         updatedAt: timestamp,
       };
 
-      setPools((prev) => [...prev, newPool]);
+      setHoldings((prev) => [...prev, newPool]);
 
       // If initial balance is injected, log transaction automatically
       if (poolData.initialBalance > 0) {
         const newTx: Transaction = {
           id: `tx-${Date.now()}`,
-          poolId: newPoolId,
+          holdingId: newPoolId,
           type: 'creation',
           amount: poolData.initialBalance,
           note: `Initial capital allocation for ${poolData.name}`,
@@ -343,15 +343,15 @@ export default function App() {
         setTransactions((prev) => [newTx, ...prev]);
       }
     }
-    setPoolToEdit(null);
+    setHoldingToEdit(null);
   };
 
   // Perform transaction (Deposit, Withdraw, Transfer, Valuation Adjustment)
   const handleTransactionSubmit = (txData: {
     type: TransactionType;
-    poolId: string;
-    sourcePoolId?: string;
-    destinationPoolId?: string;
+    holdingId: string;
+    sourceHoldingId?: string;
+    destinationHoldingId?: string;
     amount: number;
     newValuation?: number;
     note: string;
@@ -361,9 +361,9 @@ export default function App() {
 
     const newTx: Transaction = {
       id: newTxId,
-      poolId: txData.poolId,
-      sourcePoolId: txData.sourcePoolId,
-      destinationPoolId: txData.destinationPoolId,
+      holdingId: txData.holdingId,
+      sourceHoldingId: txData.sourceHoldingId,
+      destinationHoldingId: txData.destinationHoldingId,
       type: txData.type,
       amount: txData.amount,
       newValuation: txData.newValuation,
@@ -371,10 +371,10 @@ export default function App() {
       timestamp,
     };
 
-    setPools((prevPools) => {
+    setHoldings((prevPools) => {
       return prevPools.map((p) => {
         // Valuation Overrides (Manually inputs current net valuation)
-        if (txData.type === 'valuation_adjustment' && p.id === txData.poolId && txData.newValuation !== undefined) {
+        if (txData.type === 'valuation_adjustment' && p.id === txData.holdingId && txData.newValuation !== undefined) {
           newTx.previousValuation = p.currentValuation;
           return {
             ...p,
@@ -384,7 +384,7 @@ export default function App() {
         }
 
         // Standard Deposit
-        if (txData.type === 'deposit' && p.id === txData.poolId) {
+        if (txData.type === 'deposit' && p.id === txData.holdingId) {
           return {
             ...p,
             investedAmount: p.investedAmount + txData.amount,
@@ -394,7 +394,7 @@ export default function App() {
         }
 
         // Standard Withdrawal
-        if (txData.type === 'withdrawal' && p.id === txData.poolId) {
+        if (txData.type === 'withdrawal' && p.id === txData.holdingId) {
           return {
             ...p,
             investedAmount: Math.max(0, p.investedAmount - txData.amount),
@@ -404,7 +404,7 @@ export default function App() {
         }
 
         // Transfer Outflow from Source Pool
-        if (txData.type === 'transfer' && p.id === txData.sourcePoolId) {
+        if (txData.type === 'transfer' && p.id === txData.sourceHoldingId) {
           return {
             ...p,
             investedAmount: Math.max(0, p.investedAmount - txData.amount),
@@ -414,7 +414,7 @@ export default function App() {
         }
 
         // Transfer Inflow to Destination Pool
-        if (txData.type === 'transfer' && p.id === txData.destinationPoolId) {
+        if (txData.type === 'transfer' && p.id === txData.destinationHoldingId) {
           return {
             ...p,
             investedAmount: p.investedAmount + txData.amount,
@@ -431,42 +431,42 @@ export default function App() {
   };
 
   // Permanent Pool Erasure
-  const handleConfirmDeletePool = () => {
-    if (!poolToDelete) return;
+  const handleConfirmDeleteHolding = () => {
+    if (!holdingToDelete) return;
 
     // Remove pool
-    setPools((prev) => prev.filter((p) => p.id !== poolToDelete.id));
+    setHoldings((prev) => prev.filter((p) => p.id !== holdingToDelete.id));
 
     // Remove pool transaction entries
     setTransactions((prev) =>
       prev.filter(
         (t) =>
-          t.poolId !== poolToDelete.id &&
-          t.sourcePoolId !== poolToDelete.id &&
-          t.destinationPoolId !== poolToDelete.id
+          t.holdingId !== holdingToDelete.id &&
+          t.sourceHoldingId !== holdingToDelete.id &&
+          t.destinationHoldingId !== holdingToDelete.id
       )
     );
 
-    setPoolToDelete(null);
+    setHoldingToDelete(null);
   };
 
   // --- Trigger Shortcuts Helpers ---
-  const triggerPoolForm = (pool: InvestmentPool | null = null) => {
-    setPoolToEdit(pool);
-    setIsPoolModalOpen(true);
+  const triggerHoldingForm = (pool: Holding | null = null) => {
+    setHoldingToEdit(pool);
+    setIsHoldingModalOpen(true);
   };
 
   const triggerTxForm = (
     tab: 'deposit' | 'withdrawal' | 'transfer' | 'valuation_adjustment',
-    pool: InvestmentPool | null = null
+    pool: Holding | null = null
   ) => {
     setTxModalTab(tab);
-    setTxSelectedPool(pool);
+    setTxSelectedHolding(pool);
     setIsTxModalOpen(true);
   };
 
   // --- Filter Pool Results ---
-  const filteredPools = activeGroupPools.filter((p) => {
+  const filteredHoldings = activePoolHoldings.filter((p) => {
     const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -498,58 +498,58 @@ export default function App() {
   if (currentRoute.startsWith('#/flow')) {
     return (
       <LedgerFlowVisualizer
-        pools={activeGroupPools}
-        transactions={activeGroupTransactions}
-        onAddPool={(poolData) => {
-          handlePoolSubmit(poolData);
+        holdings={activePoolHoldings}
+        transactions={activePoolTransactions}
+        onAddHolding={(holdingData) => {
+          handleHoldingSubmit(holdingData);
         }}
         onAddTransaction={handleTransactionSubmit}
-        onDeletePool={(poolId) => {
-          setPools((prev) => prev.filter((p) => p.id !== poolId));
-          setTransactions((prev) => prev.filter(t => t.poolId !== poolId && t.sourcePoolId !== poolId && t.destinationPoolId !== poolId));
+        onDeleteHolding={(holdingId) => {
+          setHoldings((prev) => prev.filter((p) => p.id !== holdingId));
+          setTransactions((prev) => prev.filter(t => t.holdingId !== holdingId && t.sourceHoldingId !== holdingId && t.destinationHoldingId !== holdingId));
         }}
         onClose={() => {
-          window.location.hash = `#/group/${activeGroupId}`;
+          window.location.hash = `#/pool/${activePoolId}`;
         }}
       />
     );
   }
 
-  // Render empty state if there are no groups
-  if (groups.length === 0) {
+  // Render empty state if there are no pools
+  if (pools.length === 0) {
     return (
-      <div className="min-h-screen bg-[#F9F8F6] flex items-center justify-center p-6" id="empty-groups-state">
+      <div className="min-h-screen bg-[#F9F8F6] flex items-center justify-center p-6" id="empty-pools-state">
         <div className="bg-white border border-[#DCDAD2] p-12 max-w-md w-full text-center space-y-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
           <div className="mx-auto w-12 h-12 bg-[#F9F8F6] border border-[#DCDAD2] text-[#1A1A1A] flex items-center justify-center">
             <Folder className="w-5 h-5" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-serif font-bold text-[#1A1A1A]">Create Your First Group</h2>
+            <h2 className="text-xl font-serif font-bold text-[#1A1A1A]">Create Your First Pool</h2>
             <p className="text-xs text-[#8C8C85] leading-relaxed font-serif italic">
-              Wealth Folio tracks assets inside segregated groups. Create an asset group (such as "Personal Finances" or "Business Holdings") to begin tracking your pools.
+              Wealth Folio tracks assets inside segregated pools. Create an asset group (such as "Personal Finances" or "Business Holdings") to begin tracking your holdings.
             </p>
           </div>
           <button
             onClick={() => {
-              setGroupToEdit(null);
-              setIsGroupModalOpen(true);
+              setPoolToEdit(null);
+              setIsPoolModalOpen(true);
             }}
             className="w-full py-3 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white font-bold uppercase tracking-widest text-[10px] cursor-pointer border border-[#1A1A1A]"
           >
-            + Create New Group
+            + Create New Pool
           </button>
-          <GroupFormModal
-            isOpen={isGroupModalOpen}
-            groupToEdit={null}
-            onClose={() => setIsGroupModalOpen(false)}
-            onSubmit={handleGroupSubmit}
+          <PoolFormModal
+            isOpen={isPoolModalOpen}
+            poolToEdit={null}
+            onClose={() => setIsPoolModalOpen(false)}
+            onSubmit={handlePoolSubmit}
           />
         </div>
       </div>
     );
   }
 
-  // Render Groups List Page (Base Route `#/` or empty route)
+  // Render Pools List Page (Base Route `#/` or empty route)
   if (currentRoute === '#/' || currentRoute === '' || currentRoute === '#') {
     return (
       <div className="min-h-screen bg-[#F9F8F6] flex flex-col font-sans" id="app-root-container">
@@ -601,13 +601,13 @@ export default function App() {
               </button>
               <button
                 onClick={() => {
-                  setGroupToEdit(null);
-                  setIsGroupModalOpen(true);
+                  setPoolToEdit(null);
+                  setIsPoolModalOpen(true);
                 }}
                 className="px-4.5 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white rounded-none text-[10px] uppercase tracking-widest font-bold shadow-xs transition-all flex items-center space-x-1.5 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Create Group</span>
+                <span>Create Pool</span>
               </button>
             </div>
           </div>
@@ -616,56 +616,56 @@ export default function App() {
         {/* Main Content */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-          {/* Group Search Bar */}
+          {/* Pool Search Bar */}
           <div className="relative w-full">
             <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3.5 top-3.5" />
             <input
               type="text"
-              value={groupSearchQuery}
-              onChange={(e) => setGroupSearchQuery(e.target.value)}
-              placeholder="Search segregation groups by title or description..."
+              value={poolSearchQuery}
+              onChange={(e) => setPoolSearchQuery(e.target.value)}
+              placeholder="Search segregation pools by title or description..."
               className="w-full pl-10 pr-4 py-3 bg-white border border-[#DCDAD2] rounded-none text-xs font-semibold focus:outline-hidden focus:border-[#1A1A1A] transition-all text-[#1A1A1A]"
             />
           </div>
 
-          {/* Groups Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="groups-grid">
+          {/* Pools Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="pools-grid">
             <AnimatePresence>
               {(() => {
-                const filteredGroups = groups.filter((group) => {
-                  const query = groupSearchQuery.toLowerCase().trim();
+                const filteredPools = pools.filter((group) => {
+                  const query = poolSearchQuery.toLowerCase().trim();
                   return group.title.toLowerCase().includes(query) || 
                          (group.description && group.description.toLowerCase().includes(query));
                 });
 
-                if (filteredGroups.length === 0) {
+                if (filteredPools.length === 0) {
                   return (
                     <div className="bg-white border border-dashed border-[#DCDAD2] rounded-none p-12 text-center max-w-lg mx-auto w-full col-span-full">
                       <div className="w-12 h-12 bg-[#F9F8F6] border border-[#DCDAD2] flex items-center justify-center mx-auto text-[#8C8C85] mb-4">
                         <Info className="w-5 h-5" />
                       </div>
-                      <h4 className="text-base font-serif font-bold text-[#1A1A1A]">No groups match your query</h4>
+                      <h4 className="text-base font-serif font-bold text-[#1A1A1A]">No pools match your query</h4>
                       <p className="text-xs text-[#8C8C85] mt-1.5 max-w-sm mx-auto font-serif italic">
                         Try clearing your search query or creating a brand-new asset group.
                       </p>
                       <button
-                        onClick={() => setGroupSearchQuery('')}
+                        onClick={() => setPoolSearchQuery('')}
                         className="mt-4 text-[10px] uppercase tracking-wider font-bold px-4 py-2 bg-white border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] transition-colors cursor-pointer"
                       >
-                        Clear Group Search
+                        Clear Pool Search
                       </button>
                     </div>
                   );
                 }
 
-                return filteredGroups.map((group) => {
-                  const groupPools = pools.filter((p) => p.groupId === group.id);
-                  const val = groupPools.reduce((sum, p) => sum + p.currentValuation, 0);
-                  const inv = groupPools.reduce((sum, p) => sum + p.investedAmount, 0);
+                return filteredPools.map((group) => {
+                  const poolHoldings = holdings.filter((p) => p.poolId === group.id);
+                  const val = poolHoldings.reduce((sum, p) => sum + p.currentValuation, 0);
+                  const inv = poolHoldings.reduce((sum, p) => sum + p.investedAmount, 0);
                   const ret = val - inv;
                   const roi = inv > 0 ? (ret / inv) * 100 : 0;
                   
-                  const formatGroupCurrency = (amount: number) => {
+                  const formatPoolCurrency = (amount: number) => {
                     return new Intl.NumberFormat('en-US', {
                       style: 'currency',
                       currency: 'USD',
@@ -680,8 +680,8 @@ export default function App() {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       onClick={() => {
-                        setActiveGroupId(group.id);
-                        window.location.hash = `#/group/${group.id}`;
+                        setActivePoolId(group.id);
+                        window.location.hash = `#/pool/${group.id}`;
                       }}
                       className="bg-white border border-[#DCDAD2] rounded-none hover:border-[#1A1A1A] hover:shadow-md cursor-pointer transition-all duration-300 p-6 flex flex-col justify-between overflow-hidden relative group/card"
                     >
@@ -689,11 +689,11 @@ export default function App() {
                         {/* Header */}
                         <div className="flex justify-between items-start">
                           <div className="space-y-1 pr-6 flex-1 min-w-0">
-                            <h4 className="text-xl font-serif font-bold text-[#1A1A1A] tracking-tight group-hover/card:text-[#8C8C85] transition-colors truncate">
+                            <h4 className="text-xl font-serif font-bold text-[#1A1A1A] tracking-tight holding-hover/card:text-[#8C8C85] transition-colors truncate">
                               {group.title}
                             </h4>
                             <span className="inline-flex items-center text-[9px] font-bold tracking-widest uppercase text-[#8C8C85] border border-[#DCDAD2] px-2 py-0.5 bg-[#F9F8F6]">
-                              {groupPools.length} {groupPools.length === 1 ? 'Pool' : 'Pools'}
+                              {poolHoldings.length} {poolHoldings.length === 1 ? 'Holding' : 'Holdings'}
                             </span>
                           </div>
 
@@ -702,8 +702,8 @@ export default function App() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setGroupToEdit(group);
-                                setIsGroupModalOpen(true);
+                                setPoolToEdit(group);
+                                setIsPoolModalOpen(true);
                               }}
                               className="p-1.5 text-[#8C8C85] hover:text-[#1A1A1A] hover:bg-[#F9F8F6] border border-transparent hover:border-[#DCDAD2] transition-colors"
                               title="Edit group details"
@@ -713,12 +713,12 @@ export default function App() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (confirm(`Permanently delete group "${group.title}"?\n\nWARNING: This will permanently delete all Pools in this group and their full transaction history.`)) {
-                                  handleDeleteGroup(group.id);
+                                if (confirm(`Permanently delete pool "${group.title}"?\n\nWARNING: This will permanently delete all Holdings in this pool and their full transaction history.`)) {
+                                  handleDeletePool(group.id);
                                 }
                               }}
                               className="p-1.5 text-[#8C8C85] hover:text-rose-750 hover:bg-rose-50/50 border border-transparent hover:border-rose-250 transition-colors"
-                              title="Delete group"
+                              title="Delete pool"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -737,7 +737,7 @@ export default function App() {
                               Net Valuation
                             </span>
                             <span className="text-lg font-serif text-[#1A1A1A] block mt-0.5">
-                              {formatGroupCurrency(val)}
+                              {formatPoolCurrency(val)}
                             </span>
                           </div>
                           <div>
@@ -771,18 +771,18 @@ export default function App() {
         </footer>
 
         {/* Modal Popups */}
-        <GroupFormModal
-          isOpen={isGroupModalOpen}
-          groupToEdit={groupToEdit}
-          onClose={() => { setIsGroupModalOpen(false); setGroupToEdit(null); }}
-          onSubmit={handleGroupSubmit}
+        <PoolFormModal
+          isOpen={isPoolModalOpen}
+          poolToEdit={poolToEdit}
+          onClose={() => { setIsPoolModalOpen(false); setPoolToEdit(null); }}
+          onSubmit={handlePoolSubmit}
         />
       </div>
     );
   }
 
-  // Render Group Detail Dashboard
-  const activeGroup = groups.find((g) => g.id === activeGroupId) || groups[0];
+  // Render Pool Detail Dashboard
+  const activePool = pools.find((g) => g.id === activePoolId) || pools[0];
 
   return (
     <div className="min-h-screen bg-[#F9F8F6] flex flex-col font-sans" id="app-root-container">
@@ -806,25 +806,25 @@ export default function App() {
               </div>
             </div>
 
-            {/* Premium Group Switcher dropdown */}
+            {/* Premium Pool Switcher dropdown */}
             <div className="relative border-l border-[#DCDAD2] pl-6 flex items-center">
               <button
-                onClick={() => setIsGroupDropdownOpen(!isGroupDropdownOpen)}
+                onClick={() => setIsPoolDropdownOpen(!isPoolDropdownOpen)}
                 className="flex items-center space-x-2 text-[#1A1A1A] hover:text-[#8C8C85] transition-colors cursor-pointer text-left focus:outline-hidden"
-                title="Switch or manage active finance group"
+                title="Switch or manage active finance pool"
               >
                 <Folder className="w-4 h-4 text-[#8C8C85]" />
                 <span className="font-serif font-bold text-sm tracking-tight border-b border-dashed border-[#8C8C85] pb-0.5 select-none">
-                  {activeGroup?.title || 'Select Group'}
+                  {activePool?.title || 'Select Pool'}
                 </span>
                 <ChevronDown className="w-3.5 h-3.5 text-[#8C8C85]" />
               </button>
 
-              {isGroupDropdownOpen && (
+              {isPoolDropdownOpen && (
                 <div className="absolute left-6 top-8 mt-1 bg-white border border-[#1A1A1A] w-64 shadow-2xl z-50 flex flex-col divide-y divide-[#F1EFEA] animate-in fade-in slide-in-from-top-1 duration-100">
                   <div className="max-h-60 overflow-y-auto">
-                    {groups.map((group) => {
-                      const isSelected = group.id === activeGroupId;
+                    {pools.map((group) => {
+                      const isSelected = group.id === activePoolId;
                       return (
                         <div
                           key={group.id}
@@ -832,13 +832,13 @@ export default function App() {
                             isSelected ? 'bg-[#F9F8F6]' : 'hover:bg-[#F9F8F6]/60'
                           }`}
                           onClick={() => {
-                            setActiveGroupId(group.id);
-                            setIsGroupDropdownOpen(false);
-                            window.location.hash = `#/group/${group.id}`;
+                            setActivePoolId(group.id);
+                            setIsPoolDropdownOpen(false);
+                            window.location.hash = `#/pool/${group.id}`;
                           }}
                         >
                           <div className="flex-1 min-w-0 pr-2">
-                            <span className={`text-xs font-serif block truncate ${isSelected ? 'font-bold text-[#1A1A1A]' : 'text-[#6B6B66] group-hover/item:text-[#1A1A1A]'}`}>
+                            <span className={`text-xs font-serif block truncate ${isSelected ? 'font-bold text-[#1A1A1A]' : 'text-[#6B6B66] holding-hover/item:text-[#1A1A1A]'}`}>
                               {group.title}
                             </span>
                             {group.description && (
@@ -847,13 +847,13 @@ export default function App() {
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center space-x-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                          <div className="flex items-center space-x-1 opacity-0 holding-hover/item:opacity-100 transition-opacity">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setGroupToEdit(group);
-                                setIsGroupModalOpen(true);
-                                setIsGroupDropdownOpen(false);
+                                setPoolToEdit(group);
+                                setIsPoolModalOpen(true);
+                                setIsPoolDropdownOpen(false);
                               }}
                               className="p-1 hover:bg-[#DCDAD2]/50 text-[#8C8C85] hover:text-[#1A1A1A] transition-colors"
                               title="Edit group title and description"
@@ -868,26 +868,26 @@ export default function App() {
                   <div className="p-2 bg-[#F9F8F6]/85 flex justify-between gap-1 text-[10px]">
                     <button
                       onClick={() => {
-                        setGroupToEdit(null);
-                        setIsGroupModalOpen(true);
-                        setIsGroupDropdownOpen(false);
+                        setPoolToEdit(null);
+                        setIsPoolModalOpen(true);
+                        setIsPoolDropdownOpen(false);
                       }}
                       className="flex-1 text-center py-1.5 border border-[#DCDAD2] hover:border-[#1A1A1A] bg-white text-[#1A1A1A] font-bold uppercase tracking-wider cursor-pointer"
                     >
-                      + Create Group
+                      + Create Pool
                     </button>
-                    {groups.length > 1 && (
+                    {pools.length > 1 && (
                       <button
                         onClick={() => {
-                          if (confirm(`Are you sure you want to permanently delete group "${activeGroup.title}"?\n\nWARNING: This will permanently delete all Pools in this group and their full transaction history.`)) {
-                            handleDeleteGroup(activeGroupId);
+                          if (confirm(`Are you sure you want to permanently delete pool "${activePool.title}"?\n\nWARNING: This will permanently delete all Holdings in this pool and their full transaction history.`)) {
+                            handleDeletePool(activePoolId);
                           }
-                          setIsGroupDropdownOpen(false);
+                          setIsPoolDropdownOpen(false);
                         }}
                         className="px-2 text-center py-1.5 bg-rose-850 hover:bg-rose-950 text-white font-bold uppercase tracking-wider cursor-pointer flex items-center justify-center"
-                        title="Delete active group and all its pools"
+                        title="Delete active group and all its holdings"
                       >
-                        Delete Active
+                        Delete Active Pool
                       </button>
                     )}
                   </div>
@@ -918,7 +918,7 @@ export default function App() {
               <span>Defaults</span>
             </button>
             <button
-              onClick={() => { window.location.hash = `#/flow/${activeGroupId}`; }}
+              onClick={() => { window.location.hash = `#/flow/${activePoolId}`; }}
               className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1 cursor-pointer"
               title="Visualize entire transactions & timelines flow map"
             >
@@ -926,11 +926,11 @@ export default function App() {
               <span>Flow Map</span>
             </button>
             <button
-              onClick={() => triggerPoolForm(null)}
+              onClick={() => triggerHoldingForm(null)}
               className="px-4.5 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white rounded-none text-[10px] uppercase tracking-widest font-bold shadow-xs transition-all flex items-center space-x-1.5 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Create Pool</span>
+              <span>Create Holding</span>
             </button>
           </div>
 
@@ -940,32 +940,32 @@ export default function App() {
       {/* Main Container Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         
-        {/* Active Group Description Header banner */}
+        {/* Active Pool Description Header banner */}
         <div className="bg-white border border-[#DCDAD2] p-6 rounded-none relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-1">
             <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8C8C85]">Active segregation group</span>
-            <h2 className="text-2xl font-serif font-bold text-[#1A1A1A] mt-0.5">{activeGroup.title}</h2>
-            {activeGroup.description && (
+            <h2 className="text-2xl font-serif font-bold text-[#1A1A1A] mt-0.5">{activePool.title}</h2>
+            {activePool.description && (
               <p className="text-xs text-[#6B6B66] font-serif italic leading-relaxed mt-1.5 max-w-xl text-balance">
-                &ldquo;{activeGroup.description}&rdquo;
+                &ldquo;{activePool.description}&rdquo;
               </p>
             )}
           </div>
           <div className="flex gap-2 self-stretch sm:self-auto">
             <button
               onClick={() => {
-                setGroupToEdit(activeGroup);
-                setIsGroupModalOpen(true);
+                setPoolToEdit(activePool);
+                setIsPoolModalOpen(true);
               }}
               className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] hover:border-[#1A1A1A] text-[#1A1A1A] font-bold uppercase tracking-wider rounded-none bg-[#F9F8F6] hover:bg-white transition-all cursor-pointer flex-1 sm:flex-none text-center"
             >
-              Edit Group Details
+              Edit Pool Details
             </button>
             <button
               onClick={() => { window.location.hash = '#/'; }}
               className="px-3.5 py-2 text-[10px] border border-[#1A1A1A] hover:bg-black text-white font-bold uppercase tracking-wider rounded-none bg-[#1A1A1A] transition-all cursor-pointer flex-1 sm:flex-none text-center"
             >
-              ← Back to Groups
+              ← Back to Pools
             </button>
           </div>
         </div>
@@ -1012,7 +1012,7 @@ export default function App() {
             <div className="bg-white border border-[#DCDAD2] rounded-none p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h3 className="font-serif text-xl font-bold text-[#1A1A1A] tracking-tight">Your Asset Pools</h3>
+                  <h3 className="font-serif text-xl font-bold text-[#1A1A1A] tracking-tight">Your Asset Holdings</h3>
                   <p className="text-xs text-[#8C8C85] font-serif italic mt-0.5">Manage individual savings vaults and investments</p>
                 </div>
 
@@ -1020,14 +1020,14 @@ export default function App() {
                 <div className="flex space-x-2">
                   <button
                     onClick={() => triggerTxForm('deposit')}
-                    disabled={activeGroupPools.length === 0}
+                    disabled={activePoolHoldings.length === 0}
                     className="px-3 py-2 bg-[#F9F8F6] hover:bg-[#F3F1EC] text-[#1A1A1A] border border-[#DCDAD2] text-[10px] uppercase tracking-wider font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >
                     + Capital Inflow
                   </button>
                   <button
                     onClick={() => triggerTxForm('transfer')}
-                    disabled={activeGroupPools.length < 2}
+                    disabled={activePoolHoldings.length < 2}
                     className="px-3 py-2 bg-[#F9F8F6] hover:bg-[#F3F1EC] text-[#1A1A1A] border border-[#DCDAD2] text-[10px] uppercase tracking-wider font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Transfer Funds
@@ -1055,7 +1055,7 @@ export default function App() {
                   <ListFilter className="w-3.5 h-3.5 text-[#8C8C85] flex-shrink-0" />
                   
                   {['all', ...Object.keys(CATEGORY_DETAILS)].map((cat) => {
-                    const label = cat === 'all' ? 'All Assets' : CATEGORY_DETAILS[cat as PoolCategory].label;
+                    const label = cat === 'all' ? 'All Assets' : CATEGORY_DETAILS[cat as HoldingCategory].label;
                     const isActive = categoryFilter === cat;
                     return (
                       <button
@@ -1076,14 +1076,14 @@ export default function App() {
             </div>
 
             {/* Pools cards grid */}
-            {filteredPools.length === 0 ? (
+            {filteredHoldings.length === 0 ? (
               <div className="bg-white border border-dashed border-[#DCDAD2] rounded-none p-12 text-center max-w-lg mx-auto">
                 <div className="w-12 h-12 bg-[#F9F8F6] border border-[#DCDAD2] flex items-center justify-center mx-auto text-[#8C8C85] mb-4">
                   <Info className="w-5 h-5" />
                 </div>
                 <h4 className="text-base font-serif font-bold text-[#1A1A1A]">No vaults match your criteria</h4>
                 <p className="text-xs text-[#8C8C85] mt-1.5 max-w-sm mx-auto font-serif italic">
-                  Try clearing your search query or asset category filter. Click Create Pool to append a brand-new asset ledger container.
+                  Try clearing your search query or asset category filter. Click Create Holding to append a brand-new asset ledger container.
                 </p>
                 <button
                   onClick={() => { setSearchQuery(''); setCategoryFilter('all'); }}
@@ -1093,18 +1093,18 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5" id="asset-pools-grid">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5" id="asset-holdings-grid">
                 <AnimatePresence mode="popLayout">
-                  {filteredPools.map((pool) => (
-                    <motion.div key={pool.id} layout>
-                      <PoolCard
-                        pool={pool}
-                        onDeposit={(p) => triggerTxForm('deposit', p)}
-                        onWithdraw={(p) => triggerTxForm('withdrawal', p)}
-                        onTransfer={(p) => triggerTxForm('transfer', p)}
-                        onAdjustValuation={(p) => triggerTxForm('valuation_adjustment', p)}
-                        onEdit={(p) => triggerPoolForm(p)}
-                        onDelete={(p) => setPoolToDelete(p)}
+                  {filteredHoldings.map((holding) => (
+                    <motion.div key={holding.id} layout>
+                      <HoldingCard
+                        holding={holding}
+                        onDeposit={(h) => triggerTxForm('deposit', h)}
+                        onWithdraw={(h) => triggerTxForm('withdrawal', h)}
+                        onTransfer={(h) => triggerTxForm('transfer', h)}
+                        onAdjustValuation={(h) => triggerTxForm('valuation_adjustment', h)}
+                        onEdit={(h) => triggerHoldingForm(h)}
+                        onDelete={(h) => setHoldingToDelete(h)}
                       />
                     </motion.div>
                   ))}
@@ -1118,14 +1118,14 @@ export default function App() {
             
             {/* Asset Donut distribution */}
             <section id="allocation-card">
-              <DistributionChart pools={activeGroupPools} />
+              <DistributionChart holdings={activePoolHoldings} />
             </section>
 
             {/* Historical ledgers listing */}
             <section id="ledger-history-card">
               <TransactionHistory
-                transactions={activeGroupTransactions}
-                pools={activeGroupPools}
+                transactions={activePoolTransactions}
+                holdings={activePoolHoldings}
               />
             </section>
 
@@ -1145,6 +1145,24 @@ export default function App() {
       {/* --- MODAL POPUPS --- */}
 
       {/* 1. Pool Form Creator */}
+      <HoldingFormModal
+        isOpen={isHoldingModalOpen}
+        holdingToEdit={holdingToEdit}
+        onClose={() => { setIsHoldingModalOpen(false); setHoldingToEdit(null); }}
+        onSubmit={handleHoldingSubmit}
+      />
+
+      {/* 2. Operational Transactions tabbed sheets */}
+      <TransactionModal
+        isOpen={isTxModalOpen}
+        holdings={activePoolHoldings}
+        initialHolding={txSelectedHolding}
+        initialTab={txModalTab}
+        onClose={() => { setIsTxModalOpen(false); setTxSelectedHolding(null); }}
+        onSubmit={handleTransactionSubmit}
+      />
+
+      {/* 3. Pool Form Modal */}
       <PoolFormModal
         isOpen={isPoolModalOpen}
         poolToEdit={poolToEdit}
@@ -1152,27 +1170,9 @@ export default function App() {
         onSubmit={handlePoolSubmit}
       />
 
-      {/* 2. Operational Transactions tabbed sheets */}
-      <TransactionModal
-        isOpen={isTxModalOpen}
-        pools={activeGroupPools}
-        initialPool={txSelectedPool}
-        initialTab={txModalTab}
-        onClose={() => { setIsTxModalOpen(false); setTxSelectedPool(null); }}
-        onSubmit={handleTransactionSubmit}
-      />
-
-      {/* 3. Group Form Modal */}
-      <GroupFormModal
-        isOpen={isGroupModalOpen}
-        groupToEdit={groupToEdit}
-        onClose={() => { setIsGroupModalOpen(false); setGroupToEdit(null); }}
-        onSubmit={handleGroupSubmit}
-      />
-
       {/* 4. Custom Deletion verification modal */}
       <AnimatePresence>
-        {poolToDelete && (
+        {holdingToDelete && (
           <div className="fixed inset-0 bg-[#1A1A1A]/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -1187,7 +1187,7 @@ export default function App() {
 
               <div className="space-y-2">
                 <h4 className="text-lg font-serif font-bold text-[#1A1A1A]">
-                  Delete &quot;{poolToDelete.name}&quot;?
+                  Delete &quot;{holdingToDelete.name}&quot;?
                 </h4>
                 <p className="text-xs text-[#6B6B66] leading-relaxed font-serif italic">
                   You are permanently removing this assets container. This erases the physical ledger entries for this pool and returns all capital to unallocated state. This event is irreversible.
@@ -1197,14 +1197,14 @@ export default function App() {
               <div className="flex gap-3 pt-3">
                 <button
                   type="button"
-                  onClick={() => setPoolToDelete(null)}
+                  onClick={() => setHoldingToDelete(null)}
                   className="flex-1 px-4 py-3 border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] rounded-none text-[10px] uppercase tracking-wider font-bold transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  onClick={handleConfirmDeletePool}
+                  onClick={handleConfirmDeleteHolding}
                   className="flex-1 px-4 py-3 bg-rose-800 hover:bg-rose-950 text-white rounded-none text-[10px] uppercase tracking-wider font-bold transition-colors cursor-pointer"
                 >
                   Permanently Delete
