@@ -116,7 +116,7 @@ export default function DistributionChart({ holdings }: DistributionChartProps) 
           </p>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col lg:flex-row items-center justify-center lg:space-x-8 space-y-6 lg:space-y-0">
+        <div className="flex-1 flex flex-col items-center justify-center space-y-6 w-full">
           
           {/* Chart Graphic panel */}
           {viewType === 'chart' && (

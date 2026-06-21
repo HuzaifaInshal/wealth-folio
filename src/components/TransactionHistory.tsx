@@ -147,8 +147,7 @@ export default function TransactionHistory({ transactions, holdings, onClearAll 
       </div>
 
       {/* Filter Header and Controls */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-        
+      <div className="space-y-3 mb-6">
         {/* Keyword Search */}
         <div className="relative">
           <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3 top-3" />
@@ -161,38 +160,40 @@ export default function TransactionHistory({ transactions, holdings, onClearAll 
           />
         </div>
 
-        {/* Type selector */}
-        <div>
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="w-full px-3 py-2 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold text-[#1A1A1A] focus:outline-hidden focus:bg-white cursor-pointer"
-          >
-            <option value="all">Any Transaction Type</option>
-            <option value="deposit">Deposit (Inflow)</option>
-            <option value="withdrawal">Withdrawal (Outflow)</option>
-            <option value="transfer">Holding Transfer</option>
-            <option value="valuation_adjustment">Status Updates</option>
-            <option value="creation">Holding Inceptions</option>
-          </select>
-        </div>
+        {/* Filters Row */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Type selector */}
+          <div>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold text-[#1A1A1A] focus:outline-hidden focus:bg-white cursor-pointer"
+            >
+              <option value="all">Any Type</option>
+              <option value="deposit">Deposit (+)</option>
+              <option value="withdrawal">Withdrawal (-)</option>
+              <option value="transfer">Transfer</option>
+              <option value="valuation_adjustment">Status Update</option>
+              <option value="creation">Inception</option>
+            </select>
+          </div>
 
-        {/* Holding Selector */}
-        <div>
-          <select
-            value={holdingFilter}
-            onChange={(e) => setHoldingFilter(e.target.value)}
-            className="w-full px-3 py-2 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold text-[#1A1A1A] focus:outline-hidden focus:bg-white cursor-pointer"
-          >
-            <option value="all">All Holdings / Vaults</option>
-            {holdings.map((h) => (
-              <option key={h.id} value={h.id}>
-                {h.name}
-              </option>
-            ))}
-          </select>
+          {/* Holding Selector */}
+          <div>
+            <select
+              value={holdingFilter}
+              onChange={(e) => setHoldingFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold text-[#1A1A1A] focus:outline-hidden focus:bg-white cursor-pointer"
+            >
+              <option value="all">All Holdings</option>
+              {holdings.map((h) => (
+                <option key={h.id} value={h.id}>
+                  {h.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-
       </div>
 
       {/* Transactions Table/Cards List */}
