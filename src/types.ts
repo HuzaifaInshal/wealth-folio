@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type PoolCategory =
+export type HoldingCategory =
   | 'cash'
   | 'stocks'
   | 'crypto'
@@ -13,7 +13,7 @@ export type PoolCategory =
   | 'bonds'
   | 'other';
 
-export interface Group {
+export interface Pool {
   id: string;
   title: string;
   description: string;
@@ -21,11 +21,11 @@ export interface Group {
   updatedAt: string;
 }
 
-export interface InvestmentPool {
+export interface Holding {
   id: string;
-  groupId: string;            // Segregation parent group ID
+  poolId: string;             // Segregation parent pool ID
   name: string;
-  category: PoolCategory;
+  category: HoldingCategory;
   description: string;
   investedAmount: number;     // The net cash capital injected (Deposits - Withdrawals)
   currentValuation: number;   // The latest net market value (can be direct sum or user-updated value)
@@ -42,20 +42,20 @@ export type TransactionType =
 
 export interface Transaction {
   id: string;
-  poolId: string;
-  sourcePoolId?: string;       // For transfers
-  destinationPoolId?: string;  // For transfers
+  holdingId: string;
+  sourceHoldingId?: string;       // For transfers
+  destinationHoldingId?: string;  // For transfers
   type: TransactionType;
-  amount: number;              // The amount transferred or deposited or withdrawn
-  previousValuation?: number;  // Specifically for valuation updates
-  newValuation?: number;       // Specifically for valuation updates
+  amount: number;                 // The amount transferred or deposited or withdrawn
+  previousValuation?: number;     // Specifically for valuation updates
+  newValuation?: number;          // Specifically for valuation updates
   note: string;
   timestamp: string;
 }
 
 export interface ValuationHistoryPoint {
   id: string;
-  poolId: string;
+  holdingId: string;
   value: number;
   invested: number;
   timestamp: string;

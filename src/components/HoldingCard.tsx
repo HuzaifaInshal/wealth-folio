@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { InvestmentPool } from '../types';
+import { Holding } from '../types';
 import { CATEGORY_DETAILS } from '../data';
 import {
   PiggyBank,
@@ -21,18 +21,17 @@ import {
   Minus,
   Edit2,
   Trash2,
-  LineChart,
   Scale
 } from 'lucide-react';
 
-interface PoolCardProps {
-  pool: InvestmentPool;
-  onDeposit: (pool: InvestmentPool) => void;
-  onWithdraw: (pool: InvestmentPool) => void;
-  onTransfer: (pool: InvestmentPool) => void;
-  onAdjustValuation: (pool: InvestmentPool) => void;
-  onEdit: (pool: InvestmentPool) => void;
-  onDelete: (pool: InvestmentPool) => void;
+interface HoldingCardProps {
+  holding: Holding;
+  onDeposit: (holding: Holding) => void;
+  onWithdraw: (holding: Holding) => void;
+  onTransfer: (holding: Holding) => void;
+  onAdjustValuation: (holding: Holding) => void;
+  onEdit: (holding: Holding) => void;
+  onDelete: (holding: Holding) => void;
 }
 
 export const getCategoryIcon = (category: string) => {
@@ -56,20 +55,20 @@ export const getCategoryIcon = (category: string) => {
   }
 };
 
-export default function PoolCard({
-  pool,
+export default function HoldingCard({
+  holding,
   onDeposit,
   onWithdraw,
   onTransfer,
   onAdjustValuation,
   onEdit,
   onDelete,
-}: PoolCardProps) {
-  const catDetails = CATEGORY_DETAILS[pool.category];
+}: HoldingCardProps) {
+  const catDetails = CATEGORY_DETAILS[holding.category];
   
   // Calculations
-  const totalProfit = pool.currentValuation - pool.investedAmount;
-  const roi = pool.investedAmount > 0 ? (totalProfit / pool.investedAmount) * 100 : 0;
+  const totalProfit = holding.currentValuation - holding.investedAmount;
+  const roi = holding.investedAmount > 0 ? (totalProfit / holding.investedAmount) * 100 : 0;
   const isPositiveReturn = totalProfit >= 0;
 
   const formatCurrency = (amount: number) => {
@@ -87,7 +86,7 @@ export default function PoolCard({
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.25 }}
       className="bg-white border border-[#DCDAD2] rounded-none hover:border-[#1A1A1A] transition-colors duration-300 flex flex-col justify-between overflow-hidden"
-      id={`pool-card-${pool.id}`}
+      id={`holding-card-${holding.id}`}
     >
       {/* Upper color accent bar */}
       <div 
@@ -95,31 +94,31 @@ export default function PoolCard({
         style={{ backgroundColor: catDetails.color }}
       />
       
-      {/* Pool Header Header */}
+      {/* Holding Header */}
       <div className="p-6 flex-1">
         <div className="flex items-start justify-between">
           <div className="space-y-1 min-w-0">
             <span className="inline-flex items-center text-[9px] font-bold tracking-widest uppercase text-[#8C8C85] border border-[#DCDAD2] px-2 py-0.5 rounded-none bg-[#F9F8F6]">
-              <span className="mr-1.5">{getCategoryIcon(pool.category)}</span>
+              <span className="mr-1.5">{getCategoryIcon(holding.category)}</span>
               {catDetails.label}
             </span>
             <h4 className="text-xl font-serif text-[#1A1A1A] tracking-tight truncate mt-3 hover:text-[#8C8C85] transition-colors">
-              {pool.name}
+              {holding.name}
             </h4>
           </div>
 
           <div className="flex items-center space-x-1">
             <button
-              onClick={() => onEdit(pool)}
+              onClick={() => onEdit(holding)}
               className="p-1.5 text-[#8C8C85] hover:text-[#1A1A1A] hover:bg-[#F9F8F6] rounded-none transition-colors border border-transparent hover:border-[#DCDAD2]"
-              title="Edit Pool Info"
+              title="Edit Holding Info"
             >
               <Edit2 className="w-3.5 h-3.5" />
             </button>
             <button
-              onClick={() => onDelete(pool)}
+              onClick={() => onDelete(holding)}
               className="p-1.5 text-[#8C8C85] hover:text-rose-750 hover:bg-rose-50/50 rounded-none transition-colors border border-transparent hover:border-rose-250"
-              title="Delete Pool"
+              title="Delete Holding"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -127,7 +126,7 @@ export default function PoolCard({
         </div>
 
         <p className="text-xs text-[#6B6B66] line-clamp-2 mt-2 leading-relaxed min-h-[32px] font-serif italic text-pretty">
-          {pool.description || 'No description provided.'}
+          {holding.description || 'No description provided.'}
         </p>
 
         {/* Current status display values */}
@@ -137,9 +136,9 @@ export default function PoolCard({
               Current Valuation
             </span>
             <span className="text-xl font-serif text-[#1A1A1A] block mt-0.5">
-              {formatCurrency(pool.currentValuation)}
+              {formatCurrency(holding.currentValuation)}
             </span>
-            {pool.investedAmount > 0 ? (
+            {holding.investedAmount > 0 ? (
               <span className={`inline-flex items-center text-[10px] font-serif italic font-medium mt-1 ${
                 isPositiveReturn ? 'text-emerald-700' : 'text-rose-700'
               }`}>
@@ -155,7 +154,7 @@ export default function PoolCard({
               Invested Capital
             </span>
             <span className="text-xl font-serif text-[#6B6B66] block mt-0.5">
-              {formatCurrency(pool.investedAmount)}
+              {formatCurrency(holding.investedAmount)}
             </span>
             <span className="text-[9px] text-[#8C8C85] block mt-1">
               Net contributions
@@ -164,12 +163,12 @@ export default function PoolCard({
         </div>
       </div>
 
-      {/* Primary Pool Operations */}
+      {/* Primary Holding Operations */}
       <div className="bg-[#FDFDFD] border-t border-[#DCDAD2] px-4 py-4 flex flex-col gap-2">
         <div className="grid grid-cols-3 gap-1.5">
           {/* Deposit Trigger */}
           <button
-            onClick={() => onDeposit(pool)}
+            onClick={() => onDeposit(holding)}
             className="inline-flex items-center justify-center px-1.5 py-1.5 bg-white border border-[#DCDAD2] hover:border-[#1A1A1A] hover:bg-[#F9F8F6] text-[#1A1A1A] text-[10px] uppercase tracking-wider font-bold transition-all rounded-none cursor-pointer"
             title="Deposit"
           >
@@ -179,7 +178,7 @@ export default function PoolCard({
 
           {/* Withdraw Trigger */}
           <button
-            onClick={() => onWithdraw(pool)}
+            onClick={() => onWithdraw(holding)}
             className="inline-flex items-center justify-center px-1.5 py-1.5 bg-white border border-[#DCDAD2] hover:border-[#1A1A1A] hover:bg-[#F9F8F6] text-[#1A1A1A] text-[10px] uppercase tracking-wider font-bold transition-all rounded-none cursor-pointer"
             title="Withdraw"
           >
@@ -189,7 +188,7 @@ export default function PoolCard({
 
           {/* Transfer Funds Trigger */}
           <button
-            onClick={() => onTransfer(pool)}
+            onClick={() => onTransfer(holding)}
             className="inline-flex items-center justify-center px-1.5 py-1.5 bg-white border border-[#DCDAD2] hover:border-[#1A1A1A] hover:bg-[#F9F8F6] text-[#1A1A1A] text-[10px] uppercase tracking-wider font-bold transition-all rounded-none cursor-pointer"
             title="Transfer Funds"
           >
@@ -198,9 +197,9 @@ export default function PoolCard({
           </button>
         </div>
 
-        {/* Update Valuation Status (Net amount manual tracker override) */}
+        {/* Update Valuation Status */}
         <button
-          onClick={() => onAdjustValuation(pool)}
+          onClick={() => onAdjustValuation(holding)}
           className="w-full inline-flex items-center justify-center px-3 py-2.5 bg-[#1A1A1A] hover:bg-[#3E3E39] text-[#F9F8F6] text-[10px] uppercase tracking-widest font-bold transition-all rounded-none cursor-pointer"
           title="Adjust Valuation Status"
         >

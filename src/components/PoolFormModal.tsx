@@ -4,42 +4,29 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { InvestmentPool, PoolCategory } from '../types';
-import { CATEGORY_DETAILS } from '../data';
+import { Pool } from '../types';
 import { X, Save, Plus } from 'lucide-react';
 
 interface PoolFormModalProps {
   isOpen: boolean;
-  poolToEdit: InvestmentPool | null;
+  poolToEdit: Pool | null;
   onClose: () => void;
-  onSubmit: (poolData: {
-    name: string;
-    category: PoolCategory;
-    description: string;
-    initialBalance: number; // Only for new ones
-  }) => void;
+  onSubmit: (poolData: { title: string; description: string }) => void;
 }
 
 export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }: PoolFormModalProps) {
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<PoolCategory>('cash');
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [initialBalance, setInitialBalance] = useState<string>('0');
   const [error, setError] = useState('');
 
-  // Sychronize database states if updating
+  // Synchronize field states when modal is opened/edited
   useEffect(() => {
     if (poolToEdit) {
-      setName(poolToEdit.name);
-      setCategory(poolToEdit.category);
+      setTitle(poolToEdit.title);
       setDescription(poolToEdit.description);
-      setInitialBalance('0'); // Inactive during edits
     } else {
-      // Clear values for new creation
-      setName('');
-      setCategory('cash');
+      setTitle('');
       setDescription('');
-      setInitialBalance('0');
     }
     setError('');
   }, [poolToEdit, isOpen]);
@@ -50,22 +37,14 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
     e.preventDefault();
     setError('');
 
-    if (!name.trim()) {
-      setError('Please provide a descriptive pool name.');
-      return;
-    }
-
-    const parsedInitial = parseFloat(initialBalance);
-    if (isNaN(parsedInitial) || parsedInitial < 0) {
-      setError('Initial capital base must be a positive amount.');
+    if (!title.trim()) {
+      setError('Please provide a pool title.');
       return;
     }
 
     onSubmit({
-      name: name.trim(),
-      category,
+      title: title.trim(),
       description: description.trim(),
-      initialBalance: poolToEdit ? 0 : parsedInitial,
     });
     
     onClose();
@@ -80,10 +59,10 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
         className="bg-white rounded-none border border-[#DCDAD2] w-full max-w-lg shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         id="pool-form-container"
       >
-        {/* Header Header */}
+        {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-[#DCDAD2]">
           <h3 className="font-serif font-bold text-lg text-[#1A1A1A]">
-            {poolToEdit ? 'Modify Pool Details' : 'Create Saving / Investment Pool'}
+            {poolToEdit ? 'Modify Pool Details' : 'Create New Asset Pool'}
           </h3>
           <button 
             onClick={onClose}
@@ -93,7 +72,7 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
           </button>
         </div>
 
-        {/* Form Form */}
+        {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           
           {error && (
@@ -102,38 +81,20 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
             </div>
           )}
 
-          {/* Name */}
+          {/* Title */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
-              Pool Name <span className="text-rose-700">*</span>
+              Pool Title <span className="text-rose-700">*</span>
             </label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Rainy Day Reserve, S&P Index, BTC Bag"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Personal Accounts, Joint Ventures, Venture Capital"
               className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A]"
               maxLength={40}
               required
             />
-          </div>
-
-          {/* Category SELECT */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
-              Asset Category
-            </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as PoolCategory)}
-              className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] font-semibold"
-            >
-              {(Object.keys(CATEGORY_DETAILS) as PoolCategory[]).map((catKey) => (
-                <option key={catKey} value={catKey}>
-                  {CATEGORY_DETAILS[catKey].label}
-                </option>
-              ))}
-            </select>
           </div>
 
           {/* Description */}
@@ -144,40 +105,14 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="State the objective, institution, fees, or strategy (e.g. Fidelity Brokerage, Long-Term, 4.5% APY)"
+              placeholder="State the core objective or fund strategy for this pool (e.g. Family savings, index tracking portfolios)"
               rows={3}
               className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] resize-none leading-relaxed"
               maxLength={200}
             />
           </div>
 
-          {/* Initial Capital / Locked Values Message */}
-          {!poolToEdit ? (
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
-                Initial Cash Injected
-              </label>
-              <input
-                type="number"
-                value={initialBalance}
-                onChange={(e) => setInitialBalance(e.target.value)}
-                placeholder="e.g. 500"
-                min="0"
-                step="any"
-                className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] font-serif"
-              />
-              <span className="text-[10px] text-[#8C8C85] font-serif italic mt-0.5 block">Deposits this amount into the pool</span>
-            </div>
-          ) : (
-            <div className="bg-[#F9F8F6] p-3 rounded-none border border-[#DCDAD2] flex flex-col justify-center">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[#1A1A1A]">Edit Locked Values</p>
-              <p className="text-[10px] text-[#8C8C85] font-serif italic mt-1 leading-normal">
-                To adjust current balances, use the Capital Inflow, Capital Outflow, or Update Valuation actions directly.
-              </p>
-            </div>
-          )}
-
-          {/* Form Actions Footer buttons */}
+          {/* Actions */}
           <div className="flex space-x-3 pt-4 border-t border-[#DCDAD2] mt-4">
             <button
               type="button"

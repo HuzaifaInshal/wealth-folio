@@ -1,9 +1,9 @@
-import { InvestmentPool, Transaction, PoolCategory, Group } from './types';
+import { Holding, Transaction, HoldingCategory, Pool } from './types';
 
 export const CATEGORY_DETAILS: Record<
-  PoolCategory,
+  HoldingCategory,
   { label: string; color: string; icon: string; bg: string; text: string }
-> = {
+ > = {
   cash: {
     label: 'Cash Savings',
     color: '#10b981', // emerald-500
@@ -68,16 +68,16 @@ const dateXDaysAgo = (days: number): string => {
   return d.toISOString();
 };
 
-export const INITIAL_GROUPS: Group[] = [
+export const INITIAL_POOLS: Pool[] = [
   {
-    id: 'group-1',
+    id: 'pool-1',
     title: 'Personal Finances',
     description: 'Daily expenses, emergency reserve, and personal growth stocks.',
     createdAt: dateXDaysAgo(150),
     updatedAt: dateXDaysAgo(5),
   },
   {
-    id: 'group-2',
+    id: 'pool-2',
     title: 'Retirement & Long-term',
     description: 'Tax-sheltered accounts, retirement plans, and metals.',
     createdAt: dateXDaysAgo(150),
@@ -85,10 +85,10 @@ export const INITIAL_GROUPS: Group[] = [
   }
 ];
 
-export const INITIAL_POOLS: InvestmentPool[] = [
+export const INITIAL_HOLDINGS: Holding[] = [
   {
-    id: 'pool-1',
-    groupId: 'group-1',
+    id: 'holding-1',
+    poolId: 'pool-1',
     name: 'Emergency Fund',
     category: 'cash',
     description: 'High-Yield Savings Account (4.5% APY) for unexpected personal emergencies.',
@@ -98,8 +98,8 @@ export const INITIAL_POOLS: InvestmentPool[] = [
     updatedAt: dateXDaysAgo(5),
   },
   {
-    id: 'pool-2',
-    groupId: 'group-1',
+    id: 'holding-2',
+    poolId: 'pool-1',
     name: 'Tech Growth S&P Basket',
     category: 'stocks',
     description: 'Self-directed index and growth stocks (AAPL, GOOGL, MSFT, VGT).',
@@ -109,8 +109,8 @@ export const INITIAL_POOLS: InvestmentPool[] = [
     updatedAt: dateXDaysAgo(2),
   },
   {
-    id: 'pool-3',
-    groupId: 'group-2',
+    id: 'holding-3',
+    poolId: 'pool-2',
     name: 'Long-term Crypto Vault',
     category: 'crypto',
     description: 'Hardware wallet holding BTC and ETH for long term digital standard reservation.',
@@ -120,8 +120,8 @@ export const INITIAL_POOLS: InvestmentPool[] = [
     updatedAt: dateXDaysAgo(1),
   },
   {
-    id: 'pool-4',
-    groupId: 'group-2',
+    id: 'holding-4',
+    poolId: 'pool-2',
     name: 'Roth IRA (Index Funds)',
     category: 'retirement',
     description: 'Tax-advantaged Vanguard target retirement index fund.',
@@ -135,7 +135,7 @@ export const INITIAL_POOLS: InvestmentPool[] = [
 export const INITIAL_TRANSACTIONS: Transaction[] = [
   {
     id: 'tx-1',
-    poolId: 'pool-1',
+    holdingId: 'holding-1',
     type: 'creation',
     amount: 8000,
     note: 'Initial emergency fund allocation',
@@ -143,7 +143,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-2',
-    poolId: 'pool-4',
+    holdingId: 'holding-4',
     type: 'creation',
     amount: 25000,
     note: 'Lump-sum Roth IRA deposit',
@@ -151,7 +151,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-3',
-    poolId: 'pool-2',
+    holdingId: 'holding-2',
     type: 'creation',
     amount: 15000,
     note: 'Starting tech portfolio',
@@ -159,7 +159,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-4',
-    poolId: 'pool-1',
+    holdingId: 'holding-1',
     type: 'deposit',
     amount: 2000,
     note: 'Transfer from checking (monthly savings)',
@@ -167,7 +167,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-5',
-    poolId: 'pool-3',
+    holdingId: 'holding-3',
     type: 'creation',
     amount: 6000,
     note: 'Injected 0.1 BTC + 1 ETH core holdings',
@@ -175,7 +175,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-6',
-    poolId: 'pool-2',
+    holdingId: 'holding-2',
     type: 'deposit',
     amount: 3000,
     note: 'Purchased extra MSFT shares on dip',
@@ -183,7 +183,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-7',
-    poolId: 'pool-1',
+    holdingId: 'holding-1',
     type: 'withdrawal',
     amount: 500,
     note: 'Car repairs cost coverage',
@@ -191,7 +191,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-8',
-    poolId: 'pool-1',
+    holdingId: 'holding-1',
     type: 'valuation_adjustment',
     amount: 0,
     previousValuation: 9500,
@@ -201,7 +201,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-9',
-    poolId: 'pool-2',
+    holdingId: 'holding-2',
     type: 'valuation_adjustment',
     amount: 0,
     previousValuation: 21000,
@@ -211,7 +211,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-10',
-    poolId: 'pool-3',
+    holdingId: 'holding-3',
     type: 'valuation_adjustment',
     amount: 0,
     previousValuation: 8520,

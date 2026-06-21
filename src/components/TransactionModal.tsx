@@ -4,20 +4,20 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { InvestmentPool, TransactionType } from '../types';
+import { Holding, TransactionType } from '../types';
 import { X, ArrowRight, DollarSign, ArrowRightLeft, Percent, Scale, TrendingUp } from 'lucide-react';
 
 interface TransactionModalProps {
   isOpen: boolean;
-  pools: InvestmentPool[];
-  initialPool: InvestmentPool | null;
+  holdings: Holding[];
+  initialHolding: Holding | null;
   initialTab: 'deposit' | 'withdrawal' | 'transfer' | 'valuation_adjustment';
   onClose: () => void;
   onSubmit: (txData: {
     type: TransactionType;
-    poolId: string;
-    sourcePoolId?: string;
-    destinationPoolId?: string;
+    holdingId: string;
+    sourceHoldingId?: string;
+    destinationHoldingId?: string;
     amount: number;
     newValuation?: number;
     note: string;
@@ -26,8 +26,8 @@ interface TransactionModalProps {
 
 export default function TransactionModal({
   isOpen,
-  pools,
-  initialPool,
+  holdings,
+  initialHolding,
   initialTab,
   onClose,
   onSubmit,
@@ -35,9 +35,9 @@ export default function TransactionModal({
   const [activeTab, setActiveTab] = useState<'deposit' | 'withdrawal' | 'transfer' | 'valuation_adjustment'>('deposit');
   
   // Fields
-  const [poolId, setPoolId] = useState('');
-  const [sourcePoolId, setSourcePoolId] = useState('');
-  const [destinationPoolId, setDestinationPoolId] = useState('');
+  const [holdingId, setHoldingId] = useState('');
+  const [sourceHoldingId, setSourceHoldingId] = useState('');
+  const [destinationHoldingId, setDestinationHoldingId] = useState('');
   const [amount, setAmount] = useState('');
   const [newValuation, setNewValuation] = useState('');
   const [note, setNote] = useState('');
@@ -50,49 +50,49 @@ export default function TransactionModal({
     setAmount('');
     setNote('');
     
-    // Choose pre-selected pools
-    if (initialPool) {
+    // Choose pre-selected holdings
+    if (initialHolding) {
       if (initialTab === 'transfer') {
-        setSourcePoolId(initialPool.id);
-        const otherPool = pools.find((p) => p.id !== initialPool.id);
-        setDestinationPoolId(otherPool ? otherPool.id : '');
+        setSourceHoldingId(initialHolding.id);
+        const otherHolding = holdings.find((h) => h.id !== initialHolding.id);
+        setDestinationHoldingId(otherHolding ? otherHolding.id : '');
       } else {
-        setPoolId(initialPool.id);
-        setNewValuation(initialPool.currentValuation.toString());
+        setHoldingId(initialHolding.id);
+        setNewValuation(initialHolding.currentValuation.toString());
       }
     } else {
-      if (pools.length > 0) {
-        setPoolId(pools[0].id);
-        setSourcePoolId(pools[0].id);
-        const secondPool = pools.find((p) => p.id !== pools[0].id);
-        setDestinationPoolId(secondPool ? secondPool.id : '');
-        setNewValuation(pools[0].currentValuation.toString());
+      if (holdings.length > 0) {
+        setHoldingId(holdings[0].id);
+        setSourceHoldingId(holdings[0].id);
+        const secondHolding = holdings.find((h) => h.id !== holdings[0].id);
+        setDestinationHoldingId(secondHolding ? secondHolding.id : '');
+        setNewValuation(holdings[0].currentValuation.toString());
       }
     }
-  }, [isOpen, initialPool, initialTab]);
+  }, [isOpen, initialHolding, initialTab]);
 
-  // Handle active pool change (re-populate valuation input)
-  const handlePoolChange = (id: string) => {
-    setPoolId(id);
-    const pool = pools.find((p) => p.id === id);
-    if (pool) {
-      setNewValuation(pool.currentValuation.toString());
+  // Handle active holding change (re-populate valuation input)
+  const handleHoldingChange = (id: string) => {
+    setHoldingId(id);
+    const holding = holdings.find((h) => h.id === id);
+    if (holding) {
+      setNewValuation(holding.currentValuation.toString());
     }
   };
 
-  const handleSourcePoolChange = (id: string) => {
-    setSourcePoolId(id);
-    // Don't allow same source and destination pool
-    if (id === destinationPoolId) {
-      const other = pools.find((p) => p.id !== id);
-      setDestinationPoolId(other ? other.id : '');
+  const handleSourceHoldingChange = (id: string) => {
+    setSourceHoldingId(id);
+    // Don't allow same source and destination holding
+    if (id === destinationHoldingId) {
+      const other = holdings.find((h) => h.id !== id);
+      setDestinationHoldingId(other ? other.id : '');
     }
   };
 
-  if (!isOpen || pools.length === 0) return null;
+  if (!isOpen || holdings.length === 0) return null;
 
-  const currentSelectedPool = pools.find((p) => p.id === poolId);
-  const currentSourcePool = pools.find((p) => p.id === sourcePoolId);
+  const currentSelectedHolding = holdings.find((h) => h.id === holdingId);
+  const currentSourceHolding = holdings.find((h) => h.id === sourceHoldingId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,27 +101,27 @@ export default function TransactionModal({
     const numericAmount = parseFloat(amount);
     const numericValuation = parseFloat(newValuation);
 
-    // Operational validaiton
+    // Operational validation
     if (activeTab === 'transfer') {
-      if (!sourcePoolId || !destinationPoolId) {
-        setError('Please select both origin and destination pools.');
+      if (!sourceHoldingId || !destinationHoldingId) {
+        setError('Please select both origin and destination holdings.');
         return;
       }
-      if (sourcePoolId === destinationPoolId) {
-        setError('Origin and destination pools cannot be the same file.');
+      if (sourceHoldingId === destinationHoldingId) {
+        setError('Origin and destination holdings cannot be the same.');
         return;
       }
       if (isNaN(numericAmount) || numericAmount <= 0) {
         setError('Please enter a valid transfer amount.');
         return;
       }
-      if (currentSourcePool && numericAmount > currentSourcePool.currentValuation) {
-        setError(`Insufficient funds. The origin pool only has ${formatCurrency(currentSourcePool.currentValuation)} available.`);
+      if (currentSourceHolding && numericAmount > currentSourceHolding.currentValuation) {
+        setError(`Insufficient funds. The origin holding only has ${formatCurrency(currentSourceHolding.currentValuation)} available.`);
         return;
       }
     } else if (activeTab === 'deposit') {
-      if (!poolId) {
-        setError('Please select a target pool.');
+      if (!holdingId) {
+        setError('Please select a target holding.');
         return;
       }
       if (isNaN(numericAmount) || numericAmount <= 0) {
@@ -129,25 +129,25 @@ export default function TransactionModal({
         return;
       }
     } else if (activeTab === 'withdrawal') {
-      if (!poolId) {
-        setError('Please select a target pool.');
+      if (!holdingId) {
+        setError('Please select a target holding.');
         return;
       }
       if (isNaN(numericAmount) || numericAmount <= 0) {
         setError('Please enter a valid withdrawal amount.');
         return;
       }
-      if (currentSelectedPool && numericAmount > currentSelectedPool.currentValuation) {
-        setError(`Insufficient funds. This pool only has ${formatCurrency(currentSelectedPool.currentValuation)} available.`);
+      if (currentSelectedHolding && numericAmount > currentSelectedHolding.currentValuation) {
+        setError(`Insufficient funds. This holding only has ${formatCurrency(currentSelectedHolding.currentValuation)} available.`);
         return;
       }
     } else if (activeTab === 'valuation_adjustment') {
-      if (!poolId) {
-        setError('Please select a target pool.');
+      if (!holdingId) {
+        setError('Please select a target holding.');
         return;
       }
       if (isNaN(numericValuation) || numericValuation < 0) {
-        setError('New valuation must be a positive number (or 0 if totally liqudated).');
+        setError('New valuation must be a positive number (or 0 if totally liquidated).');
         return;
       }
     }
@@ -157,9 +157,9 @@ export default function TransactionModal({
     
     onSubmit({
       type: activeTab,
-      poolId: activeTab === 'transfer' ? sourcePoolId : poolId,
-      sourcePoolId: activeTab === 'transfer' ? sourcePoolId : undefined,
-      destinationPoolId: activeTab === 'transfer' ? destinationPoolId : undefined,
+      holdingId: activeTab === 'transfer' ? sourceHoldingId : holdingId,
+      sourceHoldingId: activeTab === 'transfer' ? sourceHoldingId : undefined,
+      destinationHoldingId: activeTab === 'transfer' ? destinationHoldingId : undefined,
       amount: activeTab === 'valuation_adjustment' ? 0 : numericAmount,
       newValuation: activeTab === 'valuation_adjustment' ? numericValuation : undefined,
       note: noteContent,
@@ -212,15 +212,15 @@ export default function TransactionModal({
           <button
             type="button"
             onClick={() => { setActiveTab('transfer'); setError(''); }}
-            disabled={pools.length < 2}
+            disabled={holdings.length < 2}
             className={`flex-1 py-2.5 text-center text-[10px] uppercase tracking-wider font-bold rounded-none transition-all cursor-pointer ${
-              pools.length < 2 ? 'opacity-35 cursor-not-allowed' : ''
+              holdings.length < 2 ? 'opacity-35 cursor-not-allowed' : ''
             } ${
               activeTab === 'transfer'
                 ? 'bg-white text-[#1A1A1A] border border-[#DCDAD2]'
                 : 'text-[#8C8C85] hover:text-[#1A1A1A]'
             }`}
-            title={pools.length < 2 ? 'You need at least 2 pools to perform transfers' : ''}
+            title={holdings.length < 2 ? 'You need at least 2 holdings to perform transfers' : ''}
           >
             Transfer
           </button>
@@ -230,7 +230,7 @@ export default function TransactionModal({
               setActiveTab('valuation_adjustment'); 
               setError(''); 
               // Refresh initial valuation field
-              if (currentSelectedPool) setNewValuation(currentSelectedPool.currentValuation.toString());
+              if (currentSelectedHolding) setNewValuation(currentSelectedHolding.currentValuation.toString());
             }}
             className={`flex-1 py-2.5 text-center text-[10px] uppercase tracking-wider font-bold rounded-none transition-all cursor-pointer ${
               activeTab === 'valuation_adjustment'
@@ -267,20 +267,20 @@ export default function TransactionModal({
             </div>
           )}
 
-          {/* Standard Target Pool (For Deposit, Withdrawal, Valuation) */}
+          {/* Standard Target Holding (For Deposit, Withdrawal, Valuation) */}
           {activeTab !== 'transfer' && (
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
-                Select Target Pool
+                Select Target Holding
               </label>
               <select
-                value={poolId}
-                onChange={(e) => handlePoolChange(e.target.value)}
+                value={holdingId}
+                onChange={(e) => handleHoldingChange(e.target.value)}
                 className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm font-semibold text-[#1A1A1A]"
               >
-                {pools.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({formatCurrency(p.currentValuation)} Net)
+                {holdings.map((h) => (
+                  <option key={h.id} value={h.id}>
+                    {h.name} ({formatCurrency(h.currentValuation)} Net)
                   </option>
                 ))}
               </select>
@@ -295,13 +295,13 @@ export default function TransactionModal({
                   Origin (From)
                 </label>
                 <select
-                  value={sourcePoolId}
-                  onChange={(e) => handleSourcePoolChange(e.target.value)}
+                  value={sourceHoldingId}
+                  onChange={(e) => handleSourceHoldingChange(e.target.value)}
                   className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm font-semibold text-[#1A1A1A]"
                 >
-                  {pools.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({formatCurrency(p.currentValuation)})
+                  {holdings.map((h) => (
+                    <option key={h.id} value={h.id}>
+                      {h.name} ({formatCurrency(h.currentValuation)})
                     </option>
                   ))}
                 </select>
@@ -312,15 +312,15 @@ export default function TransactionModal({
                   Destination (To)
                 </label>
                 <select
-                  value={destinationPoolId}
-                  onChange={(e) => setDestinationPoolId(e.target.value)}
+                  value={destinationHoldingId}
+                  onChange={(e) => setDestinationHoldingId(e.target.value)}
                   className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm font-semibold text-[#1A1A1A]"
                 >
-                  {pools
-                    .filter((p) => p.id !== sourcePoolId)
-                    .map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} ({formatCurrency(p.currentValuation)})
+                  {holdings
+                    .filter((h) => h.id !== sourceHoldingId)
+                    .map((h) => (
+                      <option key={h.id} value={h.id}>
+                        {h.name} ({formatCurrency(h.currentValuation)})
                       </option>
                     ))}
                 </select>
@@ -349,14 +349,14 @@ export default function TransactionModal({
                   required
                 />
               </div>
-              {activeTab === 'withdrawal' && currentSelectedPool && (
+              {activeTab === 'withdrawal' && currentSelectedHolding && (
                 <span className="text-[10px] text-[#8C8C85] font-serif italic block mt-0.5">
-                  Max withdrawable: {formatCurrency(currentSelectedPool.currentValuation)}
+                  Max withdrawable: {formatCurrency(currentSelectedHolding.currentValuation)}
                 </span>
               )}
-              {activeTab === 'transfer' && currentSourcePool && (
+              {activeTab === 'transfer' && currentSourceHolding && (
                 <span className="text-[10px] text-[#8C8C85] font-serif italic block mt-0.5">
-                  Max transferable: {formatCurrency(currentSourcePool.currentValuation)}
+                  Max transferable: {formatCurrency(currentSourceHolding.currentValuation)}
                 </span>
               )}
             </div>
@@ -395,19 +395,19 @@ export default function TransactionModal({
                 </div>
               </div>
 
-              {currentSelectedPool && newValuation !== '' && !isNaN(parseFloat(newValuation)) && (
+              {currentSelectedHolding && newValuation !== '' && !isNaN(parseFloat(newValuation)) && (
                 <div className="columns-2 gap-4 text-[11px] pt-3 border-t border-[#DCDAD2]">
                   <div>
                     <span className="text-[#8C8C85] font-serif italic block">Previous Valuation</span>
                     <span className="font-bold text-[#1A1A1A] font-serif">
-                      {formatCurrency(currentSelectedPool.currentValuation)}
+                      {formatCurrency(currentSelectedHolding.currentValuation)}
                     </span>
                   </div>
                   <div>
                     <span className="text-[#8C8C85] font-serif italic block">Revaluation Difference</span>
                     {(() => {
-                      const diff = parseFloat(newValuation) - currentSelectedPool.currentValuation;
-                      const pct = currentSelectedPool.currentValuation > 0 ? (diff / currentSelectedPool.currentValuation) * 100 : 0;
+                      const diff = parseFloat(newValuation) - currentSelectedHolding.currentValuation;
+                      const pct = currentSelectedHolding.currentValuation > 0 ? (diff / currentSelectedHolding.currentValuation) * 100 : 0;
                       return (
                         <span className={`font-bold font-serif flex items-center ${
                           diff >= 0 ? 'text-emerald-700' : 'text-rose-700'
