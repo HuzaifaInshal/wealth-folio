@@ -19,6 +19,7 @@ import LedgerFlowVisualizer from './components/LedgerFlowVisualizer';
 import PoolFormModal from './components/PoolFormModal';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
+import PoolTimeline from './components/PoolTimeline';
 
 // Import Icons
 import {
@@ -37,7 +38,8 @@ import {
   ChevronDown,
   Settings,
   Trash2,
-  Lock
+  Lock,
+  History
 } from 'lucide-react';
 
 export default function App() {
@@ -232,7 +234,8 @@ export default function App() {
       // Parse Pool ID from route changes
       const poolMatch = hash.match(/^#\/pool\/([^?\/]+)/);
       const flowMatch = hash.match(/^#\/flow\/([^?\/]+)/);
-      const idFromHash = (poolMatch && poolMatch[1]) || (flowMatch && flowMatch[1]);
+      const timelineMatch = hash.match(/^#\/timeline\/([^?\/]+)/);
+      const idFromHash = (poolMatch && poolMatch[1]) || (flowMatch && flowMatch[1]) || (timelineMatch && timelineMatch[1]);
 
       if (idFromHash) {
         // Verify group exists
@@ -258,6 +261,7 @@ export default function App() {
   const consolidatedROI = consolidatedInvested > 0 ? (consolidatedReturns / consolidatedInvested) * 100 : 0;
 
   // --- Pool Level Separation Helpers ---
+  const activePool = pools.find((g) => g.id === activePoolId) || pools[0];
   const activePoolHoldings = holdings.filter(p => p.poolId === activePoolId);
   const holdingIdsInPool = activePoolHoldings.map(p => p.id);
   const activePoolTransactions = transactions.filter(t => 
@@ -566,6 +570,20 @@ export default function App() {
     );
   }
 
+  // Render standalone timeline subpage if we are on the timeline route
+  if (currentRoute.startsWith('#/timeline')) {
+    return (
+      <PoolTimeline
+        pool={activePool}
+        holdings={activePoolHoldings}
+        transactions={activePoolTransactions}
+        onClose={() => {
+          window.location.hash = `#/pool/${activePoolId}`;
+        }}
+      />
+    );
+  }
+
   // Render empty state if there are no pools
   if (pools.length === 0) {
     return (
@@ -833,7 +851,6 @@ export default function App() {
   }
 
   // Render Pool Detail Dashboard
-  const activePool = pools.find((g) => g.id === activePoolId) || pools[0];
 
   return (
     <div className="min-h-screen bg-[#F9F8F6] flex flex-col font-sans" id="app-root-container">
@@ -975,6 +992,14 @@ export default function App() {
             >
               <ArrowRightLeft className="w-3.5 h-3.5 text-blue-700" />
               <span>Flow Map</span>
+            </button>
+            <button
+              onClick={() => { window.location.hash = `#/timeline/${activePoolId}`; }}
+              className="px-3.5 py-2 text-[10px] border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1 cursor-pointer"
+              title="View chronological timeline of transactions in this pool"
+            >
+              <History className="w-3.5 h-3.5 text-amber-700" />
+              <span>Show timeline</span>
             </button>
             <button
               onClick={() => triggerHoldingForm(null)}
