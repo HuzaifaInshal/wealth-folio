@@ -182,7 +182,7 @@ export default function App() {
       }
 
       // Parse Pool ID from route changes
-      const poolMatch = hash.match(/^#\/group\/([^?\/]+)/);
+      const poolMatch = hash.match(/^#\/pool\/([^?\/]+)/);
       const flowMatch = hash.match(/^#\/flow\/([^?\/]+)/);
       const idFromHash = (poolMatch && poolMatch[1]) || (flowMatch && flowMatch[1]);
 
