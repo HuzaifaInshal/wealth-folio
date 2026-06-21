@@ -4,19 +4,22 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Pool } from '../types';
+import { Pool, HoldingCategory } from '../types';
+import { CATEGORY_DETAILS } from '../data';
+import { getCategoryIcon } from './HoldingCard';
 import { X, Save, Plus } from 'lucide-react';
 
 interface PoolFormModalProps {
   isOpen: boolean;
   poolToEdit: Pool | null;
   onClose: () => void;
-  onSubmit: (poolData: { title: string; description: string }) => void;
+  onSubmit: (poolData: { title: string; description: string; categories: HoldingCategory[] }) => void;
 }
 
 export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }: PoolFormModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<HoldingCategory[]>([]);
   const [error, setError] = useState('');
 
   // Synchronize field states when modal is opened/edited
@@ -24,9 +27,11 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
     if (poolToEdit) {
       setTitle(poolToEdit.title);
       setDescription(poolToEdit.description);
+      setSelectedCategories(poolToEdit.categories || []);
     } else {
       setTitle('');
       setDescription('');
+      setSelectedCategories([]);
     }
     setError('');
   }, [poolToEdit, isOpen]);
@@ -45,6 +50,7 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
     onSubmit({
       title: title.trim(),
       description: description.trim(),
+      categories: selectedCategories,
     });
     
     onClose();
@@ -73,7 +79,7 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           
           {error && (
             <div className="p-3.5 bg-[#FFF0F0] text-rose-800 text-xs font-serif italic border border-[#FCD2D2] rounded-none">
@@ -112,8 +118,45 @@ export default function PoolFormModal({ isOpen, poolToEdit, onClose, onSubmit }:
             />
           </div>
 
+          {/* Categories/Tags Selector */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
+              Pool Categories / Tags
+            </label>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {Object.keys(CATEGORY_DETAILS).map((catKey) => {
+                const cat = catKey as HoldingCategory;
+                const details = CATEGORY_DETAILS[cat];
+                const isSelected = selectedCategories.includes(cat);
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedCategories(selectedCategories.filter(c => c !== cat));
+                      } else {
+                        setSelectedCategories([...selectedCategories, cat]);
+                      }
+                    }}
+                    className={`px-3 py-2 text-xs font-semibold rounded-none border transition-all cursor-pointer flex items-center space-x-2 select-none ${
+                      isSelected
+                        ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]'
+                        : 'bg-[#F9F8F6] text-[#6B6B66] border-[#DCDAD2] hover:text-[#1A1A1A] hover:border-[#1A1A1A]'
+                    }`}
+                  >
+                    <span className={`w-3.5 h-3.5 flex items-center justify-center ${isSelected ? 'text-white' : 'text-[#8C8C85]'}`}>
+                      {getCategoryIcon(cat)}
+                    </span>
+                    <span>{details.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Actions */}
-          <div className="flex space-x-3 pt-4 border-t border-[#DCDAD2] mt-4">
+          <div className="flex space-x-3 pt-5 border-t border-[#DCDAD2] mt-5">
             <button
               type="button"
               onClick={onClose}

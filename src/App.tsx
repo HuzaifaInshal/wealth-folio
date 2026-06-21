@@ -317,23 +317,24 @@ export default function App() {
     window.location.hash = '#/';
   };
 
-  const handlePoolSubmit = (groupData: { title: string; description: string }) => {
+  const handlePoolSubmit = (groupData: { title: string; description: string; categories: HoldingCategory[] }) => {
     const timestamp = new Date().toISOString();
 
     if (poolToEdit) {
       setPools(prev =>
         prev.map(g =>
           g.id === poolToEdit.id
-            ? { ...g, title: groupData.title, description: groupData.description, updatedAt: timestamp }
+            ? { ...g, title: groupData.title, description: groupData.description, categories: groupData.categories, updatedAt: timestamp }
             : g
         )
       );
     } else {
-      const newPoolId = `holding-${Date.now()}`;
+      const newPoolId = `pool-${Date.now()}`;
       const newPool: Pool = {
         id: newPoolId,
         title: groupData.title,
         description: groupData.description,
+        categories: groupData.categories,
         createdAt: timestamp,
         updatedAt: timestamp,
       };
@@ -522,10 +523,9 @@ export default function App() {
 
   // --- Filter Pool Results ---
   const filteredHoldings = activePoolHoldings.filter((p) => {
-    const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesSearch;
   });
 
   // Render landing page
@@ -685,16 +685,41 @@ export default function App() {
         {/* Main Content */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-          {/* Pool Search Bar */}
-          <div className="relative w-full">
-            <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3.5 top-3.5" />
-            <input
-              type="text"
-              value={poolSearchQuery}
-              onChange={(e) => setPoolSearchQuery(e.target.value)}
-              placeholder="Search segregation pools by title or description..."
-              className="w-full pl-10 pr-4 py-3 bg-white border border-[#DCDAD2] rounded-none text-xs font-semibold focus:outline-hidden focus:border-[#1A1A1A] transition-all text-[#1A1A1A]"
-            />
+          {/* Pool Search Bar & Category Filters */}
+          <div className="space-y-4">
+            <div className="relative w-full">
+              <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3.5 top-3.5" />
+              <input
+                type="text"
+                value={poolSearchQuery}
+                onChange={(e) => setPoolSearchQuery(e.target.value)}
+                placeholder="Search segregation pools by title or description..."
+                className="w-full pl-10 pr-4 py-3 bg-white border border-[#DCDAD2] rounded-none text-xs font-semibold focus:outline-hidden focus:border-[#1A1A1A] transition-all text-[#1A1A1A]"
+              />
+            </div>
+
+            {/* Category quick filters */}
+            <div className="flex items-center space-x-1.5 overflow-x-auto pb-2 scrollbar-none border-t border-[#F1EFEA] pt-3.5">
+              <ListFilter className="w-3.5 h-3.5 text-[#8C8C85] flex-shrink-0" />
+              
+              {['all', ...Object.keys(CATEGORY_DETAILS)].map((cat) => {
+                const label = cat === 'all' ? 'All Pools' : CATEGORY_DETAILS[cat as HoldingCategory].label;
+                const isActive = categoryFilter === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`text-[10px] px-3.5 py-1.5 font-bold tracking-widest uppercase transition-all whitespace-nowrap rounded-none border cursor-pointer ${
+                      isActive 
+                        ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' 
+                        : 'bg-white text-[#8C8C85] border-[#DCDAD2] hover:text-[#1A1A1A] hover:border-[#1A1A1A]'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Pools Grid */}
@@ -703,8 +728,12 @@ export default function App() {
               {(() => {
                 const filteredPools = pools.filter((group) => {
                   const query = poolSearchQuery.toLowerCase().trim();
-                  return group.title.toLowerCase().includes(query) || 
+                  const matchesSearch = group.title.toLowerCase().includes(query) || 
                          (group.description && group.description.toLowerCase().includes(query));
+                  
+                  const poolCategories = group.categories || [];
+                  const matchesCategory = categoryFilter === 'all' || poolCategories.includes(categoryFilter as HoldingCategory);
+                  return matchesSearch && matchesCategory;
                 });
 
                 if (filteredPools.length === 0) {
@@ -715,13 +744,13 @@ export default function App() {
                       </div>
                       <h4 className="text-base font-serif font-bold text-[#1A1A1A]">No pools match your query</h4>
                       <p className="text-xs text-[#8C8C85] mt-1.5 max-w-sm mx-auto font-serif italic">
-                        Try clearing your search query or creating a brand-new asset group.
+                        Try clearing your search query or category filter.
                       </p>
                       <button
-                        onClick={() => setPoolSearchQuery('')}
+                        onClick={() => { setPoolSearchQuery(''); setCategoryFilter('all'); }}
                         className="mt-4 text-[10px] uppercase tracking-wider font-bold px-4 py-2 bg-white border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] transition-colors cursor-pointer"
                       >
-                        Clear Pool Search
+                        Clear Pool Filters
                       </button>
                     </div>
                   );
@@ -761,9 +790,23 @@ export default function App() {
                             <h4 className="text-xl font-serif font-bold text-[#1A1A1A] tracking-tight holding-hover/card:text-[#8C8C85] transition-colors truncate">
                               {group.title}
                             </h4>
-                            <span className="inline-flex items-center text-[9px] font-bold tracking-widest uppercase text-[#8C8C85] border border-[#DCDAD2] px-2 py-0.5 bg-[#F9F8F6]">
-                              {poolHoldings.length} {poolHoldings.length === 1 ? 'Holding' : 'Holdings'}
-                            </span>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                              <span className="inline-flex items-center text-[9px] font-bold tracking-widest uppercase text-[#8C8C85] border border-[#DCDAD2] px-2 py-0.5 bg-[#F9F8F6]">
+                                {poolHoldings.length} {poolHoldings.length === 1 ? 'Holding' : 'Holdings'}
+                              </span>
+                              {(group.categories || []).map((cat) => {
+                                const details = CATEGORY_DETAILS[cat];
+                                if (!details) return null;
+                                return (
+                                  <span 
+                                    key={cat} 
+                                    className="inline-flex items-center text-[8px] font-bold tracking-widest uppercase text-[#8C8C85] border border-[#DCDAD2] px-1.5 py-0.5 bg-white"
+                                  >
+                                    {details.label}
+                                  </span>
+                                );
+                              })}
+                            </div>
                           </div>
 
                           {/* Quick controls */}
@@ -1111,10 +1154,8 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Pool Search and category quick filters */}
-              <div className="mt-5 space-y-4">
-                
-                {/* Search */}
+              {/* Pool Search */}
+              <div className="mt-5">
                 <div className="relative w-full">
                   <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3.5 top-3.5" />
                   <input
@@ -1124,29 +1165,6 @@ export default function App() {
                     placeholder="Search vaults model, asset types..."
                     className="w-full pl-10 pr-4 py-3 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold focus:outline-hidden focus:bg-white focus:border-[#1A1A1A] transition-all text-[#1A1A1A]"
                   />
-                </div>
-
-                {/* Filters */}
-                <div className="flex items-center space-x-1.5 overflow-x-auto pb-2 scrollbar-none border-t border-[#F1EFEA] pt-3.5">
-                  <ListFilter className="w-3.5 h-3.5 text-[#8C8C85] flex-shrink-0" />
-                  
-                  {['all', ...Object.keys(CATEGORY_DETAILS)].map((cat) => {
-                    const label = cat === 'all' ? 'All Assets' : CATEGORY_DETAILS[cat as HoldingCategory].label;
-                    const isActive = categoryFilter === cat;
-                    return (
-                      <button
-                        key={cat}
-                        onClick={() => setCategoryFilter(cat)}
-                        className={`text-[10px] px-3.5 py-1.5 font-bold tracking-widest uppercase transition-all whitespace-nowrap rounded-none border cursor-pointer ${
-                          isActive 
-                            ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' 
-                            : 'bg-white text-[#8C8C85] border-[#DCDAD2] hover:text-[#1A1A1A] hover:border-[#1A1A1A]'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
                 </div>
               </div>
             </div>
@@ -1162,7 +1180,7 @@ export default function App() {
                   Try clearing your search query or asset category filter. Click Create Holding to append a brand-new asset ledger container.
                 </p>
                 <button
-                  onClick={() => { setSearchQuery(''); setCategoryFilter('all'); }}
+                  onClick={() => { setSearchQuery(''); }}
                   className="mt-4 text-[10px] uppercase tracking-wider font-bold px-4 py-2 bg-white border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] transition-colors cursor-pointer"
                 >
                   Clear Selection Filter

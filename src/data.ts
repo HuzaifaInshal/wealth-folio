@@ -75,6 +75,7 @@ export const INITIAL_POOLS: Pool[] = [
     description: 'Daily expenses, emergency reserve, and personal growth stocks.',
     createdAt: dateXDaysAgo(150),
     updatedAt: dateXDaysAgo(5),
+    categories: ['cash', 'stocks'],
   },
   {
     id: 'pool-2',
@@ -82,6 +83,7 @@ export const INITIAL_POOLS: Pool[] = [
     description: 'Tax-sheltered accounts, retirement plans, and metals.',
     createdAt: dateXDaysAgo(150),
     updatedAt: dateXDaysAgo(1),
+    categories: ['retirement', 'precious_metals'],
   }
 ];
 

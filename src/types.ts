@@ -19,6 +19,7 @@ export interface Pool {
   description: string;
   createdAt: string;
   updatedAt: string;
+  categories?: HoldingCategory[]; // tags for the pool
 }
 
 export interface Holding {
