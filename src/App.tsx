@@ -631,6 +631,10 @@ export default function App() {
         onClose={() => {
           window.location.hash = `#/pool/${activePoolId}`;
         }}
+        onAddInstrument={() => {
+          setInstrumentToEdit(null);
+          setIsInstrumentModalOpen(true);
+        }}
       />
     );
   }

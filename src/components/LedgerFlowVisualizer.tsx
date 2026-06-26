@@ -45,8 +45,6 @@ interface LedgerFlowVisualizerProps {
   transactions: Transaction[];
   onAddHolding: (holdingData: {
     instrumentId: string;
-    name: string;
-    description: string;
     quantity?: number;
     initialBalance: number;
   }) => void;
@@ -61,6 +59,7 @@ interface LedgerFlowVisualizerProps {
   }) => void;
   onDeleteHolding: (holdingId: string) => void;
   onClose: () => void;
+  onAddInstrument?: () => void;
 }
 
 // Custom Helper: Format Currency
@@ -314,6 +313,7 @@ export default function LedgerFlowVisualizer({
   onAddTransaction,
   onDeleteHolding,
   onClose,
+  onAddInstrument,
 }: LedgerFlowVisualizerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -326,10 +326,8 @@ export default function LedgerFlowVisualizer({
   const [selectedHolding, setSelectedHolding] = useState<Holding | null>(null);
 
   // Form State: Holding creation
-  const [newHoldingName, setNewHoldingName] = useState('');
   const [newHoldingInstrumentId, setNewHoldingInstrumentId] = useState('');
   const [newHoldingQuantity, setNewHoldingQuantity] = useState('');
-  const [newHoldingDescription, setNewHoldingDescription] = useState('');
   const [newHoldingInitialBalance, setNewHoldingInitialBalance] = useState('');
 
   // Form State: Transactions / Transfers
@@ -379,10 +377,8 @@ export default function LedgerFlowVisualizer({
   };
 
   const handleOpenAddHoldingModal = () => {
-    setNewHoldingName('');
     setNewHoldingInstrumentId(instruments.length > 0 ? instruments[0].id : '');
     setNewHoldingQuantity('');
-    setNewHoldingDescription('');
     setNewHoldingInitialBalance('0');
     setFormError('');
     setIsHoldingModalOpen(true);
@@ -393,10 +389,6 @@ export default function LedgerFlowVisualizer({
     e.preventDefault();
     if (!newHoldingInstrumentId) {
       setFormError('An underlying asset/fund is required.');
-      return;
-    }
-    if (!newHoldingName.trim()) {
-      setFormError('Name is required.');
       return;
     }
 
@@ -414,8 +406,6 @@ export default function LedgerFlowVisualizer({
 
     onAddHolding({
       instrumentId: newHoldingInstrumentId,
-      name: newHoldingName,
-      description: newHoldingDescription,
       quantity: parsedQty,
       initialBalance: initialVal,
     });
@@ -804,38 +794,56 @@ export default function LedgerFlowVisualizer({
 
               <form onSubmit={handleHoldingFormSubmit} className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
-                    Holding Vault Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. S&P Index Fund, Offshore Savings"
-                    value={newHoldingName}
-                    onChange={(e) => setNewHoldingName(e.target.value)}
-                    className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
-                    Underlying Asset / Fund
-                  </label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
+                      Underlying Asset / Fund <span className="text-rose-700">*</span>
+                    </label>
+                    {onAddInstrument && (
+                      <button
+                        type="button"
+                        onClick={onAddInstrument}
+                        className="text-[10px] font-bold text-[#1A1A1A] hover:text-[#8C8C85] transition-colors uppercase tracking-wider flex items-center cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3 mr-1" />
+                        Create New
+                      </button>
+                    )}
+                  </div>
                   {instruments.length === 0 ? (
-                    <div className="p-2.5 bg-[#FFF0F0] text-rose-850 text-xs font-serif italic border border-[#FCD2D2]">
-                      No Assets or Funds available. Create one first from the dashboard.
+                    <div className="p-2.5 bg-[#FFF0F0] text-rose-850 text-xs font-serif italic border border-[#FCD2D2] flex items-center justify-between">
+                      <span>No Assets or Funds available.</span>
+                      {onAddInstrument && (
+                        <button
+                          type="button"
+                          onClick={onAddInstrument}
+                          className="text-[10px] font-bold text-rose-800 hover:text-rose-950 underline uppercase tracking-wider cursor-pointer"
+                        >
+                          + Create One
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <select
                       value={newHoldingInstrumentId}
-                      onChange={(e) => setNewHoldingInstrumentId(e.target.value)}
-                      className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
+                      onChange={(e) => {
+                        if (e.target.value === 'CREATE_NEW') {
+                          if (onAddInstrument) onAddInstrument();
+                        } else {
+                          setNewHoldingInstrumentId(e.target.value);
+                        }
+                      }}
+                      className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A] cursor-pointer"
                     >
                       {instruments.map((inst) => (
                         <option key={inst.id} value={inst.id}>
                           {inst.name} {inst.ticker ? `(${inst.ticker})` : ''}
                         </option>
                       ))}
+                      {onAddInstrument && (
+                        <option value="CREATE_NEW" className="font-bold text-[#1a1a1a]">
+                          + Create New Asset / Fund...
+                        </option>
+                      )}
                     </select>
                   )}
                 </div>
@@ -865,22 +873,6 @@ export default function LedgerFlowVisualizer({
                     placeholder="0"
                     value={newHoldingInitialBalance}
                     onChange={(e) => setNewHoldingInitialBalance(e.target.value)}
-                    className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
-                  />
-                </div>
-
-
-
-                <div>
-                  <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
-                    Vault Description / Purpose
-                  </label>
-                  <textarea
-                    rows={2}
-                    maxLength={120}
-                    placeholder="e.g. For index compound returns..."
-                    value={newHoldingDescription}
-                    onChange={(e) => setNewHoldingDescription(e.target.value)}
                     className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
                   />
                 </div>
