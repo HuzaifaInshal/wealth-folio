@@ -179,40 +179,44 @@ export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSub
           )}
 
           {/* Form Actions Footer buttons */}
-          <div className="flex space-x-3 pt-4 border-t border-[#DCDAD2] mt-4">
-            {holdingToEdit && onDelete && (
+          <div className="flex items-center justify-between pt-4 border-t border-[#DCDAD2] mt-4">
+            {holdingToEdit && onDelete ? (
               <button
                 type="button"
                 onClick={() => onDelete(holdingToEdit)}
-                className="flex-1 px-4 py-2.5 border border-rose-350 hover:border-rose-700 text-rose-700 hover:bg-rose-50/50 rounded-none text-[10px] uppercase tracking-widest font-bold transition-all flex items-center justify-center cursor-pointer"
+                className="px-4 py-2.5 border border-rose-200 hover:border-rose-600 text-rose-600 hover:bg-rose-50/50 rounded-none text-[10px] uppercase tracking-widest font-bold transition-all flex items-center justify-center cursor-pointer"
               >
-                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                <Trash2 className="w-3.5 h-3.5 mr-2 text-rose-600" />
                 Delete Holding
               </button>
+            ) : (
+              <div />
             )}
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 border border-[#DCDAD2] text-[#1A1A1A] rounded-none text-[10px] uppercase tracking-widest font-bold hover:bg-[#F9F8F6] transition-all cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2.5 bg-[#1A1A1A] text-white rounded-none text-[10px] uppercase tracking-widest font-bold hover:bg-[#3E3E39] shadow-xs transition-all flex items-center justify-center cursor-pointer"
-            >
-              {holdingToEdit ? (
-                <>
-                  <Save className="w-3.5 h-3.5 mr-1.5" />
-                  Save Changes
-                </>
-              ) : (
-                <>
-                  <Plus className="w-3.5 h-3.5 mr-1.5" />
-                  Create Holding
-                </>
-              )}
-            </button>
+            <div className="flex space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 border border-[#DCDAD2] text-[#1A1A1A] rounded-none text-[10px] uppercase tracking-widest font-bold hover:bg-[#F9F8F6] transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2.5 bg-[#1A1A1A] text-white rounded-none text-[10px] uppercase tracking-widest font-bold hover:bg-[#3E3E39] shadow-xs transition-all flex items-center justify-center cursor-pointer"
+              >
+                {holdingToEdit ? (
+                  <>
+                    <Save className="w-3.5 h-3.5 mr-1.5" />
+                    Save Changes
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-3.5 h-3.5 mr-1.5" />
+                    Create Holding
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
         </form>
