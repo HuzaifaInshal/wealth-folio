@@ -150,8 +150,8 @@ const HoldingNodeComponent = ({ data }: { data: any }) => {
   
   return (
     <div className="bg-white border border-[#1A1A1A] p-4 min-w-[240px] text-left shadow-md transition-all relative select-none">
-      {/* Target handle - left */}
-      <Handle type="target" position={Position.Left} className="!w-2.5 !h-2.5 !bg-[#1A1A1A]" />
+      {/* Target handle - top */}
+      <Handle type="target" position={Position.Top} className="!w-2.5 !h-2.5 !bg-[#1A1A1A]" />
       
       {/* Header */}
       <div className="flex items-center space-x-2 border-b border-[#DCDAD2] pb-2 mb-2.5">
@@ -219,8 +219,8 @@ const HoldingNodeComponent = ({ data }: { data: any }) => {
         </button>
       </div>
 
-      {/* Source handle - right */}
-      <Handle type="source" position={Position.Right} className="!w-2.5 !h-2.5 !bg-[#1A1A1A]" />
+      {/* Source handle - bottom */}
+      <Handle type="source" position={Position.Bottom} className="!w-2.5 !h-2.5 !bg-[#1A1A1A]" />
     </div>
   );
 };
@@ -240,7 +240,7 @@ const TransactionNodeComponent = ({ data }: { data: any }) => {
 
   return (
     <div className="bg-[#F9F8F6] border border-[#DCDAD2] hover:border-[#1A1A1A] p-3.5 min-w-[240px] text-left transition-all relative select-none">
-      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-[#8C8C85]" />
+      <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-[#8C8C85]" />
 
       <div className="flex items-center justify-between border-b border-[#DCDAD2] pb-1.5 mb-2">
         <span className={`inline-flex items-center space-x-1 px-1.5 py-0.5 border text-[9px] font-bold uppercase tracking-widest ${badge.bg} ${badge.text}`}>
@@ -286,7 +286,7 @@ const TransactionNodeComponent = ({ data }: { data: any }) => {
         )}
       </div>
 
-      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-[#8C8C85]" />
+      <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-[#8C8C85]" />
     </div>
   );
 };
@@ -495,15 +495,15 @@ export default function LedgerFlowVisualizer({
       return matchesCategory && matchesSearch;
     });
 
-    // 1. Render Row of Holding Lanes
+    // 1. Render Columns of Holdings (Top to Bottom flow)
     filteredHoldings.forEach((holding, holdingIndex) => {
-      const yOffset = holdingIndex * 260 + 100;
+      const xOffset = holdingIndex * 320 + 50;
 
       // Holding Node containing the dynamic handlers inside data
       listNodes.push({
         id: holding.id,
         type: 'holdingNode',
-        position: { x: 50, y: yOffset },
+        position: { x: xOffset, y: 50 },
         data: { 
           holding,
           onAddTx: (type: TransactionType) => handleOpenAddTxModal(holding, type),
@@ -525,10 +525,10 @@ export default function LedgerFlowVisualizer({
         (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
       );
 
-      // Map Transactions horizontally as children in timeline
+      // Map Transactions vertically as children in timeline below the holding root
       sortedTxs.forEach((tx, txIndex) => {
-        const txNodeId = `node-${tx.id}-${holding.id}`; // custom node id per lane instance
-        const xOffset = 390 + txIndex * 290;
+        const txNodeId = `node-${tx.id}-${holding.id}`; // custom node id per column instance
+        const yOffset = 280 + txIndex * 240;
 
         listNodes.push({
           id: txNodeId,
