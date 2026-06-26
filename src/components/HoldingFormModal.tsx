@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Holding, HoldingCategory } from '../types';
 import { CATEGORY_DETAILS } from '../data';
-import { X, Save, Plus } from 'lucide-react';
+import { X, Save, Plus, Trash2 } from 'lucide-react';
 
 interface HoldingFormModalProps {
   isOpen: boolean;
@@ -18,9 +18,10 @@ interface HoldingFormModalProps {
     description: string;
     initialBalance: number; // Only for new ones
   }) => void;
+  onDelete?: (holding: Holding) => void;
 }
 
-export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSubmit }: HoldingFormModalProps) {
+export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSubmit, onDelete }: HoldingFormModalProps) {
   const [name, setName] = useState('');
   const [category, setCategory] = useState<HoldingCategory>('cash');
   const [description, setDescription] = useState('');
@@ -179,6 +180,16 @@ export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSub
 
           {/* Form Actions Footer buttons */}
           <div className="flex space-x-3 pt-4 border-t border-[#DCDAD2] mt-4">
+            {holdingToEdit && onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(holdingToEdit)}
+                className="flex-1 px-4 py-2.5 border border-rose-350 hover:border-rose-700 text-rose-700 hover:bg-rose-50/50 rounded-none text-[10px] uppercase tracking-widest font-bold transition-all flex items-center justify-center cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                Delete Holding
+              </button>
+            )}
             <button
               type="button"
               onClick={onClose}

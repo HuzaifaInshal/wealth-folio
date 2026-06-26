@@ -525,7 +525,8 @@ export default function App() {
   const filteredHoldings = activePoolHoldings.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    const isActive = p.currentValuation > 0;
+    return matchesSearch && isActive;
   });
 
   // Render landing page
@@ -1198,7 +1199,6 @@ export default function App() {
                         onTransfer={(h) => triggerTxForm('transfer', h)}
                         onAdjustValuation={(h) => triggerTxForm('valuation_adjustment', h)}
                         onEdit={(h) => triggerHoldingForm(h)}
-                        onDelete={(h) => setHoldingToDelete(h)}
                       />
                     </motion.div>
                   ))}
@@ -1244,6 +1244,10 @@ export default function App() {
         holdingToEdit={holdingToEdit}
         onClose={() => { setIsHoldingModalOpen(false); setHoldingToEdit(null); }}
         onSubmit={handleHoldingSubmit}
+        onDelete={(h) => {
+          setIsHoldingModalOpen(false);
+          setHoldingToDelete(h);
+        }}
       />
 
       {/* 2. Operational Transactions tabbed sheets */}

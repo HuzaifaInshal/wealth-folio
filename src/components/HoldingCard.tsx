@@ -20,7 +20,6 @@ import {
   Plus,
   Minus,
   Edit2,
-  Trash2,
   Scale
 } from 'lucide-react';
 
@@ -31,7 +30,6 @@ interface HoldingCardProps {
   onTransfer: (holding: Holding) => void;
   onAdjustValuation: (holding: Holding) => void;
   onEdit: (holding: Holding) => void;
-  onDelete: (holding: Holding) => void;
 }
 
 export const getCategoryIcon = (category: string) => {
@@ -62,7 +60,6 @@ export default function HoldingCard({
   onTransfer,
   onAdjustValuation,
   onEdit,
-  onDelete,
 }: HoldingCardProps) {
   const catDetails = CATEGORY_DETAILS[holding.category];
   
@@ -114,13 +111,6 @@ export default function HoldingCard({
               title="Edit Holding Info"
             >
               <Edit2 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onDelete(holding)}
-              className="p-1.5 text-[#8C8C85] hover:text-rose-750 hover:bg-rose-50/50 rounded-none transition-colors border border-transparent hover:border-rose-250"
-              title="Delete Holding"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
