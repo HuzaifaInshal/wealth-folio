@@ -4,12 +4,13 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Holding, TransactionType } from '../types';
+import { Holding, TransactionType, Instrument } from '../types';
 import { X, ArrowRight, DollarSign, ArrowRightLeft, Percent, Scale, TrendingUp } from 'lucide-react';
 
 interface TransactionModalProps {
   isOpen: boolean;
   holdings: Holding[];
+  instruments: Instrument[];
   initialHolding: Holding | null;
   initialTab: 'deposit' | 'withdrawal' | 'transfer' | 'valuation_adjustment';
   onClose: () => void;
@@ -27,6 +28,7 @@ interface TransactionModalProps {
 export default function TransactionModal({
   isOpen,
   holdings,
+  instruments,
   initialHolding,
   initialTab,
   onClose,
@@ -278,11 +280,14 @@ export default function TransactionModal({
                 onChange={(e) => handleHoldingChange(e.target.value)}
                 className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm font-semibold text-[#1A1A1A]"
               >
-                {holdings.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {h.name} ({formatCurrency(h.currentValuation)} Net)
-                  </option>
-                ))}
+                {holdings.map((h) => {
+                  const inst = instruments.find(i => i.id === h.instrumentId);
+                  return (
+                    <option key={h.id} value={h.id}>
+                      {inst ? inst.name : 'Unknown Asset'} ({formatCurrency(h.currentValuation)} Net)
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}
@@ -299,11 +304,14 @@ export default function TransactionModal({
                   onChange={(e) => handleSourceHoldingChange(e.target.value)}
                   className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm font-semibold text-[#1A1A1A]"
                 >
-                  {holdings.map((h) => (
-                    <option key={h.id} value={h.id}>
-                      {h.name} ({formatCurrency(h.currentValuation)})
-                    </option>
-                  ))}
+                  {holdings.map((h) => {
+                    const inst = instruments.find(i => i.id === h.instrumentId);
+                    return (
+                      <option key={h.id} value={h.id}>
+                        {inst ? inst.name : 'Unknown Asset'} ({formatCurrency(h.currentValuation)})
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -318,11 +326,14 @@ export default function TransactionModal({
                 >
                   {holdings
                     .filter((h) => h.id !== sourceHoldingId)
-                    .map((h) => (
-                      <option key={h.id} value={h.id}>
-                        {h.name} ({formatCurrency(h.currentValuation)})
-                      </option>
-                    ))}
+                    .map((h) => {
+                      const inst = instruments.find(i => i.id === h.instrumentId);
+                      return (
+                        <option key={h.id} value={h.id}>
+                          {inst ? inst.name : 'Unknown Asset'} ({formatCurrency(h.currentValuation)})
+                        </option>
+                      );
+                    })}
                 </select>
               </div>
             </div>

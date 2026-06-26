@@ -408,8 +408,6 @@ export default function App() {
   // Create or Update Holding details
   const handleHoldingSubmit = (poolData: {
     instrumentId: string;
-    name: string;
-    description: string;
     quantity?: number;
     initialBalance: number;
   }) => {
@@ -422,8 +420,6 @@ export default function App() {
           p.id === holdingToEdit.id
             ? {
                 ...p,
-                name: poolData.name,
-                description: poolData.description,
                 quantity: poolData.quantity,
                 updatedAt: timestamp,
               }
@@ -437,8 +433,6 @@ export default function App() {
         id: newPoolId,
         poolId: activePoolId,  // Auto-link with active group
         instrumentId: poolData.instrumentId,
-        name: poolData.name,
-        description: poolData.description,
         quantity: poolData.quantity,
         investedAmount: poolData.initialBalance,
         currentValuation: poolData.initialBalance,
@@ -450,12 +444,14 @@ export default function App() {
 
       // If initial balance is injected, log transaction automatically
       if (poolData.initialBalance > 0) {
+        const inst = instruments.find(i => i.id === poolData.instrumentId);
+        const instName = inst ? inst.name : 'Asset';
         const newTx: Transaction = {
           id: `tx-${Date.now()}`,
           holdingId: newPoolId,
           type: 'creation',
           amount: poolData.initialBalance,
-          note: `Initial capital allocation for ${poolData.name}`,
+          note: `Initial capital allocation for ${instName}`,
           timestamp,
         };
         setTransactions((prev) => [newTx, ...prev]);
@@ -585,8 +581,12 @@ export default function App() {
 
   // --- Filter Pool Results ---
   const filteredHoldings = activePoolHoldings.filter((p) => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         p.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const inst = instruments.find((i) => i.id === p.instrumentId);
+    const matchesSearch = inst ? (
+      inst.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inst.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inst.ticker.toLowerCase().includes(searchQuery.toLowerCase())
+    ) : false;
     const isActive = p.currentValuation > 0;
     return matchesSearch && isActive;
   });
@@ -1421,6 +1421,7 @@ export default function App() {
               <TransactionHistory
                 transactions={activePoolTransactions}
                 holdings={activePoolHoldings}
+                instruments={activePoolInstruments}
               />
             </section>
 
@@ -1469,6 +1470,7 @@ export default function App() {
       <TransactionModal
         isOpen={isTxModalOpen}
         holdings={activePoolHoldings}
+        instruments={activePoolInstruments}
         initialHolding={txSelectedHolding}
         initialTab={txModalTab}
         onClose={() => { setIsTxModalOpen(false); setTxSelectedHolding(null); }}

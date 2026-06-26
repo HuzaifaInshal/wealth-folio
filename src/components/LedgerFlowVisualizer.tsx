@@ -166,11 +166,13 @@ const HoldingNodeComponent = ({ data }: { data: any }) => {
         </span>
         <div className="min-w-0 flex-1">
           <span className="font-serif font-bold text-xs text-[#1A1A1A] block truncate pr-2">
-            {holding.name}
+            {instrument?.name || 'Unknown Asset'}
           </span>
-          <span className="text-[9px] text-[#8C8C85] block truncate font-serif italic mt-0.5">
-            Asset: {instrument?.name || 'Unknown'} {instrument?.ticker ? `(${instrument.ticker})` : ''}
-          </span>
+          {instrument?.ticker && (
+            <span className="text-[9px] text-[#8C8C85] block truncate font-serif italic mt-0.5">
+              Ticker: {instrument.ticker}
+            </span>
+          )}
           {holding.quantity !== undefined && holding.quantity > 0 && (
             <span className="text-[9px] text-[#6B6B66] block font-mono font-semibold mt-0.5">
               Qty: {holding.quantity}
@@ -511,15 +513,20 @@ export default function LedgerFlowVisualizer({
 
     // Filter holdings dynamically
     const filteredHoldings = holdings.filter((p) => {
-      const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
-      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            p.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const inst = instruments.find(i => i.id === p.instrumentId);
+      const matchesCategory = categoryFilter === 'all' || (inst ? inst.category === categoryFilter : false);
+      const matchesSearch = inst ? (
+        inst.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        inst.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        inst.ticker.toLowerCase().includes(searchQuery.toLowerCase())
+      ) : false;
       return matchesCategory && matchesSearch;
     });
 
     // 1. Render Columns of Holdings (Top to Bottom flow)
     filteredHoldings.forEach((holding, holdingIndex) => {
       const xOffset = holdingIndex * 320 + 50;
+      const instrument = instruments.find(i => i.id === holding.instrumentId);
 
       // Holding Node containing the dynamic handlers inside data
       listNodes.push({
@@ -528,10 +535,11 @@ export default function LedgerFlowVisualizer({
         position: { x: xOffset, y: 50 },
         data: { 
           holding,
-          instrument: instruments.find(i => i.id === holding.instrumentId),
+          instrument,
           onAddTx: (type: TransactionType) => handleOpenAddTxModal(holding, type),
           onDelete: () => {
-            if (window.confirm(`Are you sure you want to permanently delete holding "${holding.name}"? This deletes its history.`)) {
+            const nameToConfirm = instrument ? instrument.name : 'this holding';
+            if (window.confirm(`Are you sure you want to permanently delete holding for "${nameToConfirm}"? This deletes its history.`)) {
               onDeleteHolding(holding.id);
             }
           }
@@ -941,11 +949,14 @@ export default function LedgerFlowVisualizer({
                       }}
                       className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm font-semibold text-[#1A1A1A]"
                     >
-                      {holdings.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({formatCurrency(p.currentValuation)})
-                        </option>
-                      ))}
+                      {holdings.map((p) => {
+                        const inst = instruments.find(i => i.id === p.instrumentId);
+                        return (
+                          <option key={p.id} value={p.id}>
+                            {inst ? inst.name : 'Unknown Asset'} ({formatCurrency(p.currentValuation)})
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                 ) : (
@@ -960,11 +971,14 @@ export default function LedgerFlowVisualizer({
                         onChange={(e) => setSourceHoldingId(e.target.value)}
                         className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
                       >
-                        {holdings.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name} ({formatCurrency(p.currentValuation)})
-                          </option>
-                        ))}
+                        {holdings.map((p) => {
+                          const inst = instruments.find(i => i.id === p.instrumentId);
+                          return (
+                            <option key={p.id} value={p.id}>
+                              {inst ? inst.name : 'Unknown Asset'} ({formatCurrency(p.currentValuation)})
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
 
@@ -980,11 +994,14 @@ export default function LedgerFlowVisualizer({
                         <option value="">-- Select Destination --</option>
                         {holdings
                           .filter((p) => p.id !== (sourceHoldingId || selectedHolding?.id))
-                          .map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name}
-                            </option>
-                          ))}
+                          .map((p) => {
+                            const inst = instruments.find(i => i.id === p.instrumentId);
+                            return (
+                              <option key={p.id} value={p.id}>
+                                {inst ? inst.name : 'Unknown Asset'}
+                              </option>
+                            );
+                          })}
                       </select>
                     </div>
                   </div>

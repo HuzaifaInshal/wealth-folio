@@ -15,8 +15,6 @@ interface HoldingFormModalProps {
   onClose: () => void;
   onSubmit: (holdingData: {
     instrumentId: string;
-    name: string;
-    description: string;
     quantity?: number;
     initialBalance: number; // Only for new ones
   }) => void;
@@ -33,8 +31,6 @@ export default function HoldingFormModal({
   onDelete,
 }: HoldingFormModalProps) {
   const [instrumentId, setInstrumentId] = useState('');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState('');
   const [initialBalance, setInitialBalance] = useState<string>('0');
   const [error, setError] = useState('');
@@ -43,15 +39,11 @@ export default function HoldingFormModal({
   useEffect(() => {
     if (holdingToEdit) {
       setInstrumentId(holdingToEdit.instrumentId);
-      setName(holdingToEdit.name);
-      setDescription(holdingToEdit.description);
       setQuantity(holdingToEdit.quantity !== undefined ? holdingToEdit.quantity.toString() : '');
       setInitialBalance('0'); // Inactive during edits
     } else {
       // Clear values for new creation
       setInstrumentId(initialInstrumentId || (instruments.length > 0 ? instruments[0].id : ''));
-      setName('');
-      setDescription('');
       setQuantity('');
       setInitialBalance('0');
     }
@@ -69,11 +61,6 @@ export default function HoldingFormModal({
       return;
     }
 
-    if (!name.trim()) {
-      setError('Please provide a descriptive Investment Name.');
-      return;
-    }
-
     const parsedInitial = parseFloat(initialBalance);
     if (isNaN(parsedInitial) || parsedInitial < 0) {
       setError('Initial capital base must be a positive amount.');
@@ -88,8 +75,6 @@ export default function HoldingFormModal({
 
     onSubmit({
       instrumentId,
-      name: name.trim(),
-      description: description.trim(),
       quantity: parsedQuantity,
       initialBalance: holdingToEdit ? 0 : parsedInitial,
     });
@@ -154,22 +139,6 @@ export default function HoldingFormModal({
             )}
           </div>
 
-          {/* Holding Name */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
-              Investment Name <span className="text-rose-700">*</span>
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Fidelity Brokerage, Long-Term Savings, Crypto Hardware Wallet"
-              className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A]"
-              maxLength={40}
-              required
-            />
-          </div>
-
           {/* Quantity / Units */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
@@ -183,21 +152,6 @@ export default function HoldingFormModal({
               className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] font-serif"
               min="0"
               step="any"
-            />
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
-              Description / Notes
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="State the objective, institution, fees, or account details"
-              rows={3}
-              className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] resize-none leading-relaxed"
-              maxLength={200}
             />
           </div>
 

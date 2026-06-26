@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { Transaction, Holding, TransactionType } from '../types';
+import { Transaction, Holding, TransactionType, Instrument } from '../types';
 import { CATEGORY_DETAILS } from '../data';
 import { getCategoryIcon } from './HoldingCard';
 import {
@@ -22,17 +22,20 @@ import {
 interface TransactionHistoryProps {
   transactions: Transaction[];
   holdings: Holding[];
+  instruments: Instrument[];
   onClearAll?: () => void;
 }
 
-export default function TransactionHistory({ transactions, holdings, onClearAll }: TransactionHistoryProps) {
+export default function TransactionHistory({ transactions, holdings, instruments, onClearAll }: TransactionHistoryProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [holdingFilter, setHoldingFilter] = useState<string>('all');
 
   const getHoldingName = (id: string) => {
     const h = holdings.find((holding) => holding.id === id);
-    return h ? h.name : 'Unknown Holding';
+    if (!h) return 'Unknown Holding';
+    const inst = instruments.find((instrument) => instrument.id === h.instrumentId);
+    return inst ? inst.name : 'Unknown Asset';
   };
 
   const getTransactionBadge = (type: TransactionType) => {
@@ -186,11 +189,14 @@ export default function TransactionHistory({ transactions, holdings, onClearAll 
               className="w-full px-3 py-2 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold text-[#1A1A1A] focus:outline-hidden focus:bg-white cursor-pointer"
             >
               <option value="all">All Holdings</option>
-              {holdings.map((h) => (
-                <option key={h.id} value={h.id}>
-                  {h.name}
-                </option>
-              ))}
+              {holdings.map((h) => {
+                const inst = instruments.find(i => i.id === h.instrumentId);
+                return (
+                  <option key={h.id} value={h.id}>
+                    {inst ? inst.name : 'Unknown Asset'}
+                  </option>
+                );
+              })}
             </select>
           </div>
         </div>

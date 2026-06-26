@@ -98,15 +98,17 @@ export default function HoldingCard({
         <div className="flex items-start justify-between">
           <div className="space-y-1 min-w-0">
             <h4 className="text-xl font-serif text-[#1A1A1A] tracking-tight truncate hover:text-[#8C8C85] transition-colors">
-              {holding.name}
+              {instrument.name}
             </h4>
             <div className="flex flex-wrap items-center gap-1.5 mt-1">
-              <span className="inline-flex items-center text-[10px] text-[#8C8C85] font-serif italic">
-                Asset: {instrument.name} {instrument.ticker ? `(${instrument.ticker})` : ''}
-              </span>
+              {instrument.ticker && (
+                <span className="inline-flex items-center text-[10px] text-[#8C8C85] font-serif italic">
+                  Ticker: {instrument.ticker}
+                </span>
+              )}
               {holding.quantity !== undefined && holding.quantity > 0 && (
                 <>
-                  <span className="text-[#DCDAD2] text-[10px]">•</span>
+                  {instrument.ticker && <span className="text-[#DCDAD2] text-[10px]">•</span>}
                   <span className="text-[10px] text-[#6B6B66] font-mono font-semibold">
                     Qty: {holding.quantity}
                   </span>
@@ -127,7 +129,7 @@ export default function HoldingCard({
         </div>
 
         <p className="text-xs text-[#6B6B66] line-clamp-2 mt-2 leading-relaxed min-h-[32px] font-serif italic text-pretty">
-          {holding.description || 'No description provided.'}
+          {instrument.description || 'No description provided.'}
         </p>
 
         {/* Current status display values */}

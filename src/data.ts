@@ -135,8 +135,6 @@ export const INITIAL_HOLDINGS: Holding[] = [
     id: 'holding-1',
     poolId: 'pool-1',
     instrumentId: 'instrument-1',
-    name: 'Emergency Fund',
-    description: 'Personal Emergency Fund reserve at Marcus.',
     quantity: 1,
     investedAmount: 10000,
     currentValuation: 10180, // Accrued interest
@@ -147,8 +145,6 @@ export const INITIAL_HOLDINGS: Holding[] = [
     id: 'holding-2',
     poolId: 'pool-1',
     instrumentId: 'instrument-2',
-    name: 'Tech Growth S&P Basket',
-    description: 'Vanguard VUG Growth ETF shares.',
     quantity: 75,
     investedAmount: 18000,
     currentValuation: 21450, // Capital appreciation
@@ -159,8 +155,6 @@ export const INITIAL_HOLDINGS: Holding[] = [
     id: 'holding-3',
     poolId: 'pool-2',
     instrumentId: 'instrument-3',
-    name: 'Long-term Crypto Vault',
-    description: 'Bitcoin held on Ledger Nano X.',
     quantity: 0.15,
     investedAmount: 6000,
     currentValuation: 8650, // High ROI
@@ -171,8 +165,6 @@ export const INITIAL_HOLDINGS: Holding[] = [
     id: 'holding-4',
     poolId: 'pool-2',
     instrumentId: 'instrument-4',
-    name: 'Roth IRA (Index Funds)',
-    description: 'Roth IRA Account at Vanguard.',
     quantity: 500,
     investedAmount: 25000,
     currentValuation: 26800,

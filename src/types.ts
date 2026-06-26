@@ -37,8 +37,6 @@ export interface Holding {
   id: string;
   poolId: string;             // Segregation parent pool ID
   instrumentId: string;       // Link to the available Instrument/Fund
-  name: string;               // Custom name for this investment
-  description: string;
   quantity?: number;          // Optional quantity/units held
   investedAmount: number;     // The net cash capital injected (Deposits - Withdrawals)
   currentValuation: number;   // The latest net market value (can be direct sum or user-updated value)

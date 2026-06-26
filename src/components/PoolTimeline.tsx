@@ -38,7 +38,7 @@ export default function PoolTimeline({ pool, holdings, instruments, transactions
     const h = holdings.find((holding) => holding.id === holdingId);
     if (!h) return null;
     const inst = instruments.find((instrument) => instrument.id === h.instrumentId);
-    return { name: h.name, category: inst ? inst.category : 'other' };
+    return { name: inst ? inst.name : 'Unknown Asset', category: inst ? inst.category : 'other' };
   };
 
   const getTransactionBadge = (type: TransactionType) => {
@@ -208,11 +208,14 @@ export default function PoolTimeline({ pool, holdings, instruments, transactions
                 className="w-full px-4 py-3 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold text-[#1A1A1A] focus:outline-hidden focus:bg-white cursor-pointer"
               >
                 <option value="all">All Holdings in Pool</option>
-                {holdings.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {h.name}
-                  </option>
-                ))}
+                {holdings.map((h) => {
+                  const inst = instruments.find(i => i.id === h.instrumentId);
+                  return (
+                    <option key={h.id} value={h.id}>
+                      {inst ? inst.name : 'Unknown Asset'}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>
