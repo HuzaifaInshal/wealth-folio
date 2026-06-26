@@ -19,6 +19,7 @@ interface HoldingFormModalProps {
     initialBalance: number; // Only for new ones
   }) => void;
   onDelete?: (holding: Holding) => void;
+  onAddInstrument?: () => void;
 }
 
 export default function HoldingFormModal({
@@ -29,6 +30,7 @@ export default function HoldingFormModal({
   onClose,
   onSubmit,
   onDelete,
+  onAddInstrument,
 }: HoldingFormModalProps) {
   const [instrumentId, setInstrumentId] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -116,18 +118,45 @@ export default function HoldingFormModal({
 
           {/* Instrument SELECT */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
-              Underlying Asset / Fund <span className="text-rose-700">*</span>
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
+                Underlying Asset / Fund <span className="text-rose-700">*</span>
+              </label>
+              {!holdingToEdit && onAddInstrument && (
+                <button
+                  type="button"
+                  onClick={onAddInstrument}
+                  className="text-[10px] font-bold text-[#1A1A1A] hover:text-[#8C8C85] transition-colors uppercase tracking-wider flex items-center cursor-pointer"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Create New Asset/Fund
+                </button>
+              )}
+            </div>
             {instruments.length === 0 ? (
-              <div className="p-3.5 bg-[#FFF0F0] text-rose-800 text-xs font-serif italic border border-[#FCD2D2] rounded-none">
-                No Assets or Funds available in this pool. Create an Asset / Fund first.
+              <div className="p-3.5 bg-[#FFF0F0] text-rose-800 text-xs font-serif italic border border-[#FCD2D2] rounded-none flex items-center justify-between">
+                <span>No Assets or Funds available in this pool.</span>
+                {onAddInstrument && (
+                  <button
+                    type="button"
+                    onClick={onAddInstrument}
+                    className="text-[10px] font-bold text-rose-800 hover:text-rose-950 underline uppercase tracking-wider cursor-pointer"
+                  >
+                    + Create One
+                  </button>
+                )}
               </div>
             ) : (
               <select
                 value={instrumentId}
-                onChange={(e) => setInstrumentId(e.target.value)}
-                className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] font-semibold"
+                onChange={(e) => {
+                  if (e.target.value === 'CREATE_NEW') {
+                    if (onAddInstrument) onAddInstrument();
+                  } else {
+                    setInstrumentId(e.target.value);
+                  }
+                }}
+                className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] font-semibold cursor-pointer"
                 disabled={!!holdingToEdit}
               >
                 {instruments.map((inst) => (
@@ -135,6 +164,11 @@ export default function HoldingFormModal({
                     {inst.name} {inst.ticker ? `(${inst.ticker})` : ''}
                   </option>
                 ))}
+                {!holdingToEdit && onAddInstrument && (
+                  <option value="CREATE_NEW" className="font-bold text-[#1a1a1a]">
+                    + Create New Asset / Fund...
+                  </option>
+                )}
               </select>
             )}
           </div>

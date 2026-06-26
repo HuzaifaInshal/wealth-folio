@@ -387,6 +387,7 @@ export default function App() {
         updatedAt: timestamp,
       };
       setInstruments((prev) => [...prev, newInst]);
+      setPreSelectedInstrumentId(newInstId);
     }
     setInstrumentToEdit(null);
   };
@@ -1386,19 +1387,6 @@ export default function App() {
                                 {inst.description || 'No description provided.'}
                               </p>
                             </div>
-                            
-                            <div className="mt-5 pt-4 border-t border-[#F1EFEA] flex space-x-2">
-                              <button
-                                onClick={() => {
-                                  setPreSelectedInstrumentId(inst.id);
-                                  setHoldingToEdit(null);
-                                  setIsHoldingModalOpen(true);
-                                }}
-                                className="flex-1 py-2.5 bg-[#1A1A1A] hover:bg-[#3E3E39] text-[#F9F8F6] text-[10px] uppercase font-bold tracking-widest text-center cursor-pointer transition-colors"
-                              >
-                                + Invest / Buy
-                              </button>
-                            </div>
                           </motion.div>
                         );
                       })}
@@ -1455,6 +1443,10 @@ export default function App() {
         onDelete={(h) => {
           setIsHoldingModalOpen(false);
           setHoldingToDelete(h);
+        }}
+        onAddInstrument={() => {
+          setInstrumentToEdit(null);
+          setIsInstrumentModalOpen(true);
         }}
       />
 
