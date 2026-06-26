@@ -95,11 +95,7 @@ export default function HoldingCard({
       <div className="p-6 flex-1">
         <div className="flex items-start justify-between">
           <div className="space-y-1 min-w-0">
-            <span className="inline-flex items-center text-[9px] font-bold tracking-widest uppercase text-[#8C8C85] border border-[#DCDAD2] px-2 py-0.5 rounded-none bg-[#F9F8F6]">
-              <span className="mr-1.5">{getCategoryIcon(holding.category)}</span>
-              {catDetails.label}
-            </span>
-            <h4 className="text-xl font-serif text-[#1A1A1A] tracking-tight truncate mt-3 hover:text-[#8C8C85] transition-colors">
+            <h4 className="text-xl font-serif text-[#1A1A1A] tracking-tight truncate hover:text-[#8C8C85] transition-colors">
               {holding.name}
             </h4>
           </div>
