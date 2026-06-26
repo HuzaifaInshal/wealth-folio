@@ -616,26 +616,35 @@ export default function App() {
   // Render standalone flow-map subpage if we are on the flow route
   if (currentRoute.startsWith('#/flow')) {
     return (
-      <LedgerFlowVisualizer
-        holdings={activePoolHoldings}
-        instruments={instruments}
-        transactions={activePoolTransactions}
-        onAddHolding={(holdingData) => {
-          handleHoldingSubmit(holdingData);
-        }}
-        onAddTransaction={handleTransactionSubmit}
-        onDeleteHolding={(holdingId) => {
-          setHoldings((prev) => prev.filter((p) => p.id !== holdingId));
-          setTransactions((prev) => prev.filter(t => t.holdingId !== holdingId && t.sourceHoldingId !== holdingId && t.destinationHoldingId !== holdingId));
-        }}
-        onClose={() => {
-          window.location.hash = `#/pool/${activePoolId}`;
-        }}
-        onAddInstrument={() => {
-          setInstrumentToEdit(null);
-          setIsInstrumentModalOpen(true);
-        }}
-      />
+      <>
+        <LedgerFlowVisualizer
+          holdings={activePoolHoldings}
+          instruments={instruments}
+          transactions={activePoolTransactions}
+          onAddHolding={(holdingData) => {
+            handleHoldingSubmit(holdingData);
+          }}
+          onAddTransaction={handleTransactionSubmit}
+          onDeleteHolding={(holdingId) => {
+            setHoldings((prev) => prev.filter((p) => p.id !== holdingId));
+            setTransactions((prev) => prev.filter(t => t.holdingId !== holdingId && t.sourceHoldingId !== holdingId && t.destinationHoldingId !== holdingId));
+          }}
+          onClose={() => {
+            window.location.hash = `#/pool/${activePoolId}`;
+          }}
+          onAddInstrument={() => {
+            setInstrumentToEdit(null);
+            setIsInstrumentModalOpen(true);
+          }}
+        />
+        <InstrumentFormModal
+          isOpen={isInstrumentModalOpen}
+          instrumentToEdit={instrumentToEdit}
+          onClose={() => { setIsInstrumentModalOpen(false); setInstrumentToEdit(null); }}
+          onSubmit={handleInstrumentSubmit}
+          onDelete={(inst) => handleDeleteInstrument(inst.id)}
+        />
+      </>
     );
   }
 
