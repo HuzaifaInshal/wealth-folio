@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Pool, Holding, Transaction, TransactionType } from '../types';
+import { Pool, Holding, Transaction, TransactionType, Instrument } from '../types';
 import { CATEGORY_DETAILS } from '../data';
 import { getCategoryIcon } from './HoldingCard';
 import { 
@@ -24,18 +24,21 @@ import {
 interface PoolTimelineProps {
   pool: Pool;
   holdings: Holding[];
+  instruments: Instrument[];
   transactions: Transaction[];
   onClose: () => void;
 }
 
-export default function PoolTimeline({ pool, holdings, transactions, onClose }: PoolTimelineProps) {
+export default function PoolTimeline({ pool, holdings, instruments, transactions, onClose }: PoolTimelineProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [holdingFilter, setHoldingFilter] = useState<string>('all');
 
   const getHoldingDetails = (holdingId: string) => {
     const h = holdings.find((holding) => holding.id === holdingId);
-    return h ? { name: h.name, category: h.category } : null;
+    if (!h) return null;
+    const inst = instruments.find((instrument) => instrument.id === h.instrumentId);
+    return { name: h.name, category: inst ? inst.category : 'other' };
   };
 
   const getTransactionBadge = (type: TransactionType) => {

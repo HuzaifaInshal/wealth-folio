@@ -17,7 +17,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { Holding, Transaction, HoldingCategory, TransactionType } from '../types';
+import { Holding, Transaction, HoldingCategory, TransactionType, Instrument } from '../types';
 import { CATEGORY_DETAILS } from '../data';
 import {
   Sparkles,
@@ -41,11 +41,13 @@ import {
 
 interface LedgerFlowVisualizerProps {
   holdings: Holding[];
+  instruments: Instrument[];
   transactions: Transaction[];
   onAddHolding: (holdingData: {
+    instrumentId: string;
     name: string;
-    category: HoldingCategory;
     description: string;
+    quantity?: number;
     initialBalance: number;
   }) => void;
   onAddTransaction: (txData: {
@@ -146,7 +148,8 @@ const getTransactionBadgeDetails = (type: TransactionType) => {
 // 1. --- Custom POOL NODE Component with Direct Actions ---
 const HoldingNodeComponent = ({ data }: { data: any }) => {
   const holding = data.holding as Holding;
-  const catDetails = CATEGORY_DETAILS[holding.category];
+  const instrument = data.instrument as Instrument;
+  const catDetails = CATEGORY_DETAILS[instrument?.category || 'other'];
   
   return (
     <div className="bg-white border border-[#1A1A1A] p-4 min-w-[240px] text-left shadow-md transition-all relative select-none">
@@ -159,15 +162,20 @@ const HoldingNodeComponent = ({ data }: { data: any }) => {
           className="p-1 px-1.5 text-white flex items-center justify-center font-bold" 
           style={{ backgroundColor: catDetails?.color || '#1A1A1A' }}
         >
-          {getCategoryIcon(holding.category)}
+          {getCategoryIcon(instrument?.category || 'other')}
         </span>
         <div className="min-w-0 flex-1">
           <span className="font-serif font-bold text-xs text-[#1A1A1A] block truncate pr-2">
             {holding.name}
           </span>
-          <span className="text-[9px] uppercase tracking-wider text-[#8C8C85] block font-mono">
-            {catDetails?.label || 'Asset Category'}
+          <span className="text-[9px] text-[#8C8C85] block truncate font-serif italic mt-0.5">
+            Asset: {instrument?.name || 'Unknown'} {instrument?.ticker ? `(${instrument.ticker})` : ''}
           </span>
+          {holding.quantity !== undefined && holding.quantity > 0 && (
+            <span className="text-[9px] text-[#6B6B66] block font-mono font-semibold mt-0.5">
+              Qty: {holding.quantity}
+            </span>
+          )}
         </div>
       </div>
 
@@ -298,6 +306,7 @@ const nodeTypes = {
 
 export default function LedgerFlowVisualizer({
   holdings,
+  instruments,
   transactions,
   onAddHolding,
   onAddTransaction,
@@ -316,7 +325,8 @@ export default function LedgerFlowVisualizer({
 
   // Form State: Holding creation
   const [newHoldingName, setNewHoldingName] = useState('');
-  const [newHoldingCategory, setNewHoldingCategory] = useState<HoldingCategory>('cash');
+  const [newHoldingInstrumentId, setNewHoldingInstrumentId] = useState('');
+  const [newHoldingQuantity, setNewHoldingQuantity] = useState('');
   const [newHoldingDescription, setNewHoldingDescription] = useState('');
   const [newHoldingInitialBalance, setNewHoldingInitialBalance] = useState('');
 
@@ -368,7 +378,8 @@ export default function LedgerFlowVisualizer({
 
   const handleOpenAddHoldingModal = () => {
     setNewHoldingName('');
-    setNewHoldingCategory('cash');
+    setNewHoldingInstrumentId(instruments.length > 0 ? instruments[0].id : '');
+    setNewHoldingQuantity('');
     setNewHoldingDescription('');
     setNewHoldingInitialBalance('0');
     setFormError('');
@@ -378,6 +389,10 @@ export default function LedgerFlowVisualizer({
   // Form Submitters
   const handleHoldingFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newHoldingInstrumentId) {
+      setFormError('An underlying asset/fund is required.');
+      return;
+    }
     if (!newHoldingName.trim()) {
       setFormError('Name is required.');
       return;
@@ -389,10 +404,17 @@ export default function LedgerFlowVisualizer({
       return;
     }
 
+    const parsedQty = newHoldingQuantity.trim() ? parseFloat(newHoldingQuantity) : undefined;
+    if (parsedQty !== undefined && (isNaN(parsedQty) || parsedQty < 0)) {
+      setFormError('Quantity must be a positive number if specified.');
+      return;
+    }
+
     onAddHolding({
+      instrumentId: newHoldingInstrumentId,
       name: newHoldingName,
-      category: newHoldingCategory,
       description: newHoldingDescription,
+      quantity: parsedQty,
       initialBalance: initialVal,
     });
 
@@ -506,6 +528,7 @@ export default function LedgerFlowVisualizer({
         position: { x: xOffset, y: 50 },
         data: { 
           holding,
+          instrument: instruments.find(i => i.id === holding.instrumentId),
           onAddTx: (type: TransactionType) => handleOpenAddTxModal(holding, type),
           onDelete: () => {
             if (window.confirm(`Are you sure you want to permanently delete holding "${holding.name}"? This deletes its history.`)) {
@@ -788,19 +811,40 @@ export default function LedgerFlowVisualizer({
 
                 <div>
                   <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
-                    Asset Class
+                    Underlying Asset / Fund
                   </label>
-                  <select
-                    value={newHoldingCategory}
-                    onChange={(e) => setNewHoldingCategory(e.target.value as HoldingCategory)}
+                  {instruments.length === 0 ? (
+                    <div className="p-2.5 bg-[#FFF0F0] text-rose-850 text-xs font-serif italic border border-[#FCD2D2]">
+                      No Assets or Funds available. Create one first from the dashboard.
+                    </div>
+                  ) : (
+                    <select
+                      value={newHoldingInstrumentId}
+                      onChange={(e) => setNewHoldingInstrumentId(e.target.value)}
+                      className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
+                    >
+                      {instruments.map((inst) => (
+                        <option key={inst.id} value={inst.id}>
+                          {inst.name} {inst.ticker ? `(${inst.ticker})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block mb-1">
+                    Quantity / Units (Optional)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    placeholder="e.g. 10 shares, 0.25 BTC"
+                    value={newHoldingQuantity}
+                    onChange={(e) => setNewHoldingQuantity(e.target.value)}
                     className="w-full px-4 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-sm text-[#1A1A1A]"
-                  >
-                    {Object.keys(CATEGORY_DETAILS).map((cat) => (
-                      <option key={cat} value={cat}>
-                        {CATEGORY_DETAILS[cat as HoldingCategory].label}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 <div>

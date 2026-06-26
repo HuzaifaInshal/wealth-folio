@@ -4,46 +4,59 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Holding, HoldingCategory } from '../types';
-import { CATEGORY_DETAILS } from '../data';
+import { Holding, Instrument } from '../types';
 import { X, Save, Plus, Trash2 } from 'lucide-react';
 
 interface HoldingFormModalProps {
   isOpen: boolean;
   holdingToEdit: Holding | null;
+  instruments: Instrument[];
+  initialInstrumentId?: string;
   onClose: () => void;
   onSubmit: (holdingData: {
+    instrumentId: string;
     name: string;
-    category: HoldingCategory;
     description: string;
+    quantity?: number;
     initialBalance: number; // Only for new ones
   }) => void;
   onDelete?: (holding: Holding) => void;
 }
 
-export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSubmit, onDelete }: HoldingFormModalProps) {
+export default function HoldingFormModal({
+  isOpen,
+  holdingToEdit,
+  instruments,
+  initialInstrumentId,
+  onClose,
+  onSubmit,
+  onDelete,
+}: HoldingFormModalProps) {
+  const [instrumentId, setInstrumentId] = useState('');
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<HoldingCategory>('cash');
   const [description, setDescription] = useState('');
+  const [quantity, setQuantity] = useState('');
   const [initialBalance, setInitialBalance] = useState<string>('0');
   const [error, setError] = useState('');
 
-  // Sychronize database states if updating
+  // Synchronize state when open or editing changes
   useEffect(() => {
     if (holdingToEdit) {
+      setInstrumentId(holdingToEdit.instrumentId);
       setName(holdingToEdit.name);
-      setCategory(holdingToEdit.category);
       setDescription(holdingToEdit.description);
+      setQuantity(holdingToEdit.quantity !== undefined ? holdingToEdit.quantity.toString() : '');
       setInitialBalance('0'); // Inactive during edits
     } else {
       // Clear values for new creation
+      setInstrumentId(initialInstrumentId || (instruments.length > 0 ? instruments[0].id : ''));
       setName('');
-      setCategory('cash');
       setDescription('');
+      setQuantity('');
       setInitialBalance('0');
     }
     setError('');
-  }, [holdingToEdit, isOpen]);
+  }, [holdingToEdit, isOpen, instruments, initialInstrumentId]);
 
   if (!isOpen) return null;
 
@@ -51,8 +64,13 @@ export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSub
     e.preventDefault();
     setError('');
 
+    if (!instrumentId) {
+      setError('Please select a target Fund / Asset. Create one first if none exist.');
+      return;
+    }
+
     if (!name.trim()) {
-      setError('Please provide a descriptive holding name.');
+      setError('Please provide a descriptive Investment Name.');
       return;
     }
 
@@ -62,10 +80,17 @@ export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSub
       return;
     }
 
+    const parsedQuantity = quantity.trim() ? parseFloat(quantity) : undefined;
+    if (parsedQuantity !== undefined && (isNaN(parsedQuantity) || parsedQuantity < 0)) {
+      setError('Quantity must be a positive number if specified.');
+      return;
+    }
+
     onSubmit({
+      instrumentId,
       name: name.trim(),
-      category,
       description: description.trim(),
+      quantity: parsedQuantity,
       initialBalance: holdingToEdit ? 0 : parsedInitial,
     });
     
@@ -81,12 +106,13 @@ export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSub
         className="bg-white rounded-none border border-[#DCDAD2] w-full max-w-lg shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         id="holding-form-container"
       >
-        {/* Header Header */}
+        {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-[#DCDAD2]">
           <h3 className="font-serif font-bold text-lg text-[#1A1A1A]">
-            {holdingToEdit ? 'Modify Holding Details' : 'Create Saving / Investment Holding'}
+            {holdingToEdit ? 'Modify Holding Details' : 'Create Investment Holding'}
           </h3>
           <button 
+            type="button"
             onClick={onClose}
             className="p-1.5 hover:bg-[#F9F8F6] text-[#8C8C85] hover:text-[#1A1A1A] rounded-none transition-colors border border-transparent hover:border-[#DCDAD2] cursor-pointer"
           >
@@ -94,7 +120,7 @@ export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSub
           </button>
         </div>
 
-        {/* Form Form */}
+        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           
           {error && (
@@ -103,38 +129,61 @@ export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSub
             </div>
           )}
 
-          {/* Name */}
+          {/* Instrument SELECT */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
-              Holding Name <span className="text-rose-700">*</span>
+              Underlying Asset / Fund <span className="text-rose-700">*</span>
+            </label>
+            {instruments.length === 0 ? (
+              <div className="p-3.5 bg-[#FFF0F0] text-rose-800 text-xs font-serif italic border border-[#FCD2D2] rounded-none">
+                No Assets or Funds available in this pool. Create an Asset / Fund first.
+              </div>
+            ) : (
+              <select
+                value={instrumentId}
+                onChange={(e) => setInstrumentId(e.target.value)}
+                className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] font-semibold"
+                disabled={!!holdingToEdit}
+              >
+                {instruments.map((inst) => (
+                  <option key={inst.id} value={inst.id}>
+                    {inst.name} {inst.ticker ? `(${inst.ticker})` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* Holding Name */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
+              Investment Name <span className="text-rose-700">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Rainy Day Reserve, S&P Index, BTC Bag"
+              placeholder="e.g. Fidelity Brokerage, Long-Term Savings, Crypto Hardware Wallet"
               className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A]"
               maxLength={40}
               required
             />
           </div>
 
-          {/* Category SELECT */}
+          {/* Quantity / Units */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
-              Asset Category
+              Quantity / Units (Optional)
             </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as HoldingCategory)}
-              className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] font-semibold"
-            >
-              {(Object.keys(CATEGORY_DETAILS) as HoldingCategory[]).map((catKey) => (
-                <option key={catKey} value={catKey}>
-                  {CATEGORY_DETAILS[catKey].label}
-                </option>
-              ))}
-            </select>
+            <input
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              placeholder="e.g. 10 shares, 0.25 BTC (leave empty if not applicable)"
+              className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] font-serif"
+              min="0"
+              step="any"
+            />
           </div>
 
           {/* Description */}
@@ -145,18 +194,18 @@ export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSub
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="State the objective, institution, fees, or strategy (e.g. Fidelity Brokerage, Long-Term, 4.5% APY)"
+              placeholder="State the objective, institution, fees, or account details"
               rows={3}
               className="w-full px-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-sm focus:outline-hidden focus:border-[#1A1A1A] focus:bg-white transition-all text-[#1A1A1A] resize-none leading-relaxed"
               maxLength={200}
             />
           </div>
 
-          {/* Initial Capital / Locked Values Message */}
+          {/* Initial Capital */}
           {!holdingToEdit ? (
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-[#8C8C85] uppercase tracking-widest block">
-                Initial Cash Injected
+                Initial Cash Invested (USD)
               </label>
               <input
                 type="number"
@@ -203,6 +252,7 @@ export default function HoldingFormModal({ isOpen, holdingToEdit, onClose, onSub
               <button
                 type="submit"
                 className="px-5 py-2.5 bg-[#1A1A1A] text-white rounded-none text-[10px] uppercase tracking-widest font-bold hover:bg-[#3E3E39] shadow-xs transition-all flex items-center justify-center cursor-pointer"
+                disabled={instruments.length === 0 && !holdingToEdit}
               >
                 {holdingToEdit ? (
                   <>

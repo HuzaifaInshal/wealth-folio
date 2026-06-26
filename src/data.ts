@@ -1,4 +1,4 @@
-import { Holding, Transaction, HoldingCategory, Pool } from './types';
+import { Holding, Transaction, HoldingCategory, Pool, Instrument } from './types';
 
 export const CATEGORY_DETAILS: Record<
   HoldingCategory,
@@ -87,13 +87,57 @@ export const INITIAL_POOLS: Pool[] = [
   }
 ];
 
+export const INITIAL_INSTRUMENTS: Instrument[] = [
+  {
+    id: 'instrument-1',
+    poolId: 'pool-1',
+    name: 'High-Yield Savings Account',
+    ticker: 'HYSA',
+    category: 'cash',
+    description: 'High-Yield Savings Account (4.5% APY)',
+    createdAt: dateXDaysAgo(150),
+    updatedAt: dateXDaysAgo(5),
+  },
+  {
+    id: 'instrument-2',
+    poolId: 'pool-1',
+    name: 'Vanguard Growth ETF',
+    ticker: 'VUG',
+    category: 'stocks',
+    description: 'Vanguard Growth Index Fund ETF Shares',
+    createdAt: dateXDaysAgo(150),
+    updatedAt: dateXDaysAgo(2),
+  },
+  {
+    id: 'instrument-3',
+    poolId: 'pool-2',
+    name: 'Bitcoin',
+    ticker: 'BTC',
+    category: 'crypto',
+    description: 'Digital Gold Cryptographic Reserve Asset',
+    createdAt: dateXDaysAgo(150),
+    updatedAt: dateXDaysAgo(1),
+  },
+  {
+    id: 'instrument-4',
+    poolId: 'pool-2',
+    name: 'Vanguard Target Retirement 2060',
+    ticker: 'VTTSX',
+    category: 'retirement',
+    description: 'Vanguard Target Retirement 2060 Fund',
+    createdAt: dateXDaysAgo(150),
+    updatedAt: dateXDaysAgo(10),
+  }
+];
+
 export const INITIAL_HOLDINGS: Holding[] = [
   {
     id: 'holding-1',
     poolId: 'pool-1',
+    instrumentId: 'instrument-1',
     name: 'Emergency Fund',
-    category: 'cash',
-    description: 'High-Yield Savings Account (4.5% APY) for unexpected personal emergencies.',
+    description: 'Personal Emergency Fund reserve at Marcus.',
+    quantity: 1,
     investedAmount: 10000,
     currentValuation: 10180, // Accrued interest
     createdAt: dateXDaysAgo(120),
@@ -102,9 +146,10 @@ export const INITIAL_HOLDINGS: Holding[] = [
   {
     id: 'holding-2',
     poolId: 'pool-1',
+    instrumentId: 'instrument-2',
     name: 'Tech Growth S&P Basket',
-    category: 'stocks',
-    description: 'Self-directed index and growth stocks (AAPL, GOOGL, MSFT, VGT).',
+    description: 'Vanguard VUG Growth ETF shares.',
+    quantity: 75,
     investedAmount: 18000,
     currentValuation: 21450, // Capital appreciation
     createdAt: dateXDaysAgo(90),
@@ -113,9 +158,10 @@ export const INITIAL_HOLDINGS: Holding[] = [
   {
     id: 'holding-3',
     poolId: 'pool-2',
+    instrumentId: 'instrument-3',
     name: 'Long-term Crypto Vault',
-    category: 'crypto',
-    description: 'Hardware wallet holding BTC and ETH for long term digital standard reservation.',
+    description: 'Bitcoin held on Ledger Nano X.',
+    quantity: 0.15,
     investedAmount: 6000,
     currentValuation: 8650, // High ROI
     createdAt: dateXDaysAgo(60),
@@ -124,9 +170,10 @@ export const INITIAL_HOLDINGS: Holding[] = [
   {
     id: 'holding-4',
     poolId: 'pool-2',
+    instrumentId: 'instrument-4',
     name: 'Roth IRA (Index Funds)',
-    category: 'retirement',
-    description: 'Tax-advantaged Vanguard target retirement index fund.',
+    description: 'Roth IRA Account at Vanguard.',
+    quantity: 500,
     investedAmount: 25000,
     currentValuation: 26800,
     createdAt: dateXDaysAgo(150),

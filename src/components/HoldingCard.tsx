@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { Holding } from '../types';
+import { Holding, Instrument } from '../types';
 import { CATEGORY_DETAILS } from '../data';
 import {
   PiggyBank,
@@ -25,6 +25,7 @@ import {
 
 interface HoldingCardProps {
   holding: Holding;
+  instrument: Instrument;
   onDeposit: (holding: Holding) => void;
   onWithdraw: (holding: Holding) => void;
   onTransfer: (holding: Holding) => void;
@@ -55,13 +56,14 @@ export const getCategoryIcon = (category: string) => {
 
 export default function HoldingCard({
   holding,
+  instrument,
   onDeposit,
   onWithdraw,
   onTransfer,
   onAdjustValuation,
   onEdit,
 }: HoldingCardProps) {
-  const catDetails = CATEGORY_DETAILS[holding.category];
+  const catDetails = CATEGORY_DETAILS[instrument.category];
   
   // Calculations
   const totalProfit = holding.currentValuation - holding.investedAmount;
@@ -98,6 +100,19 @@ export default function HoldingCard({
             <h4 className="text-xl font-serif text-[#1A1A1A] tracking-tight truncate hover:text-[#8C8C85] transition-colors">
               {holding.name}
             </h4>
+            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+              <span className="inline-flex items-center text-[10px] text-[#8C8C85] font-serif italic">
+                Asset: {instrument.name} {instrument.ticker ? `(${instrument.ticker})` : ''}
+              </span>
+              {holding.quantity !== undefined && holding.quantity > 0 && (
+                <>
+                  <span className="text-[#DCDAD2] text-[10px]">•</span>
+                  <span className="text-[10px] text-[#6B6B66] font-mono font-semibold">
+                    Qty: {holding.quantity}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center space-x-1">

@@ -22,12 +22,24 @@ export interface Pool {
   categories?: HoldingCategory[]; // tags for the pool
 }
 
+export interface Instrument {
+  id: string;
+  poolId: string;             // Segregation parent pool ID
+  name: string;               // e.g. "Apple Inc." or "Vanguard Index"
+  ticker: string;             // Symbol (e.g. AAPL, BTC) - optional/empty if not applicable
+  category: HoldingCategory;  // Category of asset
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Holding {
   id: string;
   poolId: string;             // Segregation parent pool ID
-  name: string;
-  category: HoldingCategory;
+  instrumentId: string;       // Link to the available Instrument/Fund
+  name: string;               // Custom name for this investment
   description: string;
+  quantity?: number;          // Optional quantity/units held
   investedAmount: number;     // The net cash capital injected (Deposits - Withdrawals)
   currentValuation: number;   // The latest net market value (can be direct sum or user-updated value)
   createdAt: string;
