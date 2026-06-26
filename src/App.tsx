@@ -10,7 +10,7 @@ import { INITIAL_HOLDINGS, INITIAL_TRANSACTIONS, CATEGORY_DETAILS, INITIAL_POOLS
 
 // Import Components
 import MetricCard from './components/MetricCard';
-import HoldingCard from './components/HoldingCard';
+import HoldingCard, { getCategoryIcon } from './components/HoldingCard';
 import DistributionChart from './components/DistributionChart';
 import TransactionHistory from './components/TransactionHistory';
 import HoldingFormModal from './components/HoldingFormModal';
