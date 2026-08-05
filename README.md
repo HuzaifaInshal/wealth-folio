@@ -1,20 +1,61 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# 💰 Wealth Folio
 
-# Run and deploy your AI Studio app
+> **Private investment tracking powered by your personal Google Sheet.**
 
-This contains everything you need to run your app locally.
+[![Live Demo](https://img.shields.io/badge/Live_Demo-3B82F6?style=for-the-badge&logo=vercel&logoColor=white)](https://wealth-foliio.vercel.app/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub_Repo-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/HuzaifaInshal/wealth-folio)
 
-View your app in AI Studio: https://ai.studio/apps/c933a783-d118-4cb9-88f6-59e2176e45b4
+## 📌 Overview
 
-## Run Locally
+Wealth Folio is a privacy-first portfolio tracker designed to keep you in complete control of your net worth. Manage your investments seamlessly with all your data stored directly in your personal Google Sheet as a secure, user-owned database. Track assets, analyze performance, and own your financial data without sacrificing privacy.
 
-**Prerequisites:**  Node.js
+---
 
+## ✨ Features
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- 💼 **Portfolio & Holding Management** — Track diverse assets, liquidity pools, and instruments.
+- 📊 **Visual Analytics & Distribution** — Detailed net worth breakdowns and asset allocation charts.
+- 📜 **Ledger Flow & Transaction History** — Track financial flows, transactions, and pool timelines.
+- 🟩 **Google Sheets Database (Upcoming)** — Keep 100% control of your data by using your personal Google Sheet account as the backend database.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend**: React 19, TypeScript, Vite
+- **Styling & UI**: Tailwind CSS, Lucide React, Motion
+- **Visualization**: XYFlow (React Flow)
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- `npm` package manager
+
+### Local Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/HuzaifaInshal/wealth-folio.git
+   cd wealth-folio
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+   Open `http://localhost:3000` in your browser.
+
+---
+
+## 🌐 Live Application
+
+Experience the live app at **[wealth-foliio.vercel.app](https://wealth-foliio.vercel.app/)**.
