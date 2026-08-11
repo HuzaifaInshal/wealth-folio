@@ -145,13 +145,6 @@ function DashboardContent() {
 
   // --- Handlers ---
 
-  const handleResetDefaults = () => {
-    if (confirm('Reset portfolio data to default mock records? Any unsaved changes will be replaced.')) {
-      setInvestments(INITIAL_INVESTMENTS);
-      setTransactions(INITIAL_TRANSACTIONS);
-    }
-  };
-
   const handleSaveInvestmentSource = (data: {
     name: string;
     category: string;
@@ -386,14 +379,6 @@ function DashboardContent() {
                 title="Toggle Light/Dark Theme"
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-purple-600" />}
-              </button>
-
-              <button
-                onClick={handleResetDefaults}
-                className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800/80 rounded-xl transition-all cursor-pointer bg-white dark:bg-[#181924]"
-                title="Reset data to mock defaults"
-              >
-                <RefreshCw className="w-4 h-4" />
               </button>
             </div>
           </div>
