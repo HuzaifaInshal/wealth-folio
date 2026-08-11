@@ -56,7 +56,7 @@ export default function MetricCard({
 
   return (
     <div
-      className={`rounded-xl p-6 border shadow-xs hover:shadow-lg transition-all duration-200 relative overflow-hidden group ${getMeshClass()}`}
+      className={`rounded-lg p-5 border shadow-xs hover:shadow-md transition-all duration-200 relative overflow-hidden group ${getMeshClass()}`}
     >
       <div className="relative flex flex-col justify-between h-full space-y-4">
         {/* Top Header */}
@@ -64,7 +64,7 @@ export default function MetricCard({
           <span className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider uppercase">
             {title}
           </span>
-          <div className="p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-900 dark:text-slate-100 border border-white/80 dark:border-slate-700/80 shadow-xs transition-transform group-hover:scale-105">
+          <div className="p-2 rounded-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-900 dark:text-slate-100 border border-white/80 dark:border-slate-700/80 shadow-xs transition-transform group-hover:scale-105">
             {icon === 'trending' ? (
               <TrendingUp className="w-4 h-4 text-purple-700 dark:text-purple-400" />
             ) : icon === 'percent' ? (

@@ -71,10 +71,10 @@ export default function InvestmentCard({
   const isPositive = profit >= 0;
 
   return (
-    <div className="fintech-card p-6 flex flex-col justify-between space-y-5 relative group rounded-xl">
+    <div className="fintech-card p-5 flex flex-col justify-between space-y-4 relative group rounded-lg">
       {/* Top Bar: Category Pill & Edit Actions */}
       <div className="flex items-start justify-between">
-        <span className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide ${catDetails.bg} ${catDetails.text} border border-slate-200/80 dark:border-slate-700/60`}>
+        <span className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide ${catDetails.bg} ${catDetails.text} border border-slate-200/80 dark:border-slate-700/60`}>
           {getCategoryIconComponent(catDetails.icon)}
           <span>{catDetails.label}</span>
         </span>
@@ -82,14 +82,14 @@ export default function InvestmentCard({
         <div className="flex items-center space-x-1 opacity-80 group-hover:opacity-100 transition-opacity">
           <button
             onClick={() => onEdit(investment)}
-            className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors cursor-pointer"
             title="Edit Investment Details"
           >
             <Edit3 className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => onDelete(investment.id)}
-            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-md transition-colors cursor-pointer"
             title="Delete Investment Source"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -99,7 +99,7 @@ export default function InvestmentCard({
 
       {/* Asset Name & Note */}
       <div className="space-y-1">
-        <h4 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+        <h4 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
           {investment.name}
         </h4>
         {investment.notes && (
@@ -110,7 +110,7 @@ export default function InvestmentCard({
       </div>
 
       {/* Main Balances Grid */}
-      <div className="bg-slate-100/90 dark:bg-[#12131A] rounded-xl p-4 border border-slate-200/80 dark:border-slate-800/80 grid grid-cols-2 gap-4">
+      <div className="bg-slate-100/90 dark:bg-[#12131A] rounded-lg p-3.5 border border-slate-200/80 dark:border-slate-800/80 grid grid-cols-2 gap-3">
         <div>
           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
             Current Value
@@ -148,7 +148,7 @@ export default function InvestmentCard({
       <div className="grid grid-cols-4 gap-1.5 pt-1 border-t border-slate-100 dark:border-slate-800/80">
         <button
           onClick={() => onAction(investment, 'invest')}
-          className="py-2 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-900 hover:text-white dark:hover:bg-purple-600 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 border border-slate-200/80 dark:border-slate-800/60"
+          className="py-1.5 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-900 hover:text-white dark:hover:bg-purple-600 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 border border-slate-200/80 dark:border-slate-800/60"
           title="Deposit/Invest capital"
         >
           <Plus className="w-3.5 h-3.5" />
@@ -156,7 +156,7 @@ export default function InvestmentCard({
         </button>
         <button
           onClick={() => onAction(investment, 'withdraw')}
-          className="py-2 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-900 hover:text-white dark:hover:bg-purple-600 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 border border-slate-200/80 dark:border-slate-800/60"
+          className="py-1.5 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-900 hover:text-white dark:hover:bg-purple-600 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 border border-slate-200/80 dark:border-slate-800/60"
           title="Withdraw funds"
         >
           <Minus className="w-3.5 h-3.5" />
@@ -164,7 +164,7 @@ export default function InvestmentCard({
         </button>
         <button
           onClick={() => onAction(investment, 'transfer')}
-          className="py-2 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-900 hover:text-white dark:hover:bg-purple-600 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 border border-slate-200/80 dark:border-slate-800/60"
+          className="py-1.5 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-900 hover:text-white dark:hover:bg-purple-600 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 border border-slate-200/80 dark:border-slate-800/60"
           title="Transfer funds to another source"
         >
           <ArrowRightLeft className="w-3.5 h-3.5" />
@@ -172,7 +172,7 @@ export default function InvestmentCard({
         </button>
         <button
           onClick={() => onAction(investment, 'revalue')}
-          className="py-2 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-900 hover:text-white dark:hover:bg-purple-600 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 border border-slate-200/80 dark:border-slate-800/60"
+          className="py-1.5 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-900 hover:text-white dark:hover:bg-purple-600 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 border border-slate-200/80 dark:border-slate-800/60"
           title="Update valuation balance"
         >
           <Scale className="w-3.5 h-3.5" />
