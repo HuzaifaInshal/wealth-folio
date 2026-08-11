@@ -464,8 +464,8 @@ function DashboardContent() {
           {/* Dashboard Tab Content */}
           {activeTab === 'dashboard' && (
             <>
-              {/* Financial Overview Metrics Bar (Orbix/Nuance Aurora Mesh Cards) */}
-              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="portfolio-metrics-grid">
+              {/* Financial Overview Metrics Bar */}
+              <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" id="portfolio-metrics-grid">
                 <MetricCard
                   title="Total Net Worth"
                   value={totalValuation}
@@ -504,23 +504,23 @@ function DashboardContent() {
               {/* Investment Sources Grid */}
               <section id="investment-sources-section">
                 {filteredInvestments.length === 0 ? (
-                  <div className="fintech-card p-12 text-center max-w-lg mx-auto space-y-4 rounded-3xl">
-                    <Landmark className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+                  <div className="fintech-card p-8 text-center max-w-lg mx-auto space-y-3 rounded-lg">
+                    <Landmark className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
                     <div>
-                      <h4 className="text-base font-bold text-slate-900 dark:text-white">No investment sources found</h4>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">No investment sources found</h4>
                       <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
                         Add your mutual funds, stock market holdings, or savings certificates to start tracking.
                       </p>
                     </div>
                     <button
                       onClick={openNewInvestmentForm}
-                      className="px-4 py-2 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-md shadow-purple-600/20"
+                      className="px-3.5 py-1.5 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-lg text-xs font-semibold cursor-pointer transition-all shadow-xs"
                     >
                       + Add Investment Source
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     <AnimatePresence mode="popLayout">
                       {filteredInvestments.map((inv) => (
                         <motion.div key={inv.id} layout>
