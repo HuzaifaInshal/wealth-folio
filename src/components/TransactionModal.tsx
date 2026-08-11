@@ -129,10 +129,10 @@ export default function TransactionModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
-      <div className="bg-white dark:bg-[#181924] border border-slate-200 dark:border-slate-800/80 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 bg-slate-900/60 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center z-50 p-4 font-sans">
+      <div className="bg-white dark:bg-[#181924] border border-slate-200 dark:border-slate-800/80 w-full max-w-lg rounded-lg shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-[#12131A]/50">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-[#12131A]/50">
           <h3 className="text-base font-bold text-slate-900 dark:text-white">
             Execute Ledger Transaction
           </h3>
@@ -203,7 +203,7 @@ export default function TransactionModal({
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-left">
           {error && (
-            <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-400 text-xs font-semibold rounded-2xl flex items-center space-x-2">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-400 text-xs font-semibold rounded-lg flex items-center space-x-2">
               <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0" />
               <span>{error}</span>
             </div>
@@ -225,7 +225,7 @@ export default function TransactionModal({
                   setNewValuation(s.currentValuation.toString());
                 }
               }}
-              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-lg text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all cursor-pointer"
             >
               {investments.map((inv) => (
                 <option key={inv.id} value={inv.id} className="dark:bg-[#181924]">
@@ -244,7 +244,7 @@ export default function TransactionModal({
               <select
                 value={targetId}
                 onChange={(e) => setTargetId(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-lg text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all cursor-pointer"
               >
                 {investments.map((inv) => (
                   <option key={inv.id} value={inv.id} disabled={inv.id === sourceId} className="dark:bg-[#181924]">
@@ -268,7 +268,7 @@ export default function TransactionModal({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-sm font-bold focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all text-slate-900 dark:text-white"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-lg text-sm font-bold focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all text-slate-900 dark:text-white"
                 required
               />
             </div>
@@ -285,7 +285,7 @@ export default function TransactionModal({
                 value={newValuation}
                 onChange={(e) => setNewValuation(e.target.value)}
                 placeholder="Current Valuation Balance"
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-sm font-bold focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all text-slate-900 dark:text-white"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-lg text-sm font-bold focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all text-slate-900 dark:text-white"
                 required
               />
             </div>
@@ -293,7 +293,7 @@ export default function TransactionModal({
 
           {/* Live Calculation Preview Pill */}
           {currentSource && (
-            <div className="p-3 bg-slate-50 dark:bg-[#12131A] rounded-2xl border border-slate-200/70 dark:border-slate-800/80 text-xs flex items-center justify-between">
+            <div className="p-3 bg-slate-50 dark:bg-[#12131A] rounded-lg border border-slate-200/70 dark:border-slate-800/80 text-xs flex items-center justify-between">
               <span className="text-slate-500 dark:text-slate-400 font-medium">Balance Preview:</span>
               <div className="flex items-center space-x-2 font-mono text-xs font-semibold">
                 <span className="text-slate-500 dark:text-slate-400">{formatCurrency(currentSource.currentValuation)}</span>
@@ -319,7 +319,7 @@ export default function TransactionModal({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="e.g. Monthly allocation, dividend reinvestment..."
-              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-lg text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
             />
           </div>
 

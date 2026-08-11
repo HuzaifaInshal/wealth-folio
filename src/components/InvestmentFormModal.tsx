@@ -90,12 +90,12 @@ export default function InvestmentFormModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#181924] border border-slate-200 dark:border-slate-800/80 w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 font-sans">
+    <div className="fixed inset-0 bg-slate-900/60 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-[#181924] border border-slate-200 dark:border-slate-800/80 w-full max-w-md rounded-lg shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 font-sans">
         {/* Header */}
-        <div className="p-5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-[#12131A]/50">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-[#12131A]/50">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 bg-slate-900 dark:bg-purple-600 text-white rounded-xl">
+            <div className="p-2 bg-slate-900 dark:bg-purple-600 text-white rounded-lg">
               <Layers className="w-4 h-4" />
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
@@ -128,7 +128,7 @@ export default function InvestmentFormModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Cash Fund, Apple Stock, Savings Certificate #1..."
-              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-lg text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
               required
             />
           </div>
@@ -145,7 +145,7 @@ export default function InvestmentFormModal({
                 setCategory(val);
                 setIsCustomMode(val === 'custom');
               }}
-              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-lg text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all cursor-pointer"
             >
               {Object.keys(DEFAULT_CATEGORIES).map((catKey) => (
                 <option key={catKey} value={catKey} className="dark:bg-[#181924]">
@@ -167,7 +167,7 @@ export default function InvestmentFormModal({
                 value={customCategory}
                 onChange={(e) => setCustomCategory(e.target.value)}
                 placeholder="e.g. Venture Capital, Art, Private Bond..."
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-lg text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
               />
             </div>
           )}
@@ -185,7 +185,7 @@ export default function InvestmentFormModal({
                 value={initialBalance}
                 onChange={(e) => setInitialBalance(e.target.value)}
                 placeholder="0.00"
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-lg text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
               />
             </div>
           )}
@@ -200,7 +200,7 @@ export default function InvestmentFormModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. 3-year certificate, liquidity policy, broker account..."
-              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-lg text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
             />
           </div>
 
