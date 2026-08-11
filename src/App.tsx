@@ -19,6 +19,8 @@ import TransactionModal from './components/TransactionModal';
 import LedgerTable from './components/LedgerTable';
 import ActionToolbar from './components/ActionToolbar';
 
+import CategorySelectModal from './components/CategorySelectModal';
+
 // Import Icons
 import {
   Landmark,
@@ -130,6 +132,8 @@ function DashboardContent() {
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
   const [txInitialType, setTxInitialType] = useState<TransactionType>('invest');
   const [txInitialSource, setTxInitialSource] = useState<InvestmentSource | null>(null);
+
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
   const [isSheetsModalOpen, setIsSheetsModalOpen] = useState(false);
 
@@ -337,7 +341,7 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* Category Filter Pills (Main Header Centerpiece) */}
+            {/* Category Filter Pills (Main Header Centerpiece - Max 3 + X more) */}
             <div className="flex items-center space-x-1.5 overflow-x-auto py-1 scrollbar-none max-w-full">
               <button
                 onClick={() => setCategoryFilter('all')}
@@ -349,26 +353,48 @@ function DashboardContent() {
               >
                 All Sources
               </button>
-              {Object.keys(DEFAULT_CATEGORIES).map((catKey) => {
-                const catHoldings = investments.filter((i) => i.category === catKey);
-                if (catHoldings.length === 0 && categoryFilter !== catKey) return null;
-                const details = DEFAULT_CATEGORIES[catKey];
-                const isActive = categoryFilter === catKey;
+              {(() => {
+                const allCatKeys = Object.keys(DEFAULT_CATEGORIES);
+                const top3 = allCatKeys.slice(0, 3);
+                const displayKeys = [...top3];
+                if (categoryFilter !== 'all' && !top3.includes(categoryFilter) && DEFAULT_CATEGORIES[categoryFilter]) {
+                  displayKeys.push(categoryFilter);
+                }
+                const remainingCount = Math.max(0, allCatKeys.length - 3);
 
                 return (
-                  <button
-                    key={catKey}
-                    onClick={() => setCategoryFilter(catKey)}
-                    className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
-                      isActive
-                        ? 'bg-slate-900 text-white border-slate-900 dark:bg-purple-600 dark:border-purple-500 shadow-xs'
-                        : 'bg-white dark:bg-[#181924] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/60'
-                    }`}
-                  >
-                    {details.label}
-                  </button>
+                  <>
+                    {displayKeys.map((catKey) => {
+                      const details = DEFAULT_CATEGORIES[catKey];
+                      if (!details) return null;
+                      const isActive = categoryFilter === catKey;
+
+                      return (
+                        <button
+                          key={catKey}
+                          onClick={() => setCategoryFilter(catKey)}
+                          className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
+                            isActive
+                              ? 'bg-slate-900 text-white border-slate-900 dark:bg-purple-600 dark:border-purple-500 shadow-xs'
+                              : 'bg-white dark:bg-[#181924] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                          }`}
+                        >
+                          {details.label}
+                        </button>
+                      );
+                    })}
+
+                    {remainingCount > 0 && (
+                      <button
+                        onClick={() => setIsCategoryModalOpen(true)}
+                        className="px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer whitespace-nowrap"
+                      >
+                        {remainingCount} more
+                      </button>
+                    )}
+                  </>
                 );
-              })}
+              })()}
             </div>
 
             {/* Right Controls */}
@@ -527,6 +553,15 @@ function DashboardContent() {
           initialSource={txInitialSource}
           investments={investments}
           onSubmit={handleExecuteTransaction}
+        />
+
+        <CategorySelectModal
+          isOpen={isCategoryModalOpen}
+          onClose={() => setIsCategoryModalOpen(false)}
+          selectedCategory={categoryFilter}
+          onSelectCategory={(catKey) => setCategoryFilter(catKey)}
+          investments={investments}
+          onOpenNewSource={openNewInvestmentForm}
         />
       </div>
     </div>
