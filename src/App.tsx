@@ -23,7 +23,6 @@ import ActionToolbar from './components/ActionToolbar';
 import {
   Landmark,
   Plus,
-  Search,
   RefreshCw,
   Sun,
   Moon,
@@ -92,7 +91,6 @@ function DashboardContent() {
   };
 
   const [categoryFilter, setCategoryFilterState] = useState<string>(getInitialCategoryFromUrl);
-  const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeTab, setActiveTabState] = useState<'dashboard' | 'sources' | 'ledger'>(getInitialTabFromUrl);
 
   useEffect(() => {
@@ -323,11 +321,7 @@ function DashboardContent() {
   };
 
   const filteredInvestments = investments.filter((inv) => {
-    const matchesCategory = categoryFilter === 'all' || inv.category === categoryFilter;
-    const query = searchQuery.toLowerCase().trim();
-    const matchesSearch =
-      inv.name.toLowerCase().includes(query) || (inv.notes && inv.notes.toLowerCase().includes(query));
-    return matchesCategory && matchesSearch;
+    return categoryFilter === 'all' || inv.category === categoryFilter;
   });
 
   return (
@@ -343,20 +337,10 @@ function DashboardContent() {
         {/* Top Header Bar with Category Filters */}
         <header className="bg-white/85 dark:bg-[#12131A]/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-30 transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-            {/* Mobile Brand & Search */}
+            {/* Mobile Brand */}
             <div className="flex items-center space-x-3 shrink-0">
               <div className="lg:hidden p-2 bg-slate-900 dark:bg-purple-600 text-white rounded-xl">
                 <Landmark className="w-5 h-5" />
-              </div>
-              <div className="relative hidden lg:block w-48 xl:w-56">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search assets..."
-                  className="w-full pl-8 pr-3 py-1.5 bg-slate-100 dark:bg-[#181924] border border-slate-200/80 dark:border-slate-800/80 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-purple-500 transition-all"
-                />
               </div>
             </div>
 
