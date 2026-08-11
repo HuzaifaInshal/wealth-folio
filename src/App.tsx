@@ -28,6 +28,7 @@ import {
   RefreshCw,
   Sun,
   Moon,
+  Menu,
 } from 'lucide-react';
 
 function DashboardContent() {
@@ -125,7 +126,7 @@ function DashboardContent() {
     } catch {}
   };
 
-  // Modals
+  // Modals & Layout States
   const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
   const [investmentToEdit, setInvestmentToEdit] = useState<InvestmentSource | null>(null);
 
@@ -134,6 +135,25 @@ function DashboardContent() {
   const [txInitialSource, setTxInitialSource] = useState<InvestmentSource | null>(null);
 
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('wealthfolio_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebarCollapsed = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('wealthfolio_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   const [isSheetsModalOpen, setIsSheetsModalOpen] = useState(false);
 
@@ -327,17 +347,28 @@ function DashboardContent() {
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={toggleSidebarCollapsed}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
       {/* Main Right Content Panel */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header Bar with Category Filters */}
         <header className="bg-white/85 dark:bg-[#12131A]/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-30 transition-colors">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-            {/* Mobile Brand */}
-            <div className="flex items-center space-x-3 shrink-0">
-              <div className="lg:hidden p-2 bg-slate-900 dark:bg-purple-600 text-white rounded-xl">
-                <Landmark className="w-5 h-5" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+            {/* Mobile Brand & Menu Hamburger */}
+            <div className="flex items-center space-x-2 shrink-0">
+              <button
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="lg:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer border border-slate-200/80 dark:border-slate-800/80"
+                title="Open Navigation Menu"
+              >
+                <Menu className="w-4 h-4" />
+              </button>
+              <div className="lg:hidden p-2 bg-slate-900 dark:bg-purple-600 text-white rounded-lg">
+                <Landmark className="w-4 h-4" />
               </div>
             </div>
 
