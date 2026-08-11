@@ -24,7 +24,6 @@ import {
   Landmark,
   Plus,
   Search,
-  ListFilter,
   RefreshCw,
   Sun,
   Moon,
@@ -363,7 +362,6 @@ function DashboardContent() {
 
             {/* Category Filter Pills (Main Header Centerpiece) */}
             <div className="flex items-center space-x-1.5 overflow-x-auto py-1 scrollbar-none max-w-full">
-              <ListFilter className="w-3.5 h-3.5 text-slate-400 shrink-0 mr-1 hidden sm:inline-block" />
               <button
                 onClick={() => setCategoryFilter('all')}
                 className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
