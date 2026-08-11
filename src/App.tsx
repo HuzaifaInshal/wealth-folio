@@ -374,6 +374,14 @@ function DashboardContent() {
             {/* Right Controls */}
             <div className="flex items-center space-x-2 shrink-0">
               <button
+                onClick={openNewInvestmentForm}
+                className="px-3 py-1.5 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center space-x-1 cursor-pointer shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Source</span>
+              </button>
+
+              <button
                 onClick={toggleTheme}
                 className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer border border-slate-200/80 dark:border-slate-800/80"
                 title="Toggle Light/Dark Theme"
