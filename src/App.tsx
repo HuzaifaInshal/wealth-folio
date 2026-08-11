@@ -376,7 +376,7 @@ function DashboardContent() {
             <div className="flex items-center space-x-1.5 overflow-x-auto py-1 scrollbar-none max-w-full">
               <button
                 onClick={() => setCategoryFilter('all')}
-                className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
+                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap border cursor-pointer ${
                   categoryFilter === 'all'
                     ? 'bg-slate-900 text-white border-slate-900 dark:bg-purple-600 dark:border-purple-500 shadow-xs'
                     : 'bg-white dark:bg-[#181924] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/60'
@@ -404,7 +404,7 @@ function DashboardContent() {
                         <button
                           key={catKey}
                           onClick={() => setCategoryFilter(catKey)}
-                          className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
+                          className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap border cursor-pointer ${
                             isActive
                               ? 'bg-slate-900 text-white border-slate-900 dark:bg-purple-600 dark:border-purple-500 shadow-xs'
                               : 'bg-white dark:bg-[#181924] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/60'
@@ -418,7 +418,7 @@ function DashboardContent() {
                     {remainingCount > 0 && (
                       <button
                         onClick={() => setIsCategoryModalOpen(true)}
-                        className="px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer whitespace-nowrap"
+                        className="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer whitespace-nowrap"
                       >
                         {remainingCount} more
                       </button>
@@ -432,7 +432,7 @@ function DashboardContent() {
             <div className="flex items-center space-x-2 shrink-0">
               <button
                 onClick={openNewInvestmentForm}
-                className="px-3 py-1.5 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center space-x-1 cursor-pointer shrink-0"
+                className="px-3 py-1.5 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-lg text-xs font-semibold shadow-xs flex items-center space-x-1 cursor-pointer shrink-0"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Source</span>
@@ -440,7 +440,7 @@ function DashboardContent() {
 
               <button
                 onClick={toggleTheme}
-                className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer border border-slate-200/80 dark:border-slate-800/80"
+                className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all cursor-pointer border border-slate-200/80 dark:border-slate-800/80"
                 title="Toggle Light/Dark Theme"
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-purple-600" />}
