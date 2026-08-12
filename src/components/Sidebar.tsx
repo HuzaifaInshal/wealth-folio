@@ -13,18 +13,6 @@ import {
   Moon,
   ShieldCheck,
   ChevronRight,
-} from 'lucide-react';
-
-import React from 'react';
-import { useTheme } from '../context/ThemeContext';
-import {
-  Landmark,
-  LayoutDashboard,
-  History,
-  Sun,
-  Moon,
-  ShieldCheck,
-  ChevronRight,
   PanelLeftClose,
   PanelLeftOpen,
   X,
@@ -54,12 +42,25 @@ export default function Sidebar({
       {/* Top Branding & Nav */}
       <div className="space-y-5">
         {/* Brand Header */}
-        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-1 py-1`}>
-          <div className="flex items-center space-x-2.5">
+        {isCollapsed ? (
+          <div className="flex flex-col items-center space-y-2.5 px-1 py-1">
             <div className="p-2 bg-slate-900 dark:bg-purple-600 text-white rounded-lg shadow-xs">
               <Landmark className="w-5 h-5" />
             </div>
-            {!isCollapsed && (
+            <button
+              onClick={onToggleCollapse}
+              className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+              title="Expand Sidebar"
+            >
+              <PanelLeftOpen className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between px-1 py-1">
+            <div className="flex items-center space-x-2.5">
+              <div className="p-2 bg-slate-900 dark:bg-purple-600 text-white rounded-lg shadow-xs">
+                <Landmark className="w-5 h-5" />
+              </div>
               <div>
                 <h1 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center">
                   Wealth <span className="text-slate-400 dark:text-purple-400 font-semibold ml-1">Folio</span>
@@ -68,28 +69,28 @@ export default function Sidebar({
                   Personal Vault
                 </p>
               </div>
+            </div>
+
+            {/* Desktop Collapse Toggle */}
+            <button
+              onClick={onToggleCollapse}
+              className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+              title="Collapse Sidebar"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
+
+            {/* Mobile Close Button */}
+            {onCloseMobile && (
+              <button
+                onClick={onCloseMobile}
+                className="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
             )}
           </div>
-
-          {/* Desktop Collapse Toggle */}
-          <button
-            onClick={onToggleCollapse}
-            className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-            title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          >
-            {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-          </button>
-
-          {/* Mobile Close Button */}
-          {onCloseMobile && (
-            <button
-              onClick={onCloseMobile}
-              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
+        )}
 
         {/* Nav Items */}
         <div className="space-y-1 pt-2">
@@ -105,11 +106,10 @@ export default function Sidebar({
               if (onCloseMobile) onCloseMobile();
             }}
             title="Dashboard Overview"
-            className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              activeTab === 'dashboard'
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === 'dashboard'
                 ? 'bg-slate-900 text-white dark:bg-purple-600/20 dark:text-purple-400 dark:border dark:border-purple-500/30 shadow-xs'
                 : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             <div className="flex items-center space-x-2.5">
               <LayoutDashboard className="w-4 h-4 shrink-0" />
@@ -126,11 +126,10 @@ export default function Sidebar({
               if (onCloseMobile) onCloseMobile();
             }}
             title="Ledger Activity"
-            className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              activeTab === 'ledger'
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === 'ledger'
                 ? 'bg-slate-900 text-white dark:bg-purple-600/20 dark:text-purple-400 dark:border dark:border-purple-500/30 shadow-xs'
                 : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             <div className="flex items-center space-x-2.5">
               <History className="w-4 h-4 shrink-0" />
@@ -181,9 +180,8 @@ export default function Sidebar({
     <>
       {/* Desktop Sticky Sidebar */}
       <aside
-        className={`${
-          isCollapsed ? 'w-20' : 'w-60'
-        } shrink-0 hidden lg:flex flex-col h-screen sticky top-0 bg-white dark:bg-[#12131A] border-r border-slate-200/80 dark:border-slate-800/80 transition-all duration-200 z-40`}
+        className={`${isCollapsed ? 'w-20' : 'w-60'
+          } shrink-0 hidden lg:flex flex-col h-screen sticky top-0 bg-white dark:bg-[#12131A] border-r border-slate-200/80 dark:border-slate-800/80 transition-all duration-200 z-40`}
       >
         {sidebarContent}
       </aside>

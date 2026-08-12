@@ -358,16 +358,16 @@ function DashboardContent() {
         {/* Top Header Bar with Category Filters */}
         <header className="bg-white/85 dark:bg-[#12131A]/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-30 transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
-            {/* Mobile Brand & Menu Hamburger */}
-            <div className="flex items-center space-x-2 shrink-0">
+            {/* Mobile Brand & Menu Hamburger (Hidden on desktop for clean justify-between alignment) */}
+            <div className="lg:hidden flex items-center space-x-2 shrink-0">
               <button
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="lg:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer border border-slate-200/80 dark:border-slate-800/80"
+                className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer border border-slate-200/80 dark:border-slate-800/80"
                 title="Open Navigation Menu"
               >
                 <Menu className="w-4 h-4" />
               </button>
-              <div className="lg:hidden p-2 bg-slate-900 dark:bg-purple-600 text-white rounded-lg">
+              <div className="p-2 bg-slate-900 dark:bg-purple-600 text-white rounded-lg">
                 <Landmark className="w-4 h-4" />
               </div>
             </div>
