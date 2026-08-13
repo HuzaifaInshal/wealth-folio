@@ -216,23 +216,35 @@ function DashboardContent() {
         investedAmount: data.initialBalance,
         currentValuation: data.initialBalance,
         notes: data.notes,
-      if (data.initialBalance > 0) {
-        const newTx: LedgerTransaction = {
-          id: `tx-${Date.now()}`,
-          type: 'invest',
-          sourceId: newId,
-          amount: data.initialBalance,
-          note: `Initial capital allocation for ${data.name}`,
-          timestamp,
-        };
-        setTransactions((prev) => [newTx, ...prev]);
+      };
+      setInvestments((prev) => [savedSource, ...prev]);
 
-        if (sheetConfig.webAppUrl && sheetConfig.autoSync) {
-          syncTransactionToSheet(sheetConfig.webAppUrl, newTx, data.name);
+      if (data.initialBalance > 0) {
+        const initialTx: Transaction = {
+          id: `tx_${Date.now()}`,
+          type: 'invest',
+          date: new Date().toISOString(),
+          sourceId: savedSource.id,
+          amount: data.initialBalance,
+          note: `Initial deposit for ${data.name}`,
+        };
+        setTransactions((prev) => [initialTx, ...prev]);
+        if (accessToken && spreadsheetId) {
+          appendSheetTransaction(accessToken, spreadsheetId, initialTx);
         }
       }
     }
-    setInvestmentToEdit(null);
+
+    if (accessToken && spreadsheetId) {
+      try {
+        setIsSyncing(true);
+        await saveSheetInvestment(accessToken, spreadsheetId, savedSource);
+      } catch (err: any) {
+        setSyncError(`Live Sync Warning: ${err.message}`);
+      } finally {
+        setIsSyncing(false);
+      }
+    }
   };
 
   const handleDeleteInvestmentSource = (id: string) => {
