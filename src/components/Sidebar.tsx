@@ -9,6 +9,7 @@ import {
   Landmark,
   LayoutDashboard,
   History,
+  Settings,
   Sun,
   Moon,
   ShieldCheck,
@@ -19,8 +20,8 @@ import {
 } from 'lucide-react';
 
 interface SidebarProps {
-  activeTab: 'dashboard' | 'ledger';
-  setActiveTab: (tab: 'dashboard' | 'ledger') => void;
+  activeTab: 'dashboard' | 'ledger' | 'settings';
+  setActiveTab: (tab: 'dashboard' | 'ledger' | 'settings') => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   isMobileOpen?: boolean;
@@ -126,16 +127,38 @@ export default function Sidebar({
               if (onCloseMobile) onCloseMobile();
             }}
             title="Ledger Activity"
-            className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === 'ledger'
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === 'ledger'
                 ? 'bg-slate-900 text-white dark:bg-purple-600/20 dark:text-purple-400 dark:border dark:border-purple-500/30 shadow-xs'
                 : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'
-              }`}
+            }`}
           >
             <div className="flex items-center space-x-2.5">
               <History className="w-4 h-4 shrink-0" />
               {!isCollapsed && <span>Ledger</span>}
             </div>
             {!isCollapsed && activeTab === 'ledger' && (
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-purple-400" />
+            )}
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('settings');
+              if (onCloseMobile) onCloseMobile();
+            }}
+            title="Google Sheets & Account Settings"
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === 'settings'
+                ? 'bg-slate-900 text-white dark:bg-purple-600/20 dark:text-purple-400 dark:border dark:border-purple-500/30 shadow-xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'
+            }`}
+          >
+            <div className="flex items-center space-x-2.5">
+              <Settings className="w-4 h-4 shrink-0" />
+              {!isCollapsed && <span>Settings</span>}
+            </div>
+            {!isCollapsed && activeTab === 'settings' && (
               <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-purple-400" />
             )}
           </button>
