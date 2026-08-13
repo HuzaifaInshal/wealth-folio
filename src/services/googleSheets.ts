@@ -3,169 +3,297 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { InvestmentSource, LedgerTransaction } from '../types';
+import { InvestmentSource, Transaction } from '../types';
 
-export const APPS_SCRIPT_TEMPLATE = `/**
- * Google Apps Script for Personal Investment Ledger Sync
- * Copy and paste this script into your Google Sheet:
- * Extensions -> Apps Script -> Paste Code -> Save -> Deploy -> New Deployment (Web App, Anyone has access)
+const SHEETS_API_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
+const USERINFO_API_BASE = 'https://www.googleapis.com/oauth2/v3/userinfo';
+
+export interface UserProfile {
+  email: string;
+  name: string;
+  picture?: string;
+}
+
+/**
+ * Fetch Google User Profile info using access token
  */
-
-function doPost(e) {
-  try {
-    var data = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    
-    if (data.action === "sync_transaction") {
-      var sheet = ss.getSheetByName("Ledger Transactions") || ss.insertSheet("Ledger Transactions");
-      if (sheet.getLastRow() === 0) {
-        sheet.appendRow(["ID", "Date", "Type", "Source Investment", "Target Investment", "Amount ($)", "Note"]);
-      }
-      var tx = data.transaction;
-      sheet.appendRow([
-        tx.id,
-        tx.timestamp,
-        tx.type,
-        tx.sourceName || tx.sourceId,
-        tx.targetName || tx.targetId || "-",
-        tx.amount,
-        tx.note
-      ]);
-      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Transaction logged" }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    if (data.action === "sync_all") {
-      var invSheet = ss.getSheetByName("Investments Summary") || ss.insertSheet("Investments Summary");
-      invSheet.clear();
-      invSheet.appendRow(["ID", "Investment Name", "Category", "Invested Amount ($)", "Current Valuation ($)", "Profit/Loss ($)", "Last Updated"]);
-      
-      var investments = data.investments || [];
-      for (var i = 0; i < investments.length; i++) {
-        var inv = investments[i];
-        var profit = inv.currentValuation - inv.investedAmount;
-        invSheet.appendRow([inv.id, inv.name, inv.category, inv.investedAmount, inv.currentValuation, profit, inv.updatedAt]);
-      }
-      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Summary synced" }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    return ContentService.createTextOutput(JSON.stringify({ status: "ignored" })).setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+export async function getUserProfile(accessToken: string): Promise<UserProfile> {
+  const res = await fetch(USERINFO_API_BASE, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch user profile (${res.status})`);
   }
-}
-`;
-
-export async function testSheetConnection(webAppUrl: string): Promise<boolean> {
-  if (!webAppUrl.trim()) return false;
-  try {
-    const res = await fetch(webAppUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'ping' }),
-    });
-    return res.ok || res.type === 'opaque';
-  } catch {
-    // In no-cors browser environments, fetch still dispatches correctly
-    return true;
-  }
+  const data = await res.json();
+  return {
+    email: data.email || 'user@gmail.com',
+    name: data.name || data.email?.split('@')[0] || 'Google User',
+    picture: data.picture,
+  };
 }
 
-export async function syncTransactionToSheet(
-  webAppUrl: string,
-  tx: LedgerTransaction,
-  sourceName: string,
-  targetName?: string
-): Promise<boolean> {
-  if (!webAppUrl.trim()) return false;
-  try {
-    await fetch(webAppUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'sync_transaction',
-        transaction: {
-          ...tx,
-          sourceName,
-          targetName,
+/**
+ * Auto-create WealthFolio Data Vault spreadsheet in Google Drive
+ */
+export async function createWealthFolioSpreadsheet(
+  accessToken: string,
+  title: string = 'WealthFolio Data Vault'
+): Promise<{ spreadsheetId: string; spreadsheetUrl: string }> {
+  const body = {
+    properties: { title },
+    sheets: [
+      {
+        properties: { title: 'Investments' },
+        data: [
+          {
+            startRow: 0,
+            startColumn: 0,
+            rowData: [
+              {
+                values: [
+                  { userEnteredValue: { stringValue: 'ID' } },
+                  { userEnteredValue: { stringValue: 'Name' } },
+                  { userEnteredValue: { stringValue: 'Category' } },
+                  { userEnteredValue: { stringValue: 'InvestedAmount' } },
+                  { userEnteredValue: { stringValue: 'CurrentValuation' } },
+                  { userEnteredValue: { stringValue: 'Notes' } },
+                  { userEnteredValue: { stringValue: 'UpdatedAt' } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        properties: { title: 'Transactions' },
+        data: [
+          {
+            startRow: 0,
+            startColumn: 0,
+            rowData: [
+              {
+                values: [
+                  { userEnteredValue: { stringValue: 'ID' } },
+                  { userEnteredValue: { stringValue: 'Type' } },
+                  { userEnteredValue: { stringValue: 'Date' } },
+                  { userEnteredValue: { stringValue: 'SourceID' } },
+                  { userEnteredValue: { stringValue: 'TargetID' } },
+                  { userEnteredValue: { stringValue: 'Amount' } },
+                  { userEnteredValue: { stringValue: 'NewValuation' } },
+                  { userEnteredValue: { stringValue: 'Note' } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  const res = await fetch(SHEETS_API_BASE, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Failed to create Google Sheet: ${errText}`);
+  }
+
+  const data = await res.json();
+  return {
+    spreadsheetId: data.spreadsheetId,
+    spreadsheetUrl: data.spreadsheetUrl || `https://docs.google.com/spreadsheets/d/${data.spreadsheetId}/edit`,
+  };
+}
+
+/**
+ * Fetch investments from Google Sheet
+ */
+export async function fetchSheetInvestments(
+  accessToken: string,
+  spreadsheetId: string
+): Promise<InvestmentSource[]> {
+  const url = `${SHEETS_API_BASE}/${spreadsheetId}/values/Investments!A2:G1000`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!res.ok) {
+    if (res.status === 404) return [];
+    throw new Error(`Failed to fetch investments from Google Sheet (${res.status})`);
+  }
+
+  const data = await res.json();
+  const rows: string[][] = data.values || [];
+
+  return rows.map((row) => ({
+    id: row[0] || `inv_${Date.now()}`,
+    name: row[1] || 'Unnamed Source',
+    category: row[2] || 'mutual_fund',
+    investedAmount: parseFloat(row[3]) || 0,
+    currentValuation: parseFloat(row[4]) || 0,
+    notes: row[5] || undefined,
+  }));
+}
+
+/**
+ * Fetch transactions from Google Sheet
+ */
+export async function fetchSheetTransactions(
+  accessToken: string,
+  spreadsheetId: string
+): Promise<Transaction[]> {
+  const url = `${SHEETS_API_BASE}/${spreadsheetId}/values/Transactions!A2:H1000`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!res.ok) {
+    if (res.status === 404) return [];
+    throw new Error(`Failed to fetch transactions from Google Sheet (${res.status})`);
+  }
+
+  const data = await res.json();
+  const rows: string[][] = data.values || [];
+
+  return rows.map((row) => ({
+    id: row[0] || `tx_${Date.now()}`,
+    type: (row[1] as any) || 'invest',
+    date: row[2] || new Date().toISOString(),
+    sourceId: row[3] || '',
+    targetId: row[4] || undefined,
+    amount: parseFloat(row[5]) || 0,
+    newValuation: row[6] ? parseFloat(row[6]) : undefined,
+    note: row[7] || undefined,
+  }));
+}
+
+/**
+ * Append or update an investment source in Google Sheet
+ */
+export async function saveSheetInvestment(
+  accessToken: string,
+  spreadsheetId: string,
+  investment: InvestmentSource
+): Promise<void> {
+  const rowValues = [
+    investment.id,
+    investment.name,
+    investment.category,
+    investment.investedAmount.toString(),
+    investment.currentValuation.toString(),
+    investment.notes || '',
+    new Date().toISOString(),
+  ];
+
+  // Try fetching existing rows to see if we should update or append
+  const fetchUrl = `${SHEETS_API_BASE}/${spreadsheetId}/values/Investments!A2:A1000`;
+  const getRes = await fetch(fetchUrl, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (getRes.ok) {
+    const getData = await getRes.json();
+    const rows: string[][] = getData.values || [];
+    const rowIndex = rows.findIndex((r) => r[0] === investment.id);
+
+    if (rowIndex !== -1) {
+      const sheetRowNumber = rowIndex + 2;
+      const updateUrl = `${SHEETS_API_BASE}/${spreadsheetId}/values/Investments!A${sheetRowNumber}:G${sheetRowNumber}?valueInputOption=USER_ENTERED`;
+      await fetch(updateUrl, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
         },
-      }),
+        body: JSON.stringify({ values: [rowValues] }),
+      });
+      return;
+    }
+  }
+
+  // Append new row
+  const appendUrl = `${SHEETS_API_BASE}/${spreadsheetId}/values/Investments!A:G:append?valueInputOption=USER_ENTERED`;
+  await fetch(appendUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ values: [rowValues] }),
+  });
+}
+
+/**
+ * Delete an investment source from Google Sheet
+ */
+export async function deleteSheetInvestment(
+  accessToken: string,
+  spreadsheetId: string,
+  investmentId: string
+): Promise<void> {
+  const fetchUrl = `${SHEETS_API_BASE}/${spreadsheetId}/values/Investments!A2:G1000`;
+  const getRes = await fetch(fetchUrl, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!getRes.ok) return;
+
+  const getData = await getRes.json();
+  const rows: string[][] = getData.values || [];
+  const updatedRows = rows.filter((r) => r[0] !== investmentId);
+
+  // Clear existing range and write updated rows back
+  const clearUrl = `${SHEETS_API_BASE}/${spreadsheetId}/values/Investments!A2:G1000:clear`;
+  await fetch(clearUrl, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (updatedRows.length > 0) {
+    const updateUrl = `${SHEETS_API_BASE}/${spreadsheetId}/values/Investments!A2:G${updatedRows.length + 1}?valueInputOption=USER_ENTERED`;
+    await fetch(updateUrl, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ values: updatedRows }),
     });
-    return true;
-  } catch (err) {
-    console.warn('Sheet sync failed:', err);
-    return false;
   }
 }
 
-export async function syncFullLedgerToSheet(
-  webAppUrl: string,
-  investments: InvestmentSource[]
-): Promise<boolean> {
-  if (!webAppUrl.trim()) return false;
-  try {
-    await fetch(webAppUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'sync_all',
-        investments,
-      }),
-    });
-    return true;
-  } catch (err) {
-    console.warn('Full sheet sync failed:', err);
-    return false;
-  }
-}
+/**
+ * Append a transaction log entry in Google Sheet
+ */
+export async function appendSheetTransaction(
+  accessToken: string,
+  spreadsheetId: string,
+  transaction: Transaction
+): Promise<void> {
+  const rowValues = [
+    transaction.id,
+    transaction.type,
+    transaction.date,
+    transaction.sourceId,
+    transaction.targetId || '',
+    transaction.amount.toString(),
+    transaction.newValuation !== undefined ? transaction.newValuation.toString() : '',
+    transaction.note || '',
+  ];
 
-export function downloadCSV(filename: string, content: string) {
-  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-export function exportInvestmentsCSV(investments: InvestmentSource[]) {
-  const headers = ['ID', 'Name', 'Category', 'Invested Amount ($)', 'Current Valuation ($)', 'Profit/Loss ($)', 'Notes', 'Last Updated'];
-  const rows = investments.map((inv) => [
-    `"${inv.id}"`,
-    `"${inv.name.replace(/"/g, '""')}"`,
-    `"${inv.category}"`,
-    inv.investedAmount,
-    inv.currentValuation,
-    inv.currentValuation - inv.investedAmount,
-    `"${(inv.notes || '').replace(/"/g, '""')}"`,
-    `"${inv.updatedAt}"`,
-  ]);
-
-  const csvString = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-  downloadCSV(`investments_export_${new Date().toISOString().slice(0, 10)}.csv`, csvString);
-}
-
-export function exportTransactionsCSV(
-  transactions: LedgerTransaction[],
-  investments: InvestmentSource[]
-) {
-  const invMap = new Map(investments.map((i) => [i.id, i.name]));
-  const headers = ['ID', 'Date', 'Type', 'Source Investment', 'Target Investment', 'Amount ($)', 'Note'];
-  const rows = transactions.map((tx) => [
-    `"${tx.id}"`,
-    `"${tx.timestamp}"`,
-    `"${tx.type}"`,
-    `"${(invMap.get(tx.sourceId) || tx.sourceId).replace(/"/g, '""')}"`,
-    `"${tx.targetId ? (invMap.get(tx.targetId) || tx.targetId).replace(/"/g, '""') : '-'}"`,
-    tx.amount,
-    `"${(tx.note || '').replace(/"/g, '""')}"`,
-  ]);
-
-  const csvString = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-  downloadCSV(`transactions_ledger_${new Date().toISOString().slice(0, 10)}.csv`, csvString);
+  const appendUrl = `${SHEETS_API_BASE}/${spreadsheetId}/values/Transactions!A:H:append?valueInputOption=USER_ENTERED`;
+  await fetch(appendUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ values: [rowValues] }),
+  });
 }
