@@ -1,16 +1,11 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { InvestmentSource, LedgerTransaction, TransactionType, GoogleSheetConfig } from './types';
-import { INITIAL_INVESTMENTS, INITIAL_TRANSACTIONS, DEFAULT_SHEET_CONFIG, DEFAULT_CATEGORIES } from './data';
-import { syncTransactionToSheet } from './services/googleSheets';
+import { InvestmentSource, Transaction, TransactionType } from './types';
+import { DEFAULT_CATEGORIES } from './data';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
-// Import Components
+// Import Components & Views
 import Sidebar from './components/Sidebar';
 import MetricCard from './components/MetricCard';
 import InvestmentCard from './components/InvestmentCard';
@@ -18,14 +13,23 @@ import InvestmentFormModal from './components/InvestmentFormModal';
 import TransactionModal from './components/TransactionModal';
 import LedgerTable from './components/LedgerTable';
 import ActionToolbar from './components/ActionToolbar';
-
 import CategorySelectModal from './components/CategorySelectModal';
+import AuthPage from './components/AuthPage';
+import SettingsPage from './components/SettingsPage';
+
+// Import Google Sheets API Services
+import {
+  fetchSheetInvestments,
+  fetchSheetTransactions,
+  saveSheetInvestment,
+  deleteSheetInvestment,
+  appendSheetTransaction,
+} from './services/googleSheets';
 
 // Import Icons
 import {
   Landmark,
   Plus,
-  RefreshCw,
   Sun,
   Moon,
   Menu,
@@ -33,44 +37,64 @@ import {
 
 function DashboardContent() {
   const { theme, toggleTheme } = useTheme();
+  const { isAuthenticated, isInitializing, accessToken, spreadsheetId, setIsSyncing, setSyncError } = useAuth();
 
-  // --- Persistent State ---
-  const [investments, setInvestments] = useState<InvestmentSource[]>(() => {
-    try {
-      const saved = localStorage.getItem('wealthfolio_investments_v3');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return INITIAL_INVESTMENTS;
-  });
+  // If unauthenticated, gate with AuthPage
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center p-4">
+        <div className="text-center space-y-2">
+          <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs font-semibold text-slate-400">Loading WealthFolio Vault...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const [transactions, setTransactions] = useState<LedgerTransaction[]>(() => {
-    try {
-      const saved = localStorage.getItem('wealthfolio_transactions_v3');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return INITIAL_TRANSACTIONS;
-  });
+  if (!isAuthenticated) {
+    return <AuthPage />;
+  }
 
-  const [sheetConfig, setSheetConfig] = useState<GoogleSheetConfig>(() => {
-    try {
-      const saved = localStorage.getItem('wealthfolio_sheet_config_v3');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return DEFAULT_SHEET_CONFIG;
-  });
+  // --- Live Google Sheets State ---
+  const [investments, setInvestments] = useState<InvestmentSource[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoadingSheetsData, setIsLoadingSheetsData] = useState(false);
 
-  // --- Local Storage Sync ---
+  // Live Read from Google Sheets
   useEffect(() => {
-    localStorage.setItem('wealthfolio_investments_v3', JSON.stringify(investments));
-  }, [investments]);
+    if (!accessToken || !spreadsheetId) return;
 
-  useEffect(() => {
-    localStorage.setItem('wealthfolio_transactions_v3', JSON.stringify(transactions));
-  }, [transactions]);
+    let isMounted = true;
+    const loadLiveSheetsData = async () => {
+      setIsLoadingSheetsData(true);
+      setIsSyncing(true);
+      try {
+        const [liveInvs, liveTxs] = await Promise.all([
+          fetchSheetInvestments(accessToken, spreadsheetId),
+          fetchSheetTransactions(accessToken, spreadsheetId),
+        ]);
+        if (isMounted) {
+          setInvestments(liveInvs);
+          setTransactions(liveTxs);
+          setSyncError(null);
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setSyncError(err.message || 'Failed to fetch live data from Google Sheets');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingSheetsData(false);
+          setIsSyncing(false);
+        }
+      }
+    };
 
-  useEffect(() => {
-    localStorage.setItem('wealthfolio_sheet_config_v3', JSON.stringify(sheetConfig));
-  }, [sheetConfig]);
+    loadLiveSheetsData();
+    return () => {
+      isMounted = false;
+    };
+  }, [accessToken, spreadsheetId]);
 
   // --- URL Parameter & Filter Persistence ---
   const getInitialCategoryFromUrl = () => {
@@ -82,11 +106,12 @@ function DashboardContent() {
     }
   };
 
-  const getInitialTabFromUrl = () => {
+  const getInitialTabFromUrl = (): 'dashboard' | 'ledger' | 'settings' => {
     try {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
       if (tab === 'ledger') return 'ledger';
+      if (tab === 'settings') return 'settings';
       return 'dashboard';
     } catch {
       return 'dashboard';
@@ -94,13 +119,14 @@ function DashboardContent() {
   };
 
   const [categoryFilter, setCategoryFilterState] = useState<string>(getInitialCategoryFromUrl);
-  const [activeTab, setActiveTabState] = useState<'dashboard' | 'sources' | 'ledger'>(getInitialTabFromUrl);
+  const [activeTab, setActiveTabState] = useState<'dashboard' | 'ledger' | 'settings'>(getInitialTabFromUrl);
 
   useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const cat = params.get('category') || 'all';
-      const tab = params.get('tab') === 'ledger' ? 'ledger' : 'dashboard';
+      const tabParam = params.get('tab');
+      const tab = tabParam === 'ledger' ? 'ledger' : tabParam === 'settings' ? 'settings' : 'dashboard';
       setCategoryFilterState(cat);
       setActiveTabState(tab);
     };
@@ -117,7 +143,7 @@ function DashboardContent() {
     } catch {}
   };
 
-  const setActiveTab = (tab: 'dashboard' | 'sources' | 'ledger') => {
+  const setActiveTab = (tab: 'dashboard' | 'ledger' | 'settings') => {
     setActiveTabState(tab);
     try {
       const url = new URL(window.location.href);
@@ -155,8 +181,6 @@ function DashboardContent() {
     });
   };
 
-  const [isSheetsModalOpen, setIsSheetsModalOpen] = useState(false);
-
   // --- Financial Calculations (Scoped to Selected Category Tab) ---
   const scopedInvestments = investments.filter(
     (inv) => categoryFilter === 'all' || inv.category === categoryFilter
@@ -169,43 +193,29 @@ function DashboardContent() {
 
   // --- Handlers ---
 
-  const handleSaveInvestmentSource = (data: {
+  const handleSaveInvestmentSource = async (data: {
     name: string;
     category: string;
     initialBalance: number;
     notes?: string;
   }) => {
-    const timestamp = new Date().toISOString();
-
+    let savedSource: InvestmentSource;
     if (investmentToEdit) {
-      setInvestments((prev) =>
-        prev.map((i) =>
-          i.id === investmentToEdit.id
-            ? {
-                ...i,
-                name: data.name,
-                category: data.category,
-                notes: data.notes,
-                updatedAt: timestamp,
-              }
-            : i
-        )
-      );
+      savedSource = {
+        ...investmentToEdit,
+        name: data.name,
+        category: data.category,
+        notes: data.notes,
+      };
+      setInvestments((prev) => prev.map((inv) => (inv.id === savedSource.id ? savedSource : inv)));
     } else {
-      const newId = `inv-${Date.now()}`;
-      const newSource: InvestmentSource = {
-        id: newId,
+      savedSource = {
+        id: `inv_${Date.now()}`,
         name: data.name,
         category: data.category,
         investedAmount: data.initialBalance,
         currentValuation: data.initialBalance,
         notes: data.notes,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      };
-
-      setInvestments((prev) => [...prev, newSource]);
-
       if (data.initialBalance > 0) {
         const newTx: LedgerTransaction = {
           id: `tx-${Date.now()}`,
@@ -549,16 +559,21 @@ function DashboardContent() {
               />
             </section>
           )}
+
+          {/* Settings Tab Section */}
+          {activeTab === 'settings' && (
+            <section id="settings-section">
+              <SettingsPage />
+            </section>
+          )}
         </main>
-
-
 
         {/* App Footer */}
         <footer className="bg-white dark:bg-[#12131A] border-t border-slate-200 dark:border-slate-800/80 py-8 text-center text-xs text-slate-400 dark:text-slate-500 transition-colors">
           <div className="max-w-7xl mx-auto px-4 font-medium space-y-1">
             <p>© 2026 Wealth Folio • Private Personal Investment Ledger</p>
             <p className="text-[11px] text-slate-400 dark:text-slate-500">
-              Local Google Sheet Database Persistence & Pure Data Ownership
+              Live Google Sheets Database Persistence & Pure Data Ownership
             </p>
           </div>
         </footer>
@@ -596,7 +611,9 @@ function DashboardContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <DashboardContent />
+      <AuthProvider>
+        <DashboardContent />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
