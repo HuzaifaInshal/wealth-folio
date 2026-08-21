@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { InvestmentSource, TransactionType } from '../types';
-import { X, Plus, Minus, ArrowRightLeft, Scale } from 'lucide-react';
+import { X, Plus, Minus, ArrowRightLeft, Scale, ArrowRight, ShieldAlert } from 'lucide-react';
 
 interface TransactionModalProps {
   isOpen: boolean;
@@ -70,6 +70,8 @@ export default function TransactionModal({
   if (!isOpen) return null;
 
   const currentSource = investments.find((i) => i.id === sourceId);
+  const currentTarget = investments.find((i) => i.id === targetId);
+  const parsedAmt = parseFloat(amount) || 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,8 +107,7 @@ export default function TransactionModal({
         note: note.trim() || 'Updated current market valuation balance',
       });
     } else {
-      const parsedAmt = parseFloat(amount);
-      if (isNaN(parsedAmt) || parsedAmt <= 0) {
+      if (parsedAmt <= 0) {
         setError('Please enter a valid positive amount.');
         return;
       }
@@ -129,57 +130,57 @@ export default function TransactionModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#1A1A1A]/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-      <div className="bg-white border border-[#DCDAD2] w-full max-w-lg rounded-none shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-5 border-b border-[#DCDAD2] flex items-center justify-between bg-[#F9F8F6]">
-          <h3 className="font-serif text-base font-bold text-[#1A1A1A]">
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <h3 className="text-base font-bold text-slate-900">
             Execute Ledger Transaction
           </h3>
           <button
             onClick={onClose}
-            className="p-1 text-[#8C8C85] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Tab Selector */}
-        <div className="grid grid-cols-4 border-b border-[#DCDAD2] bg-white">
+        {/* Segmented Tab Selector */}
+        <div className="p-2 bg-slate-100/70 border-b border-slate-200/80 grid grid-cols-4 gap-1">
           <button
             type="button"
             onClick={() => { setType('invest'); setError(''); }}
-            className={`py-3 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center space-x-1 border-b-2 ${
+            className={`py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 ${
               type === 'invest'
-                ? 'border-[#1A1A1A] text-[#1A1A1A] bg-[#F9F8F6]'
-                : 'border-transparent text-[#8C8C85] hover:text-[#1A1A1A]'
+                ? 'bg-white text-slate-900 shadow-xs font-bold'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 text-emerald-600" />
             <span>Invest</span>
           </button>
           <button
             type="button"
             onClick={() => { setType('withdraw'); setError(''); }}
-            className={`py-3 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center space-x-1 border-b-2 ${
+            className={`py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 ${
               type === 'withdraw'
-                ? 'border-[#1A1A1A] text-[#1A1A1A] bg-[#F9F8F6]'
-                : 'border-transparent text-[#8C8C85] hover:text-[#1A1A1A]'
+                ? 'bg-white text-slate-900 shadow-xs font-bold'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Minus className="w-3.5 h-3.5" />
+            <Minus className="w-3.5 h-3.5 text-rose-600" />
             <span>Outflow</span>
           </button>
           <button
             type="button"
             onClick={() => { setType('transfer'); setError(''); }}
-            className={`py-3 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center space-x-1 border-b-2 ${
+            className={`py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 ${
               type === 'transfer'
-                ? 'border-[#1A1A1A] text-[#1A1A1A] bg-[#F9F8F6]'
-                : 'border-transparent text-[#8C8C85] hover:text-[#1A1A1A]'
+                ? 'bg-white text-slate-900 shadow-xs font-bold'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <ArrowRightLeft className="w-3.5 h-3.5" />
+            <ArrowRightLeft className="w-3.5 h-3.5 text-blue-600" />
             <span>Transfer</span>
           </button>
           <button
@@ -189,13 +190,13 @@ export default function TransactionModal({
               setError('');
               if (currentSource) setNewValuation(currentSource.currentValuation.toString());
             }}
-            className={`py-3 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center space-x-1 border-b-2 ${
+            className={`py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 ${
               type === 'revalue'
-                ? 'border-[#1A1A1A] text-[#1A1A1A] bg-[#F9F8F6]'
-                : 'border-transparent text-[#8C8C85] hover:text-[#1A1A1A]'
+                ? 'bg-white text-slate-900 shadow-xs font-bold'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Scale className="w-3.5 h-3.5" />
+            <Scale className="w-3.5 h-3.5 text-amber-600" />
             <span>Revalue</span>
           </button>
         </div>
@@ -203,16 +204,17 @@ export default function TransactionModal({
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-left">
           {error && (
-            <div className="p-3 bg-[#FFF0F0] border border-rose-200 text-rose-800 text-xs font-serif italic">
-              {error}
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-xl flex items-center space-x-2">
+              <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
           {/* Primary Source */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider block">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700 block">
               {type === 'transfer' ? 'Source Investment (Outflow)' : 'Investment Source'}{' '}
-              <span className="text-rose-700">*</span>
+              <span className="text-rose-500">*</span>
             </label>
             <select
               value={sourceId}
@@ -224,7 +226,7 @@ export default function TransactionModal({
                   setNewValuation(s.currentValuation.toString());
                 }
               }}
-              className="w-full px-3 py-2 bg-white border border-[#DCDAD2] text-xs focus:outline-hidden focus:border-[#1A1A1A] text-[#1A1A1A] cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all cursor-pointer"
             >
               {investments.map((inv) => (
                 <option key={inv.id} value={inv.id}>
@@ -236,14 +238,14 @@ export default function TransactionModal({
 
           {/* Target Source (For Transfer) */}
           {type === 'transfer' && (
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider block">
-                Target Investment (Inflow) <span className="text-rose-700">*</span>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 block">
+                Target Investment (Inflow) <span className="text-rose-500">*</span>
               </label>
               <select
                 value={targetId}
                 onChange={(e) => setTargetId(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-[#DCDAD2] text-xs focus:outline-hidden focus:border-[#1A1A1A] text-[#1A1A1A] cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all cursor-pointer"
               >
                 {investments.map((inv) => (
                   <option key={inv.id} value={inv.id} disabled={inv.id === sourceId}>
@@ -256,9 +258,9 @@ export default function TransactionModal({
 
           {/* Amount field (For Invest, Withdraw, Transfer) */}
           {type !== 'revalue' ? (
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider block">
-                Transaction Amount ($) <span className="text-rose-700">*</span>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 block">
+                Transaction Amount ($) <span className="text-rose-500">*</span>
               </label>
               <input
                 type="number"
@@ -267,15 +269,15 @@ export default function TransactionModal({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full px-3 py-2.5 bg-white border border-[#DCDAD2] text-sm font-serif focus:outline-hidden focus:border-[#1A1A1A] text-[#1A1A1A]"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all text-slate-900"
                 required
               />
             </div>
           ) : (
             /* Valuation Override field (For Revalue) */
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider block">
-                New Ending Valuation ($) <span className="text-rose-700">*</span>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 block">
+                New Ending Valuation ($) <span className="text-rose-500">*</span>
               </label>
               <input
                 type="number"
@@ -284,43 +286,56 @@ export default function TransactionModal({
                 value={newValuation}
                 onChange={(e) => setNewValuation(e.target.value)}
                 placeholder="Current Valuation Balance"
-                className="w-full px-3 py-2.5 bg-white border border-[#DCDAD2] text-sm font-serif focus:outline-hidden focus:border-[#1A1A1A] text-[#1A1A1A]"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all text-slate-900"
                 required
               />
-              {currentSource && (
-                <p className="text-[10px] text-[#8C8C85] font-serif italic">
-                  Previous valuation was {formatCurrency(currentSource.currentValuation)}
-                </p>
-              )}
+            </div>
+          )}
+
+          {/* Live Calculation Preview Pill */}
+          {currentSource && (
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 text-xs flex items-center justify-between">
+              <span className="text-slate-500 font-medium">Balance Impact Preview:</span>
+              <div className="flex items-center space-x-2 font-mono text-xs font-semibold">
+                <span className="text-slate-600">{formatCurrency(currentSource.currentValuation)}</span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-slate-900 font-bold">
+                  {type === 'invest'
+                    ? formatCurrency(currentSource.currentValuation + parsedAmt)
+                    : type === 'withdraw' || type === 'transfer'
+                    ? formatCurrency(Math.max(0, currentSource.currentValuation - parsedAmt))
+                    : formatCurrency(parseFloat(newValuation) || currentSource.currentValuation)}
+                </span>
+              </div>
             </div>
           )}
 
           {/* Note / Memo */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider block">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700 block">
               Transaction Note / Memo
             </label>
             <input
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="e.g. Monthly allocation, profit reinvestment..."
-              className="w-full px-3 py-2 bg-white border border-[#DCDAD2] text-xs font-serif focus:outline-hidden focus:border-[#1A1A1A] text-[#1A1A1A]"
+              placeholder="e.g. Monthly allocation, dividend reinvestment..."
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all"
             />
           </div>
 
           {/* Buttons */}
-          <div className="pt-4 flex justify-end space-x-2 border-t border-[#F1EFEA]">
+          <div className="pt-4 flex justify-end space-x-2 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-[#DCDAD2] bg-white text-[#8C8C85] hover:text-[#1A1A1A] text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+              className="px-4 py-2 border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold cursor-pointer transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+              className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-md shadow-slate-900/10"
             >
               Submit Transaction
             </button>
