@@ -16,6 +16,7 @@ import InvestmentFormModal from './components/InvestmentFormModal';
 import TransactionModal from './components/TransactionModal';
 import GoogleSheetsModal from './components/GoogleSheetsModal';
 import LedgerTable from './components/LedgerTable';
+import QuickActionDock from './components/QuickActionDock';
 
 // Import Icons
 import {
@@ -28,7 +29,16 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   AlertCircle,
+  ShieldCheck,
 } from 'lucide-react';
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
 
 export default function App() {
   // --- Persistent State ---
@@ -293,66 +303,65 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F9F8F6] flex flex-col font-sans" id="app-root-container">
-      {/* Navigation Header */}
-      <header className="bg-white border-b border-[#DCDAD2] sticky top-0 z-40" id="header-navigation">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center space-x-3 self-start sm:self-auto">
-            <div className="p-2.5 bg-[#1A1A1A] text-white rounded-none border border-[#1A1A1A]">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans pb-24" id="app-root-container">
+      {/* Top Glassmorphic Navigation Header */}
+      <header className="bg-white/85 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30" id="header-navigation">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center space-x-3.5 self-start sm:self-auto">
+            <div className="p-2.5 bg-slate-900 text-white rounded-2xl shadow-md shadow-slate-900/10">
               <Landmark className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl font-serif font-bold text-[#1A1A1A] tracking-tight flex items-center">
-                Wealth <span className="font-serif italic font-normal text-[#8C8C85] ml-1.5">Folio</span>
+              <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center">
+                Wealth <span className="font-semibold text-slate-400 ml-1">Folio</span>
               </h1>
-              <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-[#8C8C85] mt-0.5">
+              <p className="text-[11px] font-semibold text-slate-400 tracking-wide mt-0.5">
                 Personal Investment Ledger & Asset Vault
               </p>
             </div>
           </div>
 
-          {/* Quick Header Actions */}
-          <div className="flex items-center space-x-2 self-end sm:self-auto">
-            {/* Google Sheets Sync Badge */}
+          {/* Header Controls */}
+          <div className="flex items-center space-x-2.5 self-end sm:self-auto">
+            {/* Google Sheets Sync Pill */}
             <button
               onClick={() => setIsSheetsModalOpen(true)}
-              className={`px-3 py-1.5 text-[10px] border font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center space-x-2 cursor-pointer shadow-xs ${
                 sheetConfig.webAppUrl
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900 hover:bg-emerald-100'
-                  : 'bg-white border-[#DCDAD2] text-[#8C8C85] hover:text-[#1A1A1A] hover:bg-[#F9F8F6]'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
+                  : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
               title="Configure Personal Google Sheets Sync"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
               <span>{sheetConfig.webAppUrl ? 'Google Sheet Synced' : 'Connect Google Sheet'}</span>
               {sheetConfig.webAppUrl ? (
-                <CheckCircle2 className="w-3 h-3 text-emerald-600 ml-0.5" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
               ) : (
-                <AlertCircle className="w-3 h-3 text-amber-500 ml-0.5" />
+                <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
               )}
             </button>
 
             <button
               onClick={handleResetDefaults}
-              className="px-3 py-1.5 text-[10px] border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] font-bold uppercase tracking-wider rounded-none transition-all flex items-center space-x-1 cursor-pointer"
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all cursor-pointer"
               title="Reset data to mock defaults"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-[#8C8C85]" />
-              <span>Reset</span>
+              <RefreshCw className="w-4 h-4" />
             </button>
 
             <button
               onClick={openNewInvestmentForm}
-              className="px-4 py-1.5 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white rounded-none text-[10px] uppercase tracking-widest font-bold shadow-xs transition-all flex items-center space-x-1.5 cursor-pointer"
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-md shadow-slate-900/10 transition-all flex items-center space-x-1.5 cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>+ Add Source</span>
+              <Plus className="w-4 h-4" />
+              <span>Add Source</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content Container */}
+      {/* Main Container Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Financial Overview Metrics Bar */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="portfolio-metrics-grid">
@@ -361,6 +370,7 @@ export default function App() {
             value={totalValuation}
             type="currency"
             theme="blue"
+            icon="wallet"
             subtitle="Current total valuation of all assets"
           />
           <MetricCard
@@ -368,13 +378,15 @@ export default function App() {
             value={totalInvested}
             type="currency"
             theme="indigo"
+            icon="dollar"
             subtitle="Net cash deposited across sources"
           />
           <MetricCard
-            title="Total Profit / Growth"
+            title="Total Growth / Profit"
             value={totalProfit}
             type="currency"
             theme="emerald"
+            icon="trending"
             change={overallROI}
             subtitle="Cumulative market gains"
           />
@@ -383,68 +395,44 @@ export default function App() {
             value={overallROI}
             type="percent"
             theme="amber"
+            icon="percent"
             subtitle="Return on invested capital"
           />
         </section>
 
-        {/* Toolbar: Category Filters & Search */}
-        <div className="bg-white border border-[#DCDAD2] p-4 rounded-none space-y-4">
+        {/* Toolbar: Search & Segmented Category Tabs */}
+        <div className="fintech-card p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* Search Input */}
             <div className="relative flex-1">
-              <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3.5 top-3.5" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search investment sources (Mutual funds, stocks, certificates)..."
-                className="w-full pl-10 pr-4 py-2.5 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold focus:outline-hidden focus:bg-white focus:border-[#1A1A1A] text-[#1A1A1A] transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 transition-all"
               />
-            </div>
-
-            <div className="flex space-x-2">
-              <button
-                onClick={() => {
-                  setTxInitialSource(investments[0] || null);
-                  setTxInitialType('invest');
-                  setIsTxModalOpen(true);
-                }}
-                disabled={investments.length === 0}
-                className="px-3.5 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white text-[10px] uppercase tracking-wider font-bold rounded-none flex items-center space-x-1 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Execute Transaction</span>
-              </button>
-              <button
-                onClick={() => {
-                  setTxInitialSource(investments[0] || null);
-                  setTxInitialType('transfer');
-                  setIsTxModalOpen(true);
-                }}
-                disabled={investments.length < 2}
-                className="px-3.5 py-2 bg-[#F9F8F6] hover:bg-[#F3F1EC] text-[#1A1A1A] border border-[#DCDAD2] text-[10px] uppercase tracking-wider font-bold rounded-none flex items-center space-x-1 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ArrowRightLeft className="w-3.5 h-3.5 text-blue-700" />
-                <span>Transfer Funds</span>
-              </button>
             </div>
           </div>
 
-          {/* Category Filter Pills */}
-          <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-none border-t border-[#F1EFEA] pt-3">
-            <ListFilter className="w-3.5 h-3.5 text-[#8C8C85] flex-shrink-0" />
+          {/* Segmented Category Pills */}
+          <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none border-t border-slate-100 pt-3">
+            <ListFilter className="w-4 h-4 text-slate-400 shrink-0" />
             <button
               onClick={() => setCategoryFilter('all')}
-              className={`text-[10px] px-3 py-1.5 font-bold tracking-wider uppercase transition-all whitespace-nowrap rounded-none border cursor-pointer ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
                 categoryFilter === 'all'
-                  ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]'
-                  : 'bg-white text-[#8C8C85] border-[#DCDAD2] hover:text-[#1A1A1A] hover:border-[#1A1A1A]'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
-              All Sources ({investments.length})
+              All Sources ({investments.length}) • {formatCurrency(totalValuation)}
             </button>
             {Object.keys(DEFAULT_CATEGORIES).map((catKey) => {
-              const count = investments.filter((i) => i.category === catKey).length;
-              if (count === 0 && categoryFilter !== catKey) return null;
+              const catHoldings = investments.filter((i) => i.category === catKey);
+              if (catHoldings.length === 0 && categoryFilter !== catKey) return null;
+              const subtotal = catHoldings.reduce((s, i) => s + i.currentValuation, 0);
               const details = DEFAULT_CATEGORIES[catKey];
               const isActive = categoryFilter === catKey;
 
@@ -452,13 +440,13 @@ export default function App() {
                 <button
                   key={catKey}
                   onClick={() => setCategoryFilter(catKey)}
-                  className={`text-[10px] px-3 py-1.5 font-bold tracking-wider uppercase transition-all whitespace-nowrap rounded-none border cursor-pointer ${
+                  className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
                     isActive
-                      ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]'
-                      : 'bg-white text-[#8C8C85] border-[#DCDAD2] hover:text-[#1A1A1A] hover:border-[#1A1A1A]'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
-                  {details.label} ({count})
+                  {details.label} ({catHoldings.length}) • {formatCurrency(subtotal)}
                 </button>
               );
             })}
@@ -468,17 +456,17 @@ export default function App() {
         {/* Investment Sources Grid */}
         <section id="investment-sources-section">
           {filteredInvestments.length === 0 ? (
-            <div className="bg-white border border-dashed border-[#DCDAD2] p-12 text-center max-w-lg mx-auto space-y-4">
-              <Landmark className="w-8 h-8 text-[#8C8C85] mx-auto" />
+            <div className="fintech-card p-12 text-center max-w-lg mx-auto space-y-4">
+              <Landmark className="w-10 h-10 text-slate-300 mx-auto" />
               <div>
-                <h4 className="text-base font-serif font-bold text-[#1A1A1A]">No investment sources found</h4>
-                <p className="text-xs text-[#8C8C85] font-serif italic mt-1">
+                <h4 className="text-base font-bold text-slate-900">No investment sources found</h4>
+                <p className="text-xs text-slate-500 font-medium mt-1">
                   Add your mutual funds, stock market holdings, or savings certificates to start tracking.
                 </p>
               </div>
               <button
                 onClick={openNewInvestmentForm}
-                className="px-4 py-2 bg-[#1A1A1A] text-white text-[10px] uppercase font-bold tracking-wider cursor-pointer"
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-md shadow-slate-900/10"
               >
                 + Add Investment Source
               </button>
@@ -516,11 +504,22 @@ export default function App() {
         </section>
       </main>
 
+      {/* Floating Bottom Quick Action Dock */}
+      <QuickActionDock
+        onOpenTransaction={(type) => {
+          setTxInitialSource(investments[0] || null);
+          setTxInitialType(type);
+          setIsTxModalOpen(true);
+        }}
+        onOpenNewSource={openNewInvestmentForm}
+        disabled={investments.length === 0}
+      />
+
       {/* App Footer */}
-      <footer className="bg-white border-t border-[#DCDAD2] mt-16 py-8 text-center text-xs text-[#8C8C85]">
-        <div className="max-w-7xl mx-auto px-4 font-serif italic space-y-1">
+      <footer className="bg-white border-t border-slate-200 mt-16 py-8 text-center text-xs text-slate-400">
+        <div className="max-w-7xl mx-auto px-4 font-medium space-y-1">
           <p>© 2026 Wealth Folio • Private Personal Investment Ledger</p>
-          <p className="text-[10px] font-sans not-italic uppercase tracking-widest text-[#B5B3AC]">
+          <p className="text-[11px] text-slate-400">
             Local Google Sheet Database Persistence & Pure Data Ownership
           </p>
         </div>
