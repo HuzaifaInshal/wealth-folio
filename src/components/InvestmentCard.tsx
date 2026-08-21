@@ -12,7 +12,8 @@ import {
   Minus,
   ArrowRightLeft,
   Scale,
-  Settings,
+  MoreVertical,
+  Edit3,
   Trash2,
   Layers,
   Award,
@@ -71,114 +72,112 @@ export default function InvestmentCard({
   const isPositive = profit >= 0;
 
   return (
-    <div className="bg-white border border-[#DCDAD2] hover:border-[#1A1A1A] rounded-none p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
-      {/* Top Header */}
-      <div className="space-y-2">
-        <div className="flex items-start justify-between">
-          <span className={`inline-flex items-center space-x-1 text-[9px] font-bold tracking-widest uppercase border border-[#DCDAD2] px-2 py-0.5 ${catDetails.bg} ${catDetails.text}`}>
-            {getCategoryIconComponent(catDetails.icon)}
-            <span>{catDetails.label}</span>
-          </span>
+    <div className="fintech-card p-6 flex flex-col justify-between space-y-5 relative group">
+      {/* Top Bar: Category Pill & Edit Actions */}
+      <div className="flex items-start justify-between">
+        <span className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide ${catDetails.bg} ${catDetails.text} border border-slate-200/60`}>
+          {getCategoryIconComponent(catDetails.icon)}
+          <span>{catDetails.label}</span>
+        </span>
 
-          <div className="flex items-center space-x-1">
-            <button
-              onClick={() => onEdit(investment)}
-              className="p-1 text-[#8C8C85] hover:text-[#1A1A1A] hover:bg-[#F9F8F6] border border-transparent hover:border-[#DCDAD2] transition-colors cursor-pointer"
-              title="Edit investment source details"
-            >
-              <Settings className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onDelete(investment.id)}
-              className="p-1 text-[#8C8C85] hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
-              title="Delete investment source"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
+        <div className="flex items-center space-x-1 opacity-80 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => onEdit(investment)}
+            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            title="Edit Investment Details"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => onDelete(investment.id)}
+            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+            title="Delete Investment Source"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
         </div>
+      </div>
 
-        <h4 className="text-lg font-serif font-bold text-[#1A1A1A] tracking-tight truncate">
+      {/* Asset Name & Note */}
+      <div className="space-y-1">
+        <h4 className="text-lg font-bold text-slate-900 tracking-tight">
           {investment.name}
         </h4>
-
         {investment.notes && (
-          <p className="text-xs text-[#6B6B66] font-serif italic line-clamp-1">
-            &ldquo;{investment.notes}&rdquo;
+          <p className="text-xs text-slate-500 font-medium line-clamp-1">
+            {investment.notes}
           </p>
         )}
       </div>
 
-      {/* Main Stats Grid */}
-      <div className="border-t border-b border-[#F1EFEA] py-3 grid grid-cols-2 gap-3">
+      {/* Main Balances Grid */}
+      <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-100 grid grid-cols-2 gap-4">
         <div>
-          <span className="text-[9px] font-bold text-[#8C8C85] uppercase tracking-wider block">
-            Current Valuation
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+            Current Value
           </span>
-          <span className="text-lg font-serif font-bold text-[#1A1A1A] block mt-0.5">
+          <span className="text-xl font-bold text-slate-900 block mt-0.5 font-sans">
             {formatCurrency(investment.currentValuation)}
           </span>
         </div>
         <div>
-          <span className="text-[9px] font-bold text-[#8C8C85] uppercase tracking-wider block">
-            Net Invested Capital
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+            Capital Invested
           </span>
-          <span className="text-sm font-serif text-[#6B6B66] block mt-1">
+          <span className="text-sm font-semibold text-slate-600 block mt-1.5 font-sans">
             {formatCurrency(investment.investedAmount)}
           </span>
         </div>
       </div>
 
-      {/* Gain / Loss Pill */}
+      {/* Growth Status Pill */}
       <div className="flex items-center justify-between text-xs pt-0.5">
-        <span className="text-[10px] text-[#8C8C85] uppercase font-bold tracking-wider">
-          Total Growth
-        </span>
-        <div className="flex items-center space-x-1 font-serif">
-          <span className={`font-bold ${isPositive ? 'text-emerald-700' : 'text-rose-700'}`}>
+        <span className="text-slate-400 font-medium">Accumulated Growth</span>
+        <div className="flex items-center space-x-1.5">
+          <span className={`font-bold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
             {isPositive ? '+' : ''}{formatCurrency(profit)}
           </span>
-          <span className={`text-[10px] font-mono px-1.5 py-0.5 font-bold ${
-            isPositive ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+            isPositive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/50' : 'bg-rose-50 text-rose-700 border border-rose-200/50'
           }`}>
             {isPositive ? '+' : ''}{roi.toFixed(1)}%
           </span>
         </div>
       </div>
 
-      {/* Quick Action Toolbar */}
-      <div className="grid grid-cols-4 gap-1.5 pt-1">
+      {/* Quick Action Grid Toolbar */}
+      <div className="grid grid-cols-4 gap-1.5 pt-1 border-t border-slate-100">
         <button
           onClick={() => onAction(investment, 'invest')}
-          className="px-2 py-1.5 bg-[#F9F8F6] hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] border border-[#DCDAD2] text-[9px] uppercase tracking-wider font-bold transition-all cursor-pointer flex items-center justify-center space-x-1"
+          className="py-2 bg-slate-50 hover:bg-slate-900 hover:text-white text-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1"
           title="Deposit/Invest capital"
         >
-          <Plus className="w-3 h-3" />
+          <Plus className="w-3.5 h-3.5" />
           <span>Invest</span>
         </button>
         <button
           onClick={() => onAction(investment, 'withdraw')}
-          className="px-2 py-1.5 bg-[#F9F8F6] hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] border border-[#DCDAD2] text-[9px] uppercase tracking-wider font-bold transition-all cursor-pointer flex items-center justify-center space-x-1"
+          className="py-2 bg-slate-50 hover:bg-slate-900 hover:text-white text-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1"
           title="Withdraw funds"
         >
-          <Minus className="w-3 h-3" />
+          <Minus className="w-3.5 h-3.5" />
           <span>Outflow</span>
         </button>
         <button
           onClick={() => onAction(investment, 'transfer')}
-          className="px-2 py-1.5 bg-[#F9F8F6] hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] border border-[#DCDAD2] text-[9px] uppercase tracking-wider font-bold transition-all cursor-pointer flex items-center justify-center space-x-1"
+          className="py-2 bg-slate-50 hover:bg-slate-900 hover:text-white text-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1"
           title="Transfer funds to another source"
         >
-          <ArrowRightLeft className="w-3 h-3" />
+          <ArrowRightLeft className="w-3.5 h-3.5" />
           <span>Transfer</span>
         </button>
         <button
           onClick={() => onAction(investment, 'revalue')}
-          className="px-2 py-1.5 bg-[#F9F8F6] hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] border border-[#DCDAD2] text-[9px] uppercase tracking-wider font-bold transition-all cursor-pointer flex items-center justify-center space-x-1"
+          className="py-2 bg-slate-50 hover:bg-slate-900 hover:text-white text-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1"
           title="Update valuation balance"
         >
-          <Scale className="w-3 h-3" />
-          <span>Value</span>
+          <Scale className="w-3.5 h-3.5" />
+          <span>Revalue</span>
         </button>
       </div>
     </div>
