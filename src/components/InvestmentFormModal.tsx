@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { InvestmentSource } from '../types';
 import { DEFAULT_CATEGORIES } from '../data';
-import { X, Plus, Layers } from 'lucide-react';
+import { X, Plus, Layers, FolderPlus } from 'lucide-react';
 
 interface InvestmentFormModalProps {
   isOpen: boolean;
@@ -90,21 +90,21 @@ export default function InvestmentFormModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#1A1A1A]/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-      <div className="bg-white border border-[#DCDAD2] w-full max-w-md rounded-none shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white border border-slate-200 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-5 border-b border-[#DCDAD2] flex items-center justify-between bg-[#F9F8F6]">
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 bg-[#1A1A1A] text-white rounded-none">
+            <div className="p-2 bg-slate-900 text-white rounded-xl">
               <Layers className="w-4 h-4" />
             </div>
-            <h3 className="font-serif text-base font-bold text-[#1A1A1A]">
+            <h3 className="text-base font-bold text-slate-900">
               {investmentToEdit ? 'Edit Investment Source' : 'New Investment Source'}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-[#8C8C85] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -113,30 +113,30 @@ export default function InvestmentFormModal({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-left">
           {error && (
-            <div className="p-3 bg-[#FFF0F0] border border-rose-200 text-rose-800 text-xs font-serif italic">
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-xl">
               {error}
             </div>
           )}
 
           {/* Source Name */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider block">
-              Source / Fund Name <span className="text-rose-700">*</span>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700 block">
+              Source / Fund Name <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Cash Fund, Apple Stock, National Certificate #1..."
-              className="w-full px-3 py-2 bg-white border border-[#DCDAD2] text-xs focus:outline-hidden focus:border-[#1A1A1A] text-[#1A1A1A]"
+              placeholder="e.g. Cash Fund, Apple Stock, Savings Certificate #1..."
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all"
               required
             />
           </div>
 
           {/* Category Selection */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider block">
-              Asset Category <span className="text-rose-700">*</span>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700 block">
+              Asset Category <span className="text-rose-500">*</span>
             </label>
             <select
               value={category}
@@ -145,7 +145,7 @@ export default function InvestmentFormModal({
                 setCategory(val);
                 setIsCustomMode(val === 'custom');
               }}
-              className="w-full px-3 py-2 bg-white border border-[#DCDAD2] text-xs focus:outline-hidden focus:border-[#1A1A1A] text-[#1A1A1A] cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all cursor-pointer"
             >
               {Object.keys(DEFAULT_CATEGORIES).map((catKey) => (
                 <option key={catKey} value={catKey}>
@@ -158,8 +158,8 @@ export default function InvestmentFormModal({
 
           {/* Custom Category Input if selected */}
           {isCustomMode && (
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider block">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 block">
                 Custom Category Name
               </label>
               <input
@@ -167,16 +167,16 @@ export default function InvestmentFormModal({
                 value={customCategory}
                 onChange={(e) => setCustomCategory(e.target.value)}
                 placeholder="e.g. Venture Capital, Art, Private Bond..."
-                className="w-full px-3 py-2 bg-[#F9F8F6] border border-[#DCDAD2] text-xs focus:outline-hidden focus:border-[#1A1A1A] text-[#1A1A1A]"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all"
               />
             </div>
           )}
 
           {/* Initial Capital (Only on creation) */}
           {!investmentToEdit && (
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider block">
-                Initial Invested Capital ($)
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 block">
+                Starting Invested Capital ($)
               </label>
               <input
                 type="number"
@@ -185,40 +185,40 @@ export default function InvestmentFormModal({
                 value={initialBalance}
                 onChange={(e) => setInitialBalance(e.target.value)}
                 placeholder="0.00"
-                className="w-full px-3 py-2 bg-white border border-[#DCDAD2] text-xs font-serif focus:outline-hidden focus:border-[#1A1A1A] text-[#1A1A1A]"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all"
               />
-              <p className="text-[10px] text-[#8C8C85] font-serif italic">
-                Starting money deposited into this source. Can be updated anytime later.
+              <p className="text-[11px] text-slate-400 font-medium">
+                Initial capital deposited into this source.
               </p>
             </div>
           )}
 
           {/* Notes */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider block">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700 block">
               Notes / Memo (Optional)
             </label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. 3-year term, liquidity policy, broker account..."
-              className="w-full px-3 py-2 bg-white border border-[#DCDAD2] text-xs font-serif focus:outline-hidden focus:border-[#1A1A1A] text-[#1A1A1A]"
+              placeholder="e.g. 3-year certificate, liquidity policy, broker account..."
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all"
             />
           </div>
 
           {/* Buttons */}
-          <div className="pt-4 flex justify-end space-x-2 border-t border-[#F1EFEA]">
+          <div className="pt-4 flex justify-end space-x-2 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-[#DCDAD2] bg-white text-[#8C8C85] hover:text-[#1A1A1A] text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+              className="px-4 py-2 border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold cursor-pointer transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+              className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-md shadow-slate-900/10"
             >
               {investmentToEdit ? 'Save Changes' : 'Create Source'}
             </button>
