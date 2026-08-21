@@ -19,7 +19,6 @@ import {
   Check,
   RefreshCw,
   Download,
-  ExternalLink,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -100,44 +99,44 @@ export default function GoogleSheetsModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#1A1A1A]/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-      <div className="bg-white border border-[#DCDAD2] w-full max-w-2xl rounded-none shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white border border-slate-200 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-5 border-b border-[#DCDAD2] flex items-center justify-between bg-[#F9F8F6]">
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-emerald-700 text-white rounded-none">
+            <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-md shadow-emerald-600/20">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-serif text-lg font-bold text-[#1A1A1A]">
+              <h3 className="text-base font-bold text-slate-900">
                 Google Sheets Local Database Sync
               </h3>
-              <p className="text-xs text-[#8C8C85] font-serif italic">
-                Store your financial records in your personal Google Sheet for 100% privacy and ownership
+              <p className="text-xs text-slate-500 font-medium">
+                Store your financial records in your personal Google Sheet for 100% privacy
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-[#8C8C85] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-left">
+        <div className="p-6 overflow-y-auto space-y-5 flex-1 text-left">
           {/* Privacy badge */}
-          <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center space-x-2.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-700 flex-shrink-0" />
-            <span>
-              <strong>Zero third-party access:</strong> Data is sent directly from your browser to your own Google Sheet. No intermediate servers touch your financials.
+          <div className="p-3.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl text-emerald-900 text-xs flex items-center space-x-3">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="font-medium leading-relaxed">
+              <strong>100% Data Privacy:</strong> Financial data is sent directly from your browser to your personal Google Sheet. No third-party servers have access.
             </span>
           </div>
 
           {/* Web App URL Input */}
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider block">
+            <label className="text-xs font-semibold text-slate-700 block">
               Google Apps Script Web App URL
             </label>
             <input
@@ -145,18 +144,18 @@ export default function GoogleSheetsModal({
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
               placeholder="https://script.google.com/macros/s/AKfycbx.../exec"
-              className="w-full px-3.5 py-2.5 bg-white border border-[#DCDAD2] text-xs font-mono focus:outline-hidden focus:border-[#1A1A1A] text-[#1A1A1A]"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all text-slate-900"
             />
-            <p className="text-[10px] text-[#8C8C85] font-serif italic">
+            <p className="text-[11px] text-slate-400 font-medium">
               Paste the Web App deployment URL generated from your Google Sheet&apos;s Apps Script.
             </p>
           </div>
 
           {/* Sync Options */}
-          <div className="flex items-center justify-between border-t border-b border-[#F1EFEA] py-3">
+          <div className="flex items-center justify-between border-t border-b border-slate-100 py-3">
             <div>
-              <span className="text-xs font-bold text-[#1A1A1A] block">Auto-Sync Transactions</span>
-              <span className="text-[10px] text-[#8C8C85] font-serif italic">
+              <span className="text-xs font-bold text-slate-900 block">Auto-Sync Transactions</span>
+              <span className="text-[11px] text-slate-400 font-medium">
                 Automatically post deposits, withdrawals, and revaluations to your Sheet
               </span>
             </div>
@@ -164,41 +163,41 @@ export default function GoogleSheetsModal({
               type="checkbox"
               checked={autoSyncInput}
               onChange={(e) => setAutoSyncInput(e.target.checked)}
-              className="w-4 h-4 accent-[#1A1A1A] cursor-pointer"
+              className="w-4 h-4 accent-slate-900 cursor-pointer rounded-md"
             />
           </div>
 
           {/* Status message */}
           {syncStatusMsg && (
-            <div className="p-3 bg-[#F9F8F6] border border-[#DCDAD2] text-xs font-serif italic text-[#1A1A1A]">
+            <div className="p-3 bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 rounded-xl">
               {syncStatusMsg}
             </div>
           )}
 
           {/* Step-by-Step Setup Guide */}
-          <div className="border border-[#DCDAD2] p-4 bg-[#F9F8F6] space-y-3">
-            <div className="flex items-center justify-between border-b border-[#DCDAD2] pb-2">
-              <h4 className="font-serif font-bold text-xs text-[#1A1A1A] uppercase tracking-wider">
+          <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+              <h4 className="font-bold text-xs text-slate-900">
                 1-Minute Setup Instructions
               </h4>
               <button
                 onClick={handleCopyScript}
-                className="px-2.5 py-1 bg-[#1A1A1A] text-white text-[10px] font-bold uppercase tracking-wider flex items-center space-x-1 hover:bg-[#3E3E39] cursor-pointer"
+                className="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[11px] font-semibold flex items-center space-x-1 transition-all cursor-pointer shadow-xs"
               >
                 {isCopied ? (
                   <>
-                    <Check className="w-3 h-3 text-emerald-400" />
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
                     <span>Copied Code!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3 h-3" />
+                    <Copy className="w-3.5 h-3.5" />
                     <span>Copy Apps Script</span>
                   </>
                 )}
               </button>
             </div>
-            <ol className="text-xs text-[#6B6B66] font-serif italic space-y-1.5 list-decimal pl-4 leading-relaxed">
+            <ol className="text-xs text-slate-600 font-medium space-y-1.5 list-decimal pl-4 leading-relaxed">
               <li>Open your Google Sheet (or create a new blank Google Sheet).</li>
               <li>Click <strong>Extensions $\rightarrow$ Apps Script</strong> in top menu.</li>
               <li>Delete any code in the editor and click <strong>Copy Apps Script</strong> above, then paste into the editor.</li>
@@ -209,26 +208,26 @@ export default function GoogleSheetsModal({
           </div>
 
           {/* Offline CSV Backups */}
-          <div className="border-t border-[#DCDAD2] pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="border-t border-slate-100 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <span className="text-xs font-bold text-[#1A1A1A] block">Offline File Backups</span>
-              <span className="text-[10px] text-[#8C8C85] font-serif italic">
+              <span className="text-xs font-bold text-slate-900 block">Offline File Backups</span>
+              <span className="text-[11px] text-slate-400 font-medium">
                 Download raw CSV files anytime to inspect or import into Excel / Google Sheets
               </span>
             </div>
             <div className="flex space-x-2">
               <button
                 onClick={() => exportInvestmentsCSV(investments)}
-                className="px-3 py-1.5 border border-[#DCDAD2] bg-white text-[#1A1A1A] hover:bg-[#F9F8F6] text-[10px] font-bold uppercase tracking-wider flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold flex items-center space-x-1 cursor-pointer transition-all"
               >
-                <Download className="w-3 h-3" />
+                <Download className="w-3.5 h-3.5" />
                 <span>Investments CSV</span>
               </button>
               <button
                 onClick={() => exportTransactionsCSV(transactions, investments)}
-                className="px-3 py-1.5 border border-[#DCDAD2] bg-white text-[#1A1A1A] hover:bg-[#F9F8F6] text-[10px] font-bold uppercase tracking-wider flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold flex items-center space-x-1 cursor-pointer transition-all"
               >
-                <Download className="w-3 h-3" />
+                <Download className="w-3.5 h-3.5" />
                 <span>Transactions CSV</span>
               </button>
             </div>
@@ -236,11 +235,11 @@ export default function GoogleSheetsModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 bg-[#F9F8F6] border-t border-[#DCDAD2] flex justify-between items-center">
+        <div className="p-4 bg-slate-50/80 border-t border-slate-100 flex justify-between items-center">
           <button
             onClick={handleSyncNow}
             disabled={isTesting || !urlInput.trim()}
-            className="px-4 py-2 bg-white border border-[#DCDAD2] hover:bg-[#F3F1EC] text-[#1A1A1A] text-[10px] font-bold uppercase tracking-wider flex items-center space-x-1.5 disabled:opacity-40 cursor-pointer"
+            className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 rounded-xl text-xs font-semibold flex items-center space-x-1.5 disabled:opacity-40 cursor-pointer transition-all shadow-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
             <span>Sync Portfolio Now</span>
@@ -248,14 +247,14 @@ export default function GoogleSheetsModal({
           <div className="flex space-x-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 border border-[#DCDAD2] bg-white text-[#8C8C85] hover:text-[#1A1A1A] text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+              className="px-4 py-2 border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold cursor-pointer transition-all"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={isTesting}
-              className="px-5 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-white text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+              className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-md shadow-slate-900/10"
             >
               {isTesting ? 'Connecting...' : 'Save Settings'}
             </button>
