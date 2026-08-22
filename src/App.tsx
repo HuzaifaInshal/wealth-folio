@@ -368,55 +368,51 @@ export default function App() {
       {/* Main Container Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Category Tabs Container */}
-        <div className="fintech-card p-5 space-y-4" id="category-tabs-bar">
+        <div className="fintech-card p-5" id="category-tabs-bar">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search investment sources (Mutual funds, stocks, certificates)..."
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 transition-all"
-              />
+            {/* Segmented Category Pills */}
+            <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
+              <ListFilter className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
+              <button
+                onClick={() => setCategoryFilter('all')}
+                className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
+                  categoryFilter === 'all'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs font-bold'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                All Sources
+              </button>
+              {Object.keys(DEFAULT_CATEGORIES).map((catKey) => {
+                const catHoldings = investments.filter((i) => i.category === catKey);
+                if (catHoldings.length === 0 && categoryFilter !== catKey) return null;
+                const details = DEFAULT_CATEGORIES[catKey];
+                const isActive = categoryFilter === catKey;
+
+                return (
+                  <button
+                    key={catKey}
+                    onClick={() => setCategoryFilter(catKey)}
+                    className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
+                      isActive
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-xs font-bold'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {details.label}
+                  </button>
+                );
+              })}
             </div>
-          </div>
 
-          {/* Segmented Category Pills */}
-          <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none border-t border-slate-100 pt-3">
-            <ListFilter className="w-4 h-4 text-slate-400 shrink-0" />
+            {/* Inline Add Source Button */}
             <button
-              onClick={() => setCategoryFilter('all')}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
-                categoryFilter === 'all'
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-              }`}
+              onClick={openNewInvestmentForm}
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-md shadow-slate-900/10 transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 self-start sm:self-auto"
             >
-              All Sources ({investments.length}) • {formatCurrency(totalValuation)}
+              <Plus className="w-4 h-4" />
+              <span>Add Source</span>
             </button>
-            {Object.keys(DEFAULT_CATEGORIES).map((catKey) => {
-              const catHoldings = investments.filter((i) => i.category === catKey);
-              if (catHoldings.length === 0 && categoryFilter !== catKey) return null;
-              const subtotal = catHoldings.reduce((s, i) => s + i.currentValuation, 0);
-              const details = DEFAULT_CATEGORIES[catKey];
-              const isActive = categoryFilter === catKey;
-
-              return (
-                <button
-                  key={catKey}
-                  onClick={() => setCategoryFilter(catKey)}
-                  className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
-                    isActive
-                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  {details.label} ({catHoldings.length}) • {formatCurrency(subtotal)}
-                </button>
-              );
-            })}
           </div>
         </div>
 
