@@ -93,9 +93,13 @@ export default function App() {
 
   const [isSheetsModalOpen, setIsSheetsModalOpen] = useState(false);
 
-  // --- Financial Calculations ---
-  const totalValuation = investments.reduce((sum, i) => sum + i.currentValuation, 0);
-  const totalInvested = investments.reduce((sum, i) => sum + i.investedAmount, 0);
+  // --- Financial Calculations (Scoped to Selected Category Tab) ---
+  const scopedInvestments = investments.filter(
+    (inv) => categoryFilter === 'all' || inv.category === categoryFilter
+  );
+
+  const totalValuation = scopedInvestments.reduce((sum, i) => sum + i.currentValuation, 0);
+  const totalInvested = scopedInvestments.reduce((sum, i) => sum + i.investedAmount, 0);
   const totalProfit = totalValuation - totalInvested;
   const overallROI = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
 
