@@ -307,7 +307,7 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans pb-24" id="app-root-container">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans" id="app-root-container">
       {/* Top Glassmorphic Navigation Header */}
       <header className="bg-white/85 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30" id="header-navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -366,7 +366,7 @@ export default function App() {
       </header>
 
       {/* Main Container Layout */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 space-y-6">
         {/* Category Tabs Container */}
         <div className="fintech-card p-5" id="category-tabs-bar">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
