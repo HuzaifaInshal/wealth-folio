@@ -494,12 +494,6 @@ export default function App() {
           <LedgerTable
             transactions={transactions}
             investments={investments}
-            onDeleteTransaction={handleDeleteTransaction}
-            onClearAll={() => {
-              if (confirm('Clear all transaction history from the ledger?')) {
-                setTransactions([]);
-              }
-            }}
           />
         </section>
       </main>

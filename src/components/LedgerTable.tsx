@@ -11,7 +11,6 @@ import {
   Minus,
   ArrowRightLeft,
   Scale,
-  Trash2,
   ListFilter,
   ArrowRight,
 } from 'lucide-react';
@@ -19,8 +18,6 @@ import {
 interface LedgerTableProps {
   transactions: LedgerTransaction[];
   investments: InvestmentSource[];
-  onDeleteTransaction: (id: string) => void;
-  onClearAll?: () => void;
 }
 
 const formatCurrency = (amount: number) => {
@@ -76,8 +73,6 @@ const getTypeBadge = (type: TransactionType) => {
 export default function LedgerTable({
   transactions,
   investments,
-  onDeleteTransaction,
-  onClearAll,
 }: LedgerTableProps) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -100,25 +95,13 @@ export default function LedgerTable({
   return (
     <div className="fintech-card p-6 space-y-5 text-left">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900 tracking-tight">
-            Transaction Activity Ledger ({filtered.length})
-          </h3>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Chronological audit trail of deposits, withdrawals, transfers, and valuation updates
-          </p>
-        </div>
-
-        {/* Clear All button */}
-        {transactions.length > 0 && onClearAll && (
-          <button
-            onClick={onClearAll}
-            className="text-xs font-semibold text-slate-400 hover:text-rose-600 transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            Clear History Log
-          </button>
-        )}
+      <div className="border-b border-slate-100 pb-4">
+        <h3 className="text-lg font-bold text-slate-900 tracking-tight">
+          Transaction Activity Ledger ({filtered.length})
+        </h3>
+        <p className="text-xs text-slate-500 font-medium mt-0.5">
+          Chronological audit trail of deposits, withdrawals, transfers, and valuation updates
+        </p>
       </div>
 
       {/* Filter & Search Toolbar */}
@@ -166,7 +149,6 @@ export default function LedgerTable({
                 <th className="py-3 px-4">Investment Source</th>
                 <th className="py-3 px-4 text-right">Amount ($)</th>
                 <th className="py-3 px-4">Note / Memo</th>
-                <th className="py-3 px-4 text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-sans">
@@ -207,15 +189,6 @@ export default function LedgerTable({
                     </td>
                     <td className="py-3.5 px-4 text-slate-500 font-medium max-w-xs truncate">
                       {tx.note || '-'}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <button
-                        onClick={() => onDeleteTransaction(tx.id)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                        title="Delete transaction record"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
                     </td>
                   </tr>
                 );
