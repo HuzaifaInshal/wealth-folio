@@ -363,45 +363,8 @@ export default function App() {
 
       {/* Main Container Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Financial Overview Metrics Bar */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="portfolio-metrics-grid">
-          <MetricCard
-            title="Total Net Worth"
-            value={totalValuation}
-            type="currency"
-            theme="blue"
-            icon="wallet"
-            subtitle="Current total valuation of all assets"
-          />
-          <MetricCard
-            title="Total Invested Capital"
-            value={totalInvested}
-            type="currency"
-            theme="indigo"
-            icon="dollar"
-            subtitle="Net cash deposited across sources"
-          />
-          <MetricCard
-            title="Total Growth / Profit"
-            value={totalProfit}
-            type="currency"
-            theme="emerald"
-            icon="trending"
-            change={overallROI}
-            subtitle="Cumulative market gains"
-          />
-          <MetricCard
-            title="Overall Return (ROI)"
-            value={overallROI}
-            type="percent"
-            theme="amber"
-            icon="percent"
-            subtitle="Return on invested capital"
-          />
-        </section>
-
-        {/* Toolbar: Search & Segmented Category Tabs */}
-        <div className="fintech-card p-5 space-y-4">
+        {/* Category Tabs Container */}
+        <div className="fintech-card p-5 space-y-4" id="category-tabs-bar">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* Search Input */}
             <div className="relative flex-1">
@@ -452,6 +415,43 @@ export default function App() {
             })}
           </div>
         </div>
+
+        {/* Financial Overview Metrics Bar */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="portfolio-metrics-grid">
+          <MetricCard
+            title="Total Net Worth"
+            value={totalValuation}
+            type="currency"
+            theme="blue"
+            icon="wallet"
+            subtitle="Current total valuation of all assets"
+          />
+          <MetricCard
+            title="Total Invested Capital"
+            value={totalInvested}
+            type="currency"
+            theme="indigo"
+            icon="dollar"
+            subtitle="Net cash deposited across sources"
+          />
+          <MetricCard
+            title="Total Growth / Profit"
+            value={totalProfit}
+            type="currency"
+            theme="emerald"
+            icon="trending"
+            change={overallROI}
+            subtitle="Cumulative market gains"
+          />
+          <MetricCard
+            title="Overall Return (ROI)"
+            value={overallROI}
+            type="percent"
+            theme="amber"
+            icon="percent"
+            subtitle="Return on invested capital"
+          />
+        </section>
 
         {/* Investment Sources Grid */}
         <section id="investment-sources-section">
