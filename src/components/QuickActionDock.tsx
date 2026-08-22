@@ -20,23 +20,23 @@ export default function QuickActionDock({
 }: QuickActionDockProps) {
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 max-w-xl w-[92%] sm:w-auto">
-      <div className="bg-slate-900/90 text-white backdrop-blur-xl border border-slate-700/60 p-2 rounded-2xl shadow-2xl flex items-center justify-between sm:justify-center gap-1.5 sm:gap-3 px-3 sm:px-4">
+      <div className="bg-slate-900/90 dark:bg-[#181924]/90 text-white backdrop-blur-xl border border-slate-700/60 dark:border-purple-500/30 p-2 rounded-2xl shadow-2xl flex items-center justify-between sm:justify-center gap-1.5 sm:gap-3 px-3 sm:px-4">
         {/* New Source */}
         <button
           onClick={onOpenNewSource}
-          className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center space-x-1.5 shadow-md shadow-indigo-600/20 whitespace-nowrap"
+          className="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center space-x-1.5 shadow-lg shadow-purple-600/30 whitespace-nowrap"
         >
           <Layers className="w-4 h-4" />
           <span className="hidden sm:inline">+ Add Source</span>
         </button>
 
-        <div className="w-px h-6 bg-slate-700/60 mx-0.5 hidden sm:block" />
+        <div className="w-px h-6 bg-slate-700/60 dark:bg-slate-700/80 mx-0.5 hidden sm:block" />
 
         {/* Action Buttons */}
         <button
           onClick={() => onOpenTransaction('invest')}
           disabled={disabled}
-          className="px-2.5 sm:px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 border border-slate-700/50 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+          className="px-2.5 sm:px-3.5 py-2 bg-slate-800/90 dark:bg-slate-900/90 hover:bg-slate-700 dark:hover:bg-slate-800 text-slate-100 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 border border-slate-700/50 dark:border-slate-800/80 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
           title="Deposit Capital"
         >
           <Plus className="w-3.5 h-3.5 text-emerald-400" />
@@ -46,7 +46,7 @@ export default function QuickActionDock({
         <button
           onClick={() => onOpenTransaction('transfer')}
           disabled={disabled}
-          className="px-2.5 sm:px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 border border-slate-700/50 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+          className="px-2.5 sm:px-3.5 py-2 bg-slate-800/90 dark:bg-slate-900/90 hover:bg-slate-700 dark:hover:bg-slate-800 text-slate-100 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 border border-slate-700/50 dark:border-slate-800/80 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
           title="Transfer Funds"
         >
           <ArrowRightLeft className="w-3.5 h-3.5 text-blue-400" />
@@ -56,7 +56,7 @@ export default function QuickActionDock({
         <button
           onClick={() => onOpenTransaction('withdraw')}
           disabled={disabled}
-          className="px-2.5 sm:px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 border border-slate-700/50 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+          className="px-2.5 sm:px-3.5 py-2 bg-slate-800/90 dark:bg-slate-900/90 hover:bg-slate-700 dark:hover:bg-slate-800 text-slate-100 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 border border-slate-700/50 dark:border-slate-800/80 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
           title="Withdraw Funds"
         >
           <Minus className="w-3.5 h-3.5 text-rose-400" />
@@ -66,7 +66,7 @@ export default function QuickActionDock({
         <button
           onClick={() => onOpenTransaction('revalue')}
           disabled={disabled}
-          className="px-2.5 sm:px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 border border-slate-700/50 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+          className="px-2.5 sm:px-3.5 py-2 bg-slate-800/90 dark:bg-slate-900/90 hover:bg-slate-700 dark:hover:bg-slate-800 text-slate-100 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 border border-slate-700/50 dark:border-slate-800/80 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
           title="Revalue Balance"
         >
           <Scale className="w-3.5 h-3.5 text-amber-400" />
