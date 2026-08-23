@@ -6,10 +6,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { InvestmentSource, LedgerTransaction, TransactionType, GoogleSheetConfig } from './types';
-import { INITIAL_INVESTMENTS, INITIAL_TRANSACTIONS, DEFAULT_SHEET_CONFIG, DEFAULT_CATEGORIES, getCategoryDetails } from './data';
-import { syncTransactionToSheet, syncFullLedgerToSheet } from './services/googleSheets';
+import { INITIAL_INVESTMENTS, INITIAL_TRANSACTIONS, DEFAULT_SHEET_CONFIG, DEFAULT_CATEGORIES } from './data';
+import { syncTransactionToSheet } from './services/googleSheets';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 
 // Import Components
+import Sidebar from './components/Sidebar';
 import MetricCard from './components/MetricCard';
 import InvestmentCard from './components/InvestmentCard';
 import InvestmentFormModal from './components/InvestmentFormModal';
@@ -22,25 +24,19 @@ import QuickActionDock from './components/QuickActionDock';
 import {
   Landmark,
   Plus,
-  ArrowRightLeft,
   Search,
   ListFilter,
   RefreshCw,
   FileSpreadsheet,
   CheckCircle2,
   AlertCircle,
-  ShieldCheck,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+function DashboardContent() {
+  const { theme, toggleTheme } = useTheme();
 
-export default function App() {
   // --- Persistent State ---
   const [investments, setInvestments] = useState<InvestmentSource[]>(() => {
     try {
@@ -82,6 +78,7 @@ export default function App() {
   // --- UI & Filter States ---
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'sources' | 'ledger'>('dashboard');
 
   // Modals
   const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
@@ -121,7 +118,6 @@ export default function App() {
     const timestamp = new Date().toISOString();
 
     if (investmentToEdit) {
-      // Edit existing source
       setInvestments((prev) =>
         prev.map((i) =>
           i.id === investmentToEdit.id
@@ -136,7 +132,6 @@ export default function App() {
         )
       );
     } else {
-      // Create new source
       const newId = `inv-${Date.now()}`;
       const newSource: InvestmentSource = {
         id: newId,
@@ -151,7 +146,6 @@ export default function App() {
 
       setInvestments((prev) => [...prev, newSource]);
 
-      // If starting capital is injected, record transaction
       if (data.initialBalance > 0) {
         const newTx: LedgerTransaction = {
           id: `tx-${Date.now()}`,
@@ -163,7 +157,6 @@ export default function App() {
         };
         setTransactions((prev) => [newTx, ...prev]);
 
-        // Google Sheets Auto-Sync
         if (sheetConfig.webAppUrl && sheetConfig.autoSync) {
           syncTransactionToSheet(sheetConfig.webAppUrl, newTx, data.name);
         }
@@ -210,7 +203,6 @@ export default function App() {
 
     setInvestments((prev) => {
       return prev.map((inv) => {
-        // Revalue action
         if (data.type === 'revalue' && inv.id === data.sourceId && data.newValuation !== undefined) {
           newTx.previousValuation = inv.currentValuation;
           return {
@@ -220,7 +212,6 @@ export default function App() {
           };
         }
 
-        // Deposit / Invest
         if (data.type === 'invest' && inv.id === data.sourceId) {
           return {
             ...inv,
@@ -230,7 +221,6 @@ export default function App() {
           };
         }
 
-        // Withdraw
         if (data.type === 'withdraw' && inv.id === data.sourceId) {
           return {
             ...inv,
@@ -240,7 +230,6 @@ export default function App() {
           };
         }
 
-        // Transfer Outflow from Source
         if (data.type === 'transfer' && inv.id === data.sourceId) {
           return {
             ...inv,
@@ -250,7 +239,6 @@ export default function App() {
           };
         }
 
-        // Transfer Inflow to Target
         if (data.type === 'transfer' && inv.id === data.targetId) {
           return {
             ...inv,
@@ -266,7 +254,6 @@ export default function App() {
 
     setTransactions((prev) => [newTx, ...prev]);
 
-    // Google Sheets Auto-Sync
     if (sheetConfig.webAppUrl && sheetConfig.autoSync) {
       const srcName = investments.find((i) => i.id === data.sourceId)?.name || data.sourceId;
       const tgtName = data.targetId ? investments.find((i) => i.id === data.targetId)?.name : undefined;
@@ -274,13 +261,6 @@ export default function App() {
     }
   };
 
-  const handleDeleteTransaction = (id: string) => {
-    if (confirm('Delete this transaction record from the ledger?')) {
-      setTransactions((prev) => prev.filter((t) => t.id !== id));
-    }
-  };
-
-  // Helper shortcuts
   const openActionForInvestment = (inv: InvestmentSource, type: TransactionType) => {
     setTxInitialSource(inv);
     setTxInitialType(type);
@@ -297,7 +277,6 @@ export default function App() {
     setIsInvestmentModalOpen(true);
   };
 
-  // Filtered investments list
   const filteredInvestments = investments.filter((inv) => {
     const matchesCategory = categoryFilter === 'all' || inv.category === categoryFilter;
     const query = searchQuery.toLowerCase().trim();
@@ -307,243 +286,274 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans" id="app-root-container">
-      {/* Top Glassmorphic Navigation Header */}
-      <header className="bg-white/85 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30" id="header-navigation">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center space-x-3.5 self-start sm:self-auto">
-            <div className="p-2.5 bg-slate-900 text-white rounded-2xl shadow-md shadow-slate-900/10">
-              <Landmark className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center">
-                Wealth <span className="font-semibold text-slate-400 ml-1">Folio</span>
-              </h1>
-              <p className="text-[11px] font-semibold text-slate-400 tracking-wide mt-0.5">
-                Personal Investment Ledger & Asset Vault
-              </p>
-            </div>
-          </div>
+    <div className="flex min-h-screen bg-[#F4F5F8] dark:bg-[#0D0E15] transition-colors duration-200" id="app-root-container">
+      {/* Sidebar Navigation */}
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onOpenSheetsModal={() => setIsSheetsModalOpen(true)}
+        isSheetsConnected={!!sheetConfig.webAppUrl}
+      />
 
-          {/* Header Controls */}
-          <div className="flex items-center space-x-2.5 self-end sm:self-auto">
-            {/* Google Sheets Sync Pill */}
-            <button
-              onClick={() => setIsSheetsModalOpen(true)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center space-x-2 cursor-pointer shadow-xs ${
-                sheetConfig.webAppUrl
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
-                  : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
-              title="Configure Personal Google Sheets Sync"
-            >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              <span>{sheetConfig.webAppUrl ? 'Google Sheet Synced' : 'Connect Google Sheet'}</span>
-              {sheetConfig.webAppUrl ? (
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              ) : (
-                <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-              )}
-            </button>
-
-            <button
-              onClick={handleResetDefaults}
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all cursor-pointer"
-              title="Reset data to mock defaults"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={openNewInvestmentForm}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-md shadow-slate-900/10 transition-all flex items-center space-x-1.5 cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Source</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Container Layout */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 space-y-6">
-        {/* Category Tabs Container */}
-        <div className="fintech-card p-5" id="category-tabs-bar">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            {/* Segmented Category Pills */}
-            <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
-              <ListFilter className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
-              <button
-                onClick={() => setCategoryFilter('all')}
-                className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
-                  categoryFilter === 'all'
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs font-bold'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                All Sources
-              </button>
-              {Object.keys(DEFAULT_CATEGORIES).map((catKey) => {
-                const catHoldings = investments.filter((i) => i.category === catKey);
-                if (catHoldings.length === 0 && categoryFilter !== catKey) return null;
-                const details = DEFAULT_CATEGORIES[catKey];
-                const isActive = categoryFilter === catKey;
-
-                return (
-                  <button
-                    key={catKey}
-                    onClick={() => setCategoryFilter(catKey)}
-                    className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
-                      isActive
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-xs font-bold'
-                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    {details.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Inline Add Source Button */}
-            <button
-              onClick={openNewInvestmentForm}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-md shadow-slate-900/10 transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 self-start sm:self-auto"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Source</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Financial Overview Metrics Bar */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="portfolio-metrics-grid">
-          <MetricCard
-            title="Total Net Worth"
-            value={totalValuation}
-            type="currency"
-            theme="blue"
-            icon="wallet"
-            subtitle="Current total valuation of all assets"
-          />
-          <MetricCard
-            title="Total Invested Capital"
-            value={totalInvested}
-            type="currency"
-            theme="indigo"
-            icon="dollar"
-            subtitle="Net cash deposited across sources"
-          />
-          <MetricCard
-            title="Total Growth / Profit"
-            value={totalProfit}
-            type="currency"
-            theme="emerald"
-            icon="trending"
-            change={overallROI}
-            subtitle="Cumulative market gains"
-          />
-          <MetricCard
-            title="Overall Return (ROI)"
-            value={overallROI}
-            type="percent"
-            theme="amber"
-            icon="percent"
-            subtitle="Return on invested capital"
-          />
-        </section>
-
-        {/* Investment Sources Grid */}
-        <section id="investment-sources-section">
-          {filteredInvestments.length === 0 ? (
-            <div className="fintech-card p-12 text-center max-w-lg mx-auto space-y-4">
-              <Landmark className="w-10 h-10 text-slate-300 mx-auto" />
-              <div>
-                <h4 className="text-base font-bold text-slate-900">No investment sources found</h4>
-                <p className="text-xs text-slate-500 font-medium mt-1">
-                  Add your mutual funds, stock market holdings, or savings certificates to start tracking.
-                </p>
+      {/* Main Right Content Panel */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header Bar */}
+        <header className="bg-white/85 dark:bg-[#12131A]/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-30 transition-colors">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
+            {/* Left Breadcrumb & Mobile Brand */}
+            <div className="flex items-center space-x-3">
+              <div className="lg:hidden p-2 bg-slate-900 dark:bg-purple-600 text-white rounded-xl">
+                <Landmark className="w-5 h-5" />
               </div>
+              <div>
+                <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">Dashboard &gt; Assets</span>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+                  Portfolio Vault
+                </h2>
+              </div>
+            </div>
+
+            {/* Right Header Search & Controls */}
+            <div className="flex items-center space-x-3">
+              {/* Header Search Bar (Orbix style) */}
+              <div className="relative hidden md:block w-64">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search assets..."
+                  className="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-[#181924] border border-slate-200/80 dark:border-slate-800/80 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
+                />
+              </div>
+
+              {/* Theme Mode Toggle Mobile */}
+              <button
+                onClick={toggleTheme}
+                className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer border border-slate-200/80 dark:border-slate-800/80"
+                title="Toggle Light/Dark Theme"
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-purple-600" />}
+              </button>
+
+              {/* Google Sheets Sync Pill */}
+              <button
+                onClick={() => setIsSheetsModalOpen(true)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center space-x-2 cursor-pointer shadow-xs ${
+                  sheetConfig.webAppUrl
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100'
+                    : 'bg-white dark:bg-[#181924] border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="Configure Personal Google Sheets Sync"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+                <span className="hidden sm:inline">{sheetConfig.webAppUrl ? 'Google Sheet Synced' : 'Connect Google Sheet'}</span>
+                {sheetConfig.webAppUrl ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                ) : (
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                )}
+              </button>
+
+              <button
+                onClick={handleResetDefaults}
+                className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800/80 rounded-xl transition-all cursor-pointer bg-white dark:bg-[#181924]"
+                title="Reset data to mock defaults"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Dashboard Container */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 space-y-6">
+          {/* Category Tabs Bar Container */}
+          <div className="fintech-card p-5" id="category-tabs-bar">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              {/* Segmented Category Pills */}
+              <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
+                <ListFilter className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
+                <button
+                  onClick={() => setCategoryFilter('all')}
+                  className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
+                    categoryFilter === 'all'
+                      ? 'bg-slate-900 text-white border-slate-900 dark:bg-purple-600 dark:border-purple-500 shadow-sm shadow-purple-600/20'
+                      : 'bg-white dark:bg-[#12131A] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                  }`}
+                >
+                  All Sources
+                </button>
+                {Object.keys(DEFAULT_CATEGORIES).map((catKey) => {
+                  const catHoldings = investments.filter((i) => i.category === catKey);
+                  if (catHoldings.length === 0 && categoryFilter !== catKey) return null;
+                  const details = DEFAULT_CATEGORIES[catKey];
+                  const isActive = categoryFilter === catKey;
+
+                  return (
+                    <button
+                      key={catKey}
+                      onClick={() => setCategoryFilter(catKey)}
+                      className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
+                        isActive
+                          ? 'bg-slate-900 text-white border-slate-900 dark:bg-purple-600 dark:border-purple-500 shadow-sm shadow-purple-600/20'
+                          : 'bg-white dark:bg-[#12131A] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                      }`}
+                    >
+                      {details.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Inline Add Source Button */}
               <button
                 onClick={openNewInvestmentForm}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-md shadow-slate-900/10"
+                className="px-4 py-2 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-purple-600/20 transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 self-start sm:self-auto"
               >
-                + Add Investment Source
+                <Plus className="w-4 h-4" />
+                <span>Add Source</span>
               </button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              <AnimatePresence mode="popLayout">
-                {filteredInvestments.map((inv) => (
-                  <motion.div key={inv.id} layout>
-                    <InvestmentCard
-                      investment={inv}
-                      onAction={openActionForInvestment}
-                      onEdit={openEditInvestmentForm}
-                      onDelete={handleDeleteInvestmentSource}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
-        </section>
+          </div>
 
-        {/* Transaction Ledger Table Section */}
-        <section id="transaction-ledger-section">
-          <LedgerTable
-            transactions={transactions}
-            investments={investments}
-          />
-        </section>
-      </main>
+          {/* Financial Overview Metrics Bar (Orbix/Nuance Aurora Mesh Cards) */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="portfolio-metrics-grid">
+            <MetricCard
+              title="Total Net Worth"
+              value={totalValuation}
+              type="currency"
+              theme="blue"
+              icon="wallet"
+              subtitle="Current total valuation of assets"
+            />
+            <MetricCard
+              title="Total Invested Capital"
+              value={totalInvested}
+              type="currency"
+              theme="indigo"
+              icon="dollar"
+              subtitle="Net capital deposited"
+            />
+            <MetricCard
+              title="Total Growth / Profit"
+              value={totalProfit}
+              type="currency"
+              theme="emerald"
+              icon="trending"
+              change={overallROI}
+              subtitle="Cumulative market gains"
+            />
+            <MetricCard
+              title="Overall Return (ROI)"
+              value={overallROI}
+              type="percent"
+              theme="amber"
+              icon="percent"
+              subtitle="Return on invested capital"
+            />
+          </section>
 
-      {/* Floating Bottom Quick Action Dock */}
-      <QuickActionDock
-        onOpenTransaction={(type) => {
-          setTxInitialSource(investments[0] || null);
-          setTxInitialType(type);
-          setIsTxModalOpen(true);
-        }}
-        onOpenNewSource={openNewInvestmentForm}
-        disabled={investments.length === 0}
-      />
+          {/* Investment Sources Grid */}
+          <section id="investment-sources-section">
+            {filteredInvestments.length === 0 ? (
+              <div className="fintech-card p-12 text-center max-w-lg mx-auto space-y-4 rounded-3xl">
+                <Landmark className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+                <div>
+                  <h4 className="text-base font-bold text-slate-900 dark:text-white">No investment sources found</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
+                    Add your mutual funds, stock market holdings, or savings certificates to start tracking.
+                  </p>
+                </div>
+                <button
+                  onClick={openNewInvestmentForm}
+                  className="px-4 py-2 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-md shadow-purple-600/20"
+                >
+                  + Add Investment Source
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <AnimatePresence mode="popLayout">
+                  {filteredInvestments.map((inv) => (
+                    <motion.div key={inv.id} layout>
+                      <InvestmentCard
+                        investment={inv}
+                        onAction={openActionForInvestment}
+                        onEdit={openEditInvestmentForm}
+                        onDelete={handleDeleteInvestmentSource}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+          </section>
 
-      {/* App Footer */}
-      <footer className="bg-white border-t border-slate-200 mt-16 py-8 text-center text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 font-medium space-y-1">
-          <p>© 2026 Wealth Folio • Private Personal Investment Ledger</p>
-          <p className="text-[11px] text-slate-400">
-            Local Google Sheet Database Persistence & Pure Data Ownership
-          </p>
-        </div>
-      </footer>
+          {/* Transaction Ledger Table Section */}
+          <section id="transaction-ledger-section">
+            <LedgerTable
+              transactions={transactions}
+              investments={investments}
+            />
+          </section>
+        </main>
 
-      {/* Modal Dialogs */}
-      <InvestmentFormModal
-        isOpen={isInvestmentModalOpen}
-        onClose={() => setIsInvestmentModalOpen(false)}
-        investmentToEdit={investmentToEdit}
-        onSubmit={handleSaveInvestmentSource}
-      />
+        {/* Floating Bottom Quick Action Dock */}
+        <QuickActionDock
+          onOpenTransaction={(type) => {
+            setTxInitialSource(investments[0] || null);
+            setTxInitialType(type);
+            setIsTxModalOpen(true);
+          }}
+          onOpenNewSource={openNewInvestmentForm}
+          disabled={investments.length === 0}
+        />
 
-      <TransactionModal
-        isOpen={isTxModalOpen}
-        onClose={() => setIsTxModalOpen(false)}
-        initialType={txInitialType}
-        initialSource={txInitialSource}
-        investments={investments}
-        onSubmit={handleExecuteTransaction}
-      />
+        {/* App Footer */}
+        <footer className="bg-white dark:bg-[#12131A] border-t border-slate-200 dark:border-slate-800/80 py-8 text-center text-xs text-slate-400 dark:text-slate-500 transition-colors">
+          <div className="max-w-7xl mx-auto px-4 font-medium space-y-1">
+            <p>© 2026 Wealth Folio • Private Personal Investment Ledger</p>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+              Local Google Sheet Database Persistence & Pure Data Ownership
+            </p>
+          </div>
+        </footer>
 
-      <GoogleSheetsModal
-        isOpen={isSheetsModalOpen}
-        onClose={() => setIsSheetsModalOpen(false)}
-        config={sheetConfig}
-        onSaveConfig={setSheetConfig}
-        investments={investments}
-        transactions={transactions}
-      />
+        {/* Modal Dialogs */}
+        <InvestmentFormModal
+          isOpen={isInvestmentModalOpen}
+          onClose={() => setIsInvestmentModalOpen(false)}
+          investmentToEdit={investmentToEdit}
+          onSubmit={handleSaveInvestmentSource}
+        />
+
+        <TransactionModal
+          isOpen={isTxModalOpen}
+          onClose={() => setIsTxModalOpen(false)}
+          initialType={txInitialType}
+          initialSource={txInitialSource}
+          investments={investments}
+          onSubmit={handleExecuteTransaction}
+        />
+
+        <GoogleSheetsModal
+          isOpen={isSheetsModalOpen}
+          onClose={() => setIsSheetsModalOpen(false)}
+          config={sheetConfig}
+          onSaveConfig={setSheetConfig}
+          investments={investments}
+          transactions={transactions}
+        />
+      </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <DashboardContent />
+    </ThemeProvider>
   );
 }
