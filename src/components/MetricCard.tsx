@@ -42,13 +42,13 @@ export default function MetricCard({
   const getMeshClass = () => {
     switch (theme) {
       case 'indigo':
-        return 'bg-mesh-cyan-orange border-cyan-200/60 dark:border-slate-800/80';
+        return 'bg-mesh-cyan-orange border-cyan-200/80 dark:border-slate-800/80';
       case 'emerald':
-        return 'bg-mesh-violet-pink border-purple-200/60 dark:border-slate-800/80';
+        return 'bg-mesh-violet-pink border-purple-200/80 dark:border-slate-800/80';
       case 'amber':
-        return 'bg-mesh-emerald-gold border-emerald-200/60 dark:border-slate-800/80';
+        return 'bg-mesh-emerald-gold border-emerald-200/80 dark:border-slate-800/80';
       default:
-        return 'bg-mesh-blue border-blue-200/60 dark:border-slate-800/80';
+        return 'bg-mesh-blue border-blue-200/80 dark:border-slate-800/80';
     }
   };
 
@@ -56,23 +56,23 @@ export default function MetricCard({
 
   return (
     <div
-      className={`rounded-3xl p-6 border shadow-xs hover:shadow-xl transition-all duration-300 relative overflow-hidden group ${getMeshClass()}`}
+      className={`rounded-xl p-6 border shadow-xs hover:shadow-lg transition-all duration-200 relative overflow-hidden group ${getMeshClass()}`}
     >
       <div className="relative flex flex-col justify-between h-full space-y-4">
         {/* Top Header */}
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 tracking-wide uppercase">
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider uppercase">
             {title}
           </span>
-          <div className="p-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md text-slate-800 dark:text-slate-100 border border-white/60 dark:border-slate-700/60 shadow-xs transition-transform group-hover:scale-105">
+          <div className="p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-900 dark:text-slate-100 border border-white/80 dark:border-slate-700/80 shadow-xs transition-transform group-hover:scale-105">
             {icon === 'trending' ? (
-              <TrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              <TrendingUp className="w-4 h-4 text-purple-700 dark:text-purple-400" />
             ) : icon === 'percent' ? (
-              <Percent className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <Percent className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             ) : icon === 'dollar' ? (
-              <DollarSign className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <DollarSign className="w-4 h-4 text-amber-700 dark:text-amber-400" />
             ) : (
-              <Wallet className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <Wallet className="w-4 h-4 text-blue-700 dark:text-blue-400" />
             )}
           </div>
         </div>
@@ -86,7 +86,7 @@ export default function MetricCard({
           {/* Subtitle & Trend Micro-Badge */}
           <div className="flex items-center justify-between pt-1">
             {subtitle && (
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-[170px]">
+              <span className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold truncate max-w-[170px]">
                 {subtitle}
               </span>
             )}
@@ -95,8 +95,8 @@ export default function MetricCard({
               <div
                 className={`inline-flex items-center space-x-0.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-md ${
                   isPositive
-                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                    : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                    ? 'bg-emerald-600/15 text-emerald-800 dark:text-emerald-400 border border-emerald-600/30'
+                    : 'bg-rose-600/15 text-rose-800 dark:text-rose-400 border border-rose-600/30'
                 }`}
               >
                 {isPositive ? (
