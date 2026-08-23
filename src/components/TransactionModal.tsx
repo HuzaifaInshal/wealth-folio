@@ -70,7 +70,6 @@ export default function TransactionModal({
   if (!isOpen) return null;
 
   const currentSource = investments.find((i) => i.id === sourceId);
-  const currentTarget = investments.find((i) => i.id === targetId);
   const parsedAmt = parseFloat(amount) || 0;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -130,33 +129,33 @@ export default function TransactionModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 bg-slate-900/60 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
+      <div className="bg-white dark:bg-[#181924] border border-slate-200 dark:border-slate-800/80 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <h3 className="text-base font-bold text-slate-900">
+        <div className="p-5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-[#12131A]/50">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">
             Execute Ledger Transaction
           </h3>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Segmented Tab Selector */}
-        <div className="p-2 bg-slate-100/70 border-b border-slate-200/80 grid grid-cols-4 gap-1">
+        <div className="p-2 bg-slate-100/70 dark:bg-[#12131A] border-b border-slate-200/80 dark:border-slate-800/80 grid grid-cols-4 gap-1">
           <button
             type="button"
             onClick={() => { setType('invest'); setError(''); }}
             className={`py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 ${
               type === 'invest'
-                ? 'bg-white text-slate-900 shadow-xs font-bold'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-white dark:bg-[#181924] text-slate-900 dark:text-white shadow-xs font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
             }`}
           >
-            <Plus className="w-3.5 h-3.5 text-emerald-600" />
+            <Plus className="w-3.5 h-3.5 text-emerald-500" />
             <span>Invest</span>
           </button>
           <button
@@ -164,11 +163,11 @@ export default function TransactionModal({
             onClick={() => { setType('withdraw'); setError(''); }}
             className={`py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 ${
               type === 'withdraw'
-                ? 'bg-white text-slate-900 shadow-xs font-bold'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-white dark:bg-[#181924] text-slate-900 dark:text-white shadow-xs font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
             }`}
           >
-            <Minus className="w-3.5 h-3.5 text-rose-600" />
+            <Minus className="w-3.5 h-3.5 text-rose-500" />
             <span>Outflow</span>
           </button>
           <button
@@ -176,11 +175,11 @@ export default function TransactionModal({
             onClick={() => { setType('transfer'); setError(''); }}
             className={`py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 ${
               type === 'transfer'
-                ? 'bg-white text-slate-900 shadow-xs font-bold'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-white dark:bg-[#181924] text-slate-900 dark:text-white shadow-xs font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
             }`}
           >
-            <ArrowRightLeft className="w-3.5 h-3.5 text-blue-600" />
+            <ArrowRightLeft className="w-3.5 h-3.5 text-blue-500" />
             <span>Transfer</span>
           </button>
           <button
@@ -192,11 +191,11 @@ export default function TransactionModal({
             }}
             className={`py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1 ${
               type === 'revalue'
-                ? 'bg-white text-slate-900 shadow-xs font-bold'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-white dark:bg-[#181924] text-slate-900 dark:text-white shadow-xs font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
             }`}
           >
-            <Scale className="w-3.5 h-3.5 text-amber-600" />
+            <Scale className="w-3.5 h-3.5 text-amber-500" />
             <span>Revalue</span>
           </button>
         </div>
@@ -204,15 +203,15 @@ export default function TransactionModal({
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-left">
           {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-xl flex items-center space-x-2">
-              <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-400 text-xs font-semibold rounded-2xl flex items-center space-x-2">
+              <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Primary Source */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 block">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
               {type === 'transfer' ? 'Source Investment (Outflow)' : 'Investment Source'}{' '}
               <span className="text-rose-500">*</span>
             </label>
@@ -226,10 +225,10 @@ export default function TransactionModal({
                   setNewValuation(s.currentValuation.toString());
                 }
               }}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all cursor-pointer"
             >
               {investments.map((inv) => (
-                <option key={inv.id} value={inv.id}>
+                <option key={inv.id} value={inv.id} className="dark:bg-[#181924]">
                   {inv.name} ({formatCurrency(inv.currentValuation)})
                 </option>
               ))}
@@ -239,16 +238,16 @@ export default function TransactionModal({
           {/* Target Source (For Transfer) */}
           {type === 'transfer' && (
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
                 Target Investment (Inflow) <span className="text-rose-500">*</span>
               </label>
               <select
                 value={targetId}
                 onChange={(e) => setTargetId(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all cursor-pointer"
               >
                 {investments.map((inv) => (
-                  <option key={inv.id} value={inv.id} disabled={inv.id === sourceId}>
+                  <option key={inv.id} value={inv.id} disabled={inv.id === sourceId} className="dark:bg-[#181924]">
                     {inv.name} {inv.id === sourceId ? '(Selected Source)' : `(${formatCurrency(inv.currentValuation)})`}
                   </option>
                 ))}
@@ -259,7 +258,7 @@ export default function TransactionModal({
           {/* Amount field (For Invest, Withdraw, Transfer) */}
           {type !== 'revalue' ? (
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
                 Transaction Amount ($) <span className="text-rose-500">*</span>
               </label>
               <input
@@ -269,14 +268,14 @@ export default function TransactionModal({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all text-slate-900"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-sm font-bold focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all text-slate-900 dark:text-white"
                 required
               />
             </div>
           ) : (
             /* Valuation Override field (For Revalue) */
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
                 New Ending Valuation ($) <span className="text-rose-500">*</span>
               </label>
               <input
@@ -286,7 +285,7 @@ export default function TransactionModal({
                 value={newValuation}
                 onChange={(e) => setNewValuation(e.target.value)}
                 placeholder="Current Valuation Balance"
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all text-slate-900"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-sm font-bold focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all text-slate-900 dark:text-white"
                 required
               />
             </div>
@@ -294,12 +293,12 @@ export default function TransactionModal({
 
           {/* Live Calculation Preview Pill */}
           {currentSource && (
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 text-xs flex items-center justify-between">
-              <span className="text-slate-500 font-medium">Balance Impact Preview:</span>
+            <div className="p-3 bg-slate-50 dark:bg-[#12131A] rounded-2xl border border-slate-200/70 dark:border-slate-800/80 text-xs flex items-center justify-between">
+              <span className="text-slate-500 dark:text-slate-400 font-medium">Balance Preview:</span>
               <div className="flex items-center space-x-2 font-mono text-xs font-semibold">
-                <span className="text-slate-600">{formatCurrency(currentSource.currentValuation)}</span>
+                <span className="text-slate-500 dark:text-slate-400">{formatCurrency(currentSource.currentValuation)}</span>
                 <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
-                <span className="text-slate-900 font-bold">
+                <span className="text-slate-900 dark:text-white font-bold">
                   {type === 'invest'
                     ? formatCurrency(currentSource.currentValuation + parsedAmt)
                     : type === 'withdraw' || type === 'transfer'
@@ -312,7 +311,7 @@ export default function TransactionModal({
 
           {/* Note / Memo */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 block">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
               Transaction Note / Memo
             </label>
             <input
@@ -320,22 +319,22 @@ export default function TransactionModal({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="e.g. Monthly allocation, dividend reinvestment..."
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-hidden focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-slate-800/80 rounded-2xl text-xs text-slate-900 dark:text-white font-medium focus:outline-hidden focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-slate-900 dark:focus:ring-purple-500 transition-all"
             />
           </div>
 
           {/* Buttons */}
-          <div className="pt-4 flex justify-end space-x-2 border-t border-slate-100">
+          <div className="pt-4 flex justify-end space-x-2 border-t border-slate-100 dark:border-slate-800/80">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold cursor-pointer transition-all"
+              className="px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold cursor-pointer transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-md shadow-slate-900/10"
+              className="px-5 py-2 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-md shadow-purple-600/20"
             >
               Submit Transaction
             </button>
