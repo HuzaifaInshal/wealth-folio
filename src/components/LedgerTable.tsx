@@ -93,7 +93,7 @@ export default function LedgerTable({
   });
 
   return (
-    <div className="fintech-card p-6 space-y-5 text-left rounded-3xl">
+    <div className="fintech-card p-6 space-y-5 text-left rounded-xl">
       {/* Header Bar */}
       <div className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
         <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
