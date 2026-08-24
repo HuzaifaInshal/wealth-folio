@@ -73,13 +73,24 @@ const getTypeBadge = (type: TransactionType) => {
 export default function LedgerTable({
   transactions,
   investments,
+  categoryFilter = 'all',
 }: LedgerTableProps) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const invMap = new Map(investments.map((i) => [i.id, i.name]));
+  const invCategoryMap = new Map(investments.map((i) => [i.id, i.category]));
 
   const filtered = transactions.filter((tx) => {
+    // Category scope filter
+    if (categoryFilter !== 'all') {
+      const srcCat = invCategoryMap.get(tx.sourceId);
+      const tgtCat = tx.targetId ? invCategoryMap.get(tx.targetId) : undefined;
+      if (srcCat !== categoryFilter && tgtCat !== categoryFilter) {
+        return false;
+      }
+    }
+
     const matchesType = typeFilter === 'all' || tx.type === typeFilter;
     const sourceName = (invMap.get(tx.sourceId) || tx.sourceId).toLowerCase();
     const targetName = (tx.targetId ? invMap.get(tx.targetId) || tx.targetId : '').toLowerCase();

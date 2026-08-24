@@ -533,6 +533,7 @@ function DashboardContent() {
               <LedgerTable
                 transactions={transactions}
                 investments={investments}
+                categoryFilter={categoryFilter}
               />
             </section>
           )}
