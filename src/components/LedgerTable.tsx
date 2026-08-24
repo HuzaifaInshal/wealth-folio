@@ -147,8 +147,15 @@ export default function LedgerTable({
 
       {/* Table listing */}
       {filtered.length === 0 ? (
-        <div className="py-12 border border-dashed border-slate-200 dark:border-slate-800/80 rounded-2xl text-center text-xs text-slate-400 font-medium">
-          No ledger activity matches your filter.
+        <div className="py-12 border border-dashed border-slate-200 dark:border-slate-800/80 rounded-2xl text-center space-y-2 p-6">
+          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+            No ledger activity entries found
+          </p>
+          <p className="text-[11px] text-slate-400 font-medium max-w-sm mx-auto">
+            {categoryFilter !== 'all'
+              ? `There are no transactions recorded for the selected "${categoryFilter.replace('_', ' ')}" category.`
+              : 'No transaction activity logs match your current search or type filter.'}
+          </p>
         </div>
       ) : (
         <div className="overflow-x-auto border border-slate-100 dark:border-slate-800/80 rounded-2xl">
