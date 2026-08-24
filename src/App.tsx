@@ -531,16 +531,7 @@ function DashboardContent() {
           </section>
         </main>
 
-        {/* Floating Bottom Quick Action Dock */}
-        <QuickActionDock
-          onOpenTransaction={(type) => {
-            setTxInitialSource(investments[0] || null);
-            setTxInitialType(type);
-            setIsTxModalOpen(true);
-          }}
-          onOpenNewSource={openNewInvestmentForm}
-          disabled={investments.length === 0}
-        />
+
 
         {/* App Footer */}
         <footer className="bg-white dark:bg-[#12131A] border-t border-slate-200 dark:border-slate-800/80 py-8 text-center text-xs text-slate-400 dark:text-slate-500 transition-colors">
