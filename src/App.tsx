@@ -449,78 +449,83 @@ function DashboardContent() {
             disabled={investments.length === 0}
           />
 
-          {/* Financial Overview Metrics Bar (Orbix/Nuance Aurora Mesh Cards) */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="portfolio-metrics-grid">
-            <MetricCard
-              title="Total Net Worth"
-              value={totalValuation}
-              type="currency"
-              theme="blue"
-              icon="wallet"
-              subtitle="Current total valuation of assets"
-            />
-            <MetricCard
-              title="Total Invested Capital"
-              value={totalInvested}
-              type="currency"
-              theme="indigo"
-              icon="dollar"
-              subtitle="Net capital deposited"
-            />
-            <MetricCard
-              title="Total Growth / Profit"
-              value={totalProfit}
-              type="currency"
-              theme="emerald"
-              icon="trending"
-              change={overallROI}
-              subtitle="Cumulative market gains"
-            />
-            <MetricCard
-              title="Overall Return (ROI)"
-              value={overallROI}
-              type="percent"
-              theme="amber"
-              icon="percent"
-              subtitle="Return on invested capital"
-            />
-          </section>
+          {/* Dashboard Tab Content */}
+          {activeTab === 'dashboard' && (
+            <>
+              {/* Financial Overview Metrics Bar (Orbix/Nuance Aurora Mesh Cards) */}
+              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="portfolio-metrics-grid">
+                <MetricCard
+                  title="Total Net Worth"
+                  value={totalValuation}
+                  type="currency"
+                  theme="blue"
+                  icon="wallet"
+                  subtitle="Current total valuation of assets"
+                />
+                <MetricCard
+                  title="Total Invested Capital"
+                  value={totalInvested}
+                  type="currency"
+                  theme="indigo"
+                  icon="dollar"
+                  subtitle="Net capital deposited"
+                />
+                <MetricCard
+                  title="Total Growth / Profit"
+                  value={totalProfit}
+                  type="currency"
+                  theme="emerald"
+                  icon="trending"
+                  change={overallROI}
+                  subtitle="Cumulative market gains"
+                />
+                <MetricCard
+                  title="Overall Return (ROI)"
+                  value={overallROI}
+                  type="percent"
+                  theme="amber"
+                  icon="percent"
+                  subtitle="Return on invested capital"
+                />
+              </section>
 
-          {/* Investment Sources Grid */}
-          <section id="investment-sources-section">
-            {filteredInvestments.length === 0 ? (
-              <div className="fintech-card p-12 text-center max-w-lg mx-auto space-y-4 rounded-3xl">
-                <Landmark className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
-                <div>
-                  <h4 className="text-base font-bold text-slate-900 dark:text-white">No investment sources found</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
-                    Add your mutual funds, stock market holdings, or savings certificates to start tracking.
-                  </p>
-                </div>
-                <button
-                  onClick={openNewInvestmentForm}
-                  className="px-4 py-2 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-md shadow-purple-600/20"
-                >
-                  + Add Investment Source
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                <AnimatePresence mode="popLayout">
-                  {filteredInvestments.map((inv) => (
-                    <motion.div key={inv.id} layout>
-                      <InvestmentCard
-                        investment={inv}
-                        onAction={openActionForInvestment}
-                        onEdit={openEditInvestmentForm}
-                        onDelete={handleDeleteInvestmentSource}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            )}
-          </section>
+              {/* Investment Sources Grid */}
+              <section id="investment-sources-section">
+                {filteredInvestments.length === 0 ? (
+                  <div className="fintech-card p-12 text-center max-w-lg mx-auto space-y-4 rounded-3xl">
+                    <Landmark className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 dark:text-white">No investment sources found</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
+                        Add your mutual funds, stock market holdings, or savings certificates to start tracking.
+                      </p>
+                    </div>
+                    <button
+                      onClick={openNewInvestmentForm}
+                      className="px-4 py-2 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-md shadow-purple-600/20"
+                    >
+                      + Add Investment Source
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <AnimatePresence mode="popLayout">
+                      {filteredInvestments.map((inv) => (
+                        <motion.div key={inv.id} layout>
+                          <InvestmentCard
+                            investment={inv}
+                            onAction={openActionForInvestment}
+                            onEdit={openEditInvestmentForm}
+                            onDelete={handleDeleteInvestmentSource}
+                          />
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </section>
+            </>
+          )}
 
           {/* Transaction Ledger Table Section */}
           <section id="transaction-ledger-section">
