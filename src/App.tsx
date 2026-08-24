@@ -528,12 +528,14 @@ function DashboardContent() {
           )}
 
           {/* Transaction Ledger Table Section */}
-          <section id="transaction-ledger-section">
-            <LedgerTable
-              transactions={transactions}
-              investments={investments}
-            />
-          </section>
+          {activeTab === 'ledger' && (
+            <section id="transaction-ledger-section">
+              <LedgerTable
+                transactions={transactions}
+                investments={investments}
+              />
+            </section>
+          )}
         </main>
 
 
