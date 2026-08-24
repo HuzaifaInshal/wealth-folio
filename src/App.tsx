@@ -26,9 +26,6 @@ import {
   Search,
   ListFilter,
   RefreshCw,
-  FileSpreadsheet,
-  CheckCircle2,
-  AlertCircle,
   Sun,
   Moon,
 } from 'lucide-react';
