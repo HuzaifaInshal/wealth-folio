@@ -17,7 +17,7 @@ import InvestmentCard from './components/InvestmentCard';
 import InvestmentFormModal from './components/InvestmentFormModal';
 import TransactionModal from './components/TransactionModal';
 import LedgerTable from './components/LedgerTable';
-import QuickActionDock from './components/QuickActionDock';
+import ActionToolbar from './components/ActionToolbar';
 
 // Import Icons
 import {
@@ -438,54 +438,16 @@ function DashboardContent() {
 
         {/* Main Dashboard Container */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 space-y-6">
-          {/* Category Tabs Bar Container */}
-          <div className="fintech-card p-5" id="category-tabs-bar">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              {/* Segmented Category Pills */}
-              <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
-                <ListFilter className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
-                <button
-                  onClick={() => setCategoryFilter('all')}
-                  className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
-                    categoryFilter === 'all'
-                      ? 'bg-slate-900 text-white border-slate-900 dark:bg-purple-600 dark:border-purple-500 shadow-sm shadow-purple-600/20'
-                      : 'bg-white dark:bg-[#12131A] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/60'
-                  }`}
-                >
-                  All Sources
-                </button>
-                {Object.keys(DEFAULT_CATEGORIES).map((catKey) => {
-                  const catHoldings = investments.filter((i) => i.category === catKey);
-                  if (catHoldings.length === 0 && categoryFilter !== catKey) return null;
-                  const details = DEFAULT_CATEGORIES[catKey];
-                  const isActive = categoryFilter === catKey;
-
-                  return (
-                    <button
-                      key={catKey}
-                      onClick={() => setCategoryFilter(catKey)}
-                      className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap border cursor-pointer ${
-                        isActive
-                          ? 'bg-slate-900 text-white border-slate-900 dark:bg-purple-600 dark:border-purple-500 shadow-sm shadow-purple-600/20'
-                          : 'bg-white dark:bg-[#12131A] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/60'
-                      }`}
-                    >
-                      {details.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Inline Add Source Button */}
-              <button
-                onClick={openNewInvestmentForm}
-                className="px-4 py-2 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-purple-600/20 transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 self-start sm:self-auto"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Source</span>
-              </button>
-            </div>
-          </div>
+          {/* Top Quick Action Toolbar Bar */}
+          <ActionToolbar
+            onOpenTransaction={(type) => {
+              setTxInitialSource(scopedInvestments[0] || investments[0] || null);
+              setTxInitialType(type);
+              setIsTxModalOpen(true);
+            }}
+            onOpenNewSource={openNewInvestmentForm}
+            disabled={investments.length === 0}
+          />
 
           {/* Financial Overview Metrics Bar (Orbix/Nuance Aurora Mesh Cards) */}
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="portfolio-metrics-grid">
