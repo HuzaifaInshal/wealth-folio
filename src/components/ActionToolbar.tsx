@@ -11,26 +11,37 @@ interface ActionToolbarProps {
   onOpenTransaction: (type: TransactionType) => void;
   onOpenNewSource: () => void;
   disabled?: boolean;
+  activeCategoryLabel?: string;
 }
 
 export default function ActionToolbar({
   onOpenTransaction,
   onOpenNewSource,
   disabled = false,
+  activeCategoryLabel = 'All Sources',
 }: ActionToolbarProps) {
   return (
-    <div className="fintech-card p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3" id="action-toolbar">
-      {/* Primary Add Source Button */}
-      <button
-        onClick={onOpenNewSource}
-        className="px-4 py-2 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center space-x-1.5 cursor-pointer shrink-0"
-      >
-        <Plus className="w-4 h-4" />
-        <span>Add Source</span>
-      </button>
+    <div className="fintech-card p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3" id="action-toolbar">
+      {/* Left: Add Source & Active Category Pill */}
+      <div className="flex items-center space-x-3">
+        <button
+          onClick={onOpenNewSource}
+          className="px-4 py-2 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center space-x-1.5 cursor-pointer shrink-0"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Source</span>
+        </button>
+
+        {activeCategoryLabel && (
+          <div className="hidden sm:flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Category:</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">{activeCategoryLabel}</span>
+          </div>
+        )}
+      </div>
 
       {/* Quick Action Buttons Toolbar */}
-      <div className="flex items-center space-x-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+      <div className="flex items-center space-x-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
         <button
           onClick={() => onOpenTransaction('invest')}
           disabled={disabled}

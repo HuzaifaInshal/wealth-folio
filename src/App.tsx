@@ -447,6 +447,11 @@ function DashboardContent() {
             }}
             onOpenNewSource={openNewInvestmentForm}
             disabled={investments.length === 0}
+            activeCategoryLabel={
+              categoryFilter === 'all'
+                ? 'All Sources'
+                : DEFAULT_CATEGORIES[categoryFilter]?.label || categoryFilter
+            }
           />
 
           {/* Dashboard Tab Content */}
