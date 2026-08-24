@@ -20,15 +20,11 @@ import {
 interface SidebarProps {
   activeTab: 'dashboard' | 'sources' | 'ledger';
   setActiveTab: (tab: 'dashboard' | 'sources' | 'ledger') => void;
-  onOpenSheetsModal: () => void;
-  isSheetsConnected: boolean;
 }
 
 export default function Sidebar({
   activeTab,
   setActiveTab,
-  onOpenSheetsModal,
-  isSheetsConnected,
 }: SidebarProps) {
   const { theme, toggleTheme } = useTheme();
 
@@ -105,24 +101,6 @@ export default function Sidebar({
               <History className="w-4 h-4" />
               <span>Ledger Activity</span>
             </div>
-          </button>
-        </div>
-
-        {/* Database Integration Section */}
-        <div className="space-y-1 pt-4 border-t border-slate-100 dark:border-slate-800/80">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 block mb-2">
-            Integrations
-          </span>
-
-          <button
-            onClick={onOpenSheetsModal}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200 transition-all cursor-pointer"
-          >
-            <div className="flex items-center space-x-2.5">
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-500" />
-              <span>Google Sheet Sync</span>
-            </div>
-            <span className={`w-2 h-2 rounded-full ${isSheetsConnected ? 'bg-emerald-500 shadow-xs shadow-emerald-500/50' : 'bg-amber-400'}`} />
           </button>
         </div>
       </div>

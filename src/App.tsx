@@ -16,7 +16,6 @@ import MetricCard from './components/MetricCard';
 import InvestmentCard from './components/InvestmentCard';
 import InvestmentFormModal from './components/InvestmentFormModal';
 import TransactionModal from './components/TransactionModal';
-import GoogleSheetsModal from './components/GoogleSheetsModal';
 import LedgerTable from './components/LedgerTable';
 import QuickActionDock from './components/QuickActionDock';
 
@@ -291,8 +290,6 @@ function DashboardContent() {
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenSheetsModal={() => setIsSheetsModalOpen(true)}
-        isSheetsConnected={!!sheetConfig.webAppUrl}
       />
 
       {/* Main Right Content Panel */}
@@ -535,15 +532,6 @@ function DashboardContent() {
           initialSource={txInitialSource}
           investments={investments}
           onSubmit={handleExecuteTransaction}
-        />
-
-        <GoogleSheetsModal
-          isOpen={isSheetsModalOpen}
-          onClose={() => setIsSheetsModalOpen(false)}
-          config={sheetConfig}
-          onSaveConfig={setSheetConfig}
-          investments={investments}
-          transactions={transactions}
         />
       </div>
     </div>
