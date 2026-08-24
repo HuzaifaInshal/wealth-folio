@@ -74,10 +74,60 @@ function DashboardContent() {
     localStorage.setItem('wealthfolio_sheet_config_v3', JSON.stringify(sheetConfig));
   }, [sheetConfig]);
 
-  // --- UI & Filter States ---
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  // --- URL Parameter & Filter Persistence ---
+  const getInitialCategoryFromUrl = () => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('category') || 'all';
+    } catch {
+      return 'all';
+    }
+  };
+
+  const getInitialTabFromUrl = () => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab === 'ledger') return 'ledger';
+      return 'dashboard';
+    } catch {
+      return 'dashboard';
+    }
+  };
+
+  const [categoryFilter, setCategoryFilterState] = useState<string>(getInitialCategoryFromUrl);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'sources' | 'ledger'>('dashboard');
+  const [activeTab, setActiveTabState] = useState<'dashboard' | 'sources' | 'ledger'>(getInitialTabFromUrl);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const cat = params.get('category') || 'all';
+      const tab = params.get('tab') === 'ledger' ? 'ledger' : 'dashboard';
+      setCategoryFilterState(cat);
+      setActiveTabState(tab);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const setCategoryFilter = (cat: string) => {
+    setCategoryFilterState(cat);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('category', cat);
+      window.history.pushState({}, '', url.toString());
+    } catch {}
+  };
+
+  const setActiveTab = (tab: 'dashboard' | 'sources' | 'ledger') => {
+    setActiveTabState(tab);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tab);
+      window.history.pushState({}, '', url.toString());
+    } catch {}
+  };
 
   // Modals
   const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
