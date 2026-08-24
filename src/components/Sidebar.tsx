@@ -18,8 +18,8 @@ import {
 } from 'lucide-react';
 
 interface SidebarProps {
-  activeTab: 'dashboard' | 'sources' | 'ledger';
-  setActiveTab: (tab: 'dashboard' | 'sources' | 'ledger') => void;
+  activeTab: 'dashboard' | 'ledger';
+  setActiveTab: (tab: 'dashboard' | 'ledger') => void;
 }
 
 export default function Sidebar({
@@ -62,35 +62,13 @@ export default function Sidebar({
           >
             <div className="flex items-center space-x-2.5">
               <LayoutDashboard className="w-4 h-4" />
-              <span>Dashboard Overview</span>
+              <span>Dashboard</span>
             </div>
             {activeTab === 'dashboard' && <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-purple-400" />}
           </button>
 
           <button
-            onClick={() => {
-              setActiveTab('sources');
-              const el = document.getElementById('investment-sources-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-              activeTab === 'sources'
-                ? 'bg-slate-900 text-white dark:bg-purple-600/20 dark:text-purple-400 dark:border dark:border-purple-500/30 shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'
-            }`}
-          >
-            <div className="flex items-center space-x-2.5">
-              <Layers className="w-4 h-4" />
-              <span>Asset Holdings</span>
-            </div>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('ledger');
-              const el = document.getElementById('transaction-ledger-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={() => setActiveTab('ledger')}
             className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'ledger'
                 ? 'bg-slate-900 text-white dark:bg-purple-600/20 dark:text-purple-400 dark:border dark:border-purple-500/30 shadow-xs'
@@ -99,8 +77,9 @@ export default function Sidebar({
           >
             <div className="flex items-center space-x-2.5">
               <History className="w-4 h-4" />
-              <span>Ledger Activity</span>
+              <span>Ledger</span>
             </div>
+            {activeTab === 'ledger' && <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-purple-400" />}
           </button>
         </div>
       </div>
