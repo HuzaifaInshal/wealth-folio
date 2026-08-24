@@ -406,25 +406,6 @@ function DashboardContent() {
                 {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-purple-600" />}
               </button>
 
-              {/* Google Sheets Sync Pill */}
-              <button
-                onClick={() => setIsSheetsModalOpen(true)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center space-x-2 cursor-pointer shadow-xs ${
-                  sheetConfig.webAppUrl
-                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100'
-                    : 'bg-white dark:bg-[#181924] border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                }`}
-                title="Configure Personal Google Sheets Sync"
-              >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
-                <span className="hidden sm:inline">{sheetConfig.webAppUrl ? 'Google Sheet Synced' : 'Connect Google Sheet'}</span>
-                {sheetConfig.webAppUrl ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                ) : (
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-                )}
-              </button>
-
               <button
                 onClick={handleResetDefaults}
                 className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800/80 rounded-xl transition-all cursor-pointer bg-white dark:bg-[#181924]"
