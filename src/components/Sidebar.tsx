@@ -8,8 +8,6 @@ import { useTheme } from '../context/ThemeContext';
 import {
   Landmark,
   LayoutDashboard,
-  Layers,
-  FileSpreadsheet,
   History,
   Sun,
   Moon,
