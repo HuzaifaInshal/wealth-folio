@@ -1,78 +1,23 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { signInWithFirebaseGoogle } from '../config/firebase';
-import { Landmark, Key, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
-
-declare global {
-  interface Window {
-    google?: any;
-  }
-}
+import { Landmark, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
 
 export default function AuthPage() {
   const { loginWithAccessToken, isSyncing, syncError } = useAuth();
-  const [manualToken, setManualToken] = useState('');
-  const [showManualInput, setShowManualInput] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Dynamically load Google GIS script if not present
-    if (!window.google?.accounts) {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-  }, []);
 
   const handleGoogleLogin = async () => {
     setError(null);
     try {
-      // 1. Try Firebase Google OAuth Authentication first
       const fbResult = await signInWithFirebaseGoogle();
       if (fbResult.accessToken) {
         await loginWithAccessToken(fbResult.accessToken);
-        return;
+      } else {
+        setError('Google authentication succeeded but no access token was returned.');
       }
     } catch (err: any) {
-      // Fallback to Google GIS Token Client if Firebase popup blocked or unconfigured
-      try {
-        if (window.google?.accounts?.oauth2) {
-          const client = window.google.accounts.oauth2.initTokenClient({
-            client_id: '928374829104-wealthfolio.apps.googleusercontent.com',
-            scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
-            callback: async (response: any) => {
-              if (response.access_token) {
-                await loginWithAccessToken(response.access_token);
-              } else if (response.error) {
-                setError(`Google OAuth Error: ${response.error}`);
-              }
-            },
-          });
-          client.requestAccessToken();
-          return;
-        }
-      } catch (fallbackErr: any) {
-        setShowManualInput(true);
-        setError(err.message || 'Please provide a Google Access Token to connect your Google Sheet.');
-      }
-    }
-  };
-
-  const handleManualSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!manualToken.trim()) return;
-    try {
-      setError(null);
-      await loginWithAccessToken(manualToken.trim());
-    } catch (err: any) {
-      setError(err.message || 'Invalid or expired Google Access Token.');
+      setError(err.message || 'Failed to authenticate with Google.');
     }
   };
 
@@ -126,45 +71,11 @@ export default function AuthPage() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                 </svg>
-                <span>Sign in with Google & Authorize Sheets</span>
+                <span>Sign in with Google Account</span>
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </>
             )}
           </button>
-
-          {!showManualInput ? (
-            <button
-              onClick={() => setShowManualInput(true)}
-              className="w-full text-center text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors pt-2 block cursor-pointer"
-            >
-              Have a Google Access Token / Client Key?
-            </button>
-          ) : (
-            <form onSubmit={handleManualSubmit} className="space-y-2 pt-2 border-t border-slate-800">
-              <label className="block text-[11px] font-semibold text-slate-400">
-                Google OAuth Access Token / Session Key
-              </label>
-              <div className="flex space-x-2">
-                <div className="relative flex-1">
-                  <Key className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
-                  <input
-                    type="password"
-                    value={manualToken}
-                    onChange={(e) => setManualToken(e.target.value)}
-                    placeholder="Paste OAuth2 Token (ya29...)"
-                    className="w-full pl-8 pr-3 py-1.5 bg-[#12131A] border border-slate-700 rounded-lg text-xs font-mono text-white focus:outline-hidden focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isSyncing}
-                  className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold cursor-pointer"
-                >
-                  Connect
-                </button>
-              </div>
-            </form>
-          )}
         </div>
       </div>
     </div>
