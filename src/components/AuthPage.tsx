@@ -76,15 +76,15 @@ export default function AuthPage() {
       <div className="max-w-md w-full bg-[#181924]/90 backdrop-blur-md border border-slate-800 rounded-xl p-8 shadow-2xl space-y-6 relative z-10 animate-in fade-in zoom-in-95 duration-200">
         {/* Header Logo */}
         <div className="text-center space-y-3">
-          <div className="inline-flex p-3 bg-purple-600 text-white rounded-xl shadow-lg shadow-purple-600/30">
-            <Landmark className="w-8 h-8" />
+          <div className="inline-flex p-3 bg-slate-900 dark:bg-purple-600 text-white rounded-lg shadow-lg shadow-purple-600/20">
+            <Landmark className="w-7 h-7" />
           </div>
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center justify-center">
               Wealth <span className="text-purple-400 font-semibold ml-1.5">Folio</span>
             </h1>
             <p className="text-xs font-semibold text-slate-400 mt-1">
-              Personal Wealth Tracker synced directly with Google Sheets
+              Personal Wealth Vault
             </p>
           </div>
         </div>
