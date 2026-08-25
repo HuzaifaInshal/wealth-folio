@@ -5,7 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Landmark, ShieldCheck, FileSpreadsheet, Key, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
+import { signInWithFirebaseGoogle } from '../config/firebase';
+import { Landmark, Key, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -30,29 +31,37 @@ export default function AuthPage() {
     }
   }, []);
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setError(null);
     try {
-      if (window.google?.accounts?.oauth2) {
-        const client = window.google.accounts.oauth2.initTokenClient({
-          client_id: '928374829104-wealthfolio.apps.googleusercontent.com', // Standard OAuth Client ID
-          scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
-          callback: async (response: any) => {
-            if (response.access_token) {
-              await loginWithAccessToken(response.access_token);
-            } else if (response.error) {
-              setError(`Google OAuth Error: ${response.error}`);
-            }
-          },
-        });
-        client.requestAccessToken();
-      } else {
-        // Fallback for manual or dev environment
-        setShowManualInput(true);
+      // 1. Try Firebase Google OAuth Authentication first
+      const fbResult = await signInWithFirebaseGoogle();
+      if (fbResult.accessToken) {
+        await loginWithAccessToken(fbResult.accessToken);
+        return;
       }
     } catch (err: any) {
-      setShowManualInput(true);
-      setError('Please provide a Google Access Token to connect your Google Sheet.');
+      // Fallback to Google GIS Token Client if Firebase popup blocked or unconfigured
+      try {
+        if (window.google?.accounts?.oauth2) {
+          const client = window.google.accounts.oauth2.initTokenClient({
+            client_id: '928374829104-wealthfolio.apps.googleusercontent.com',
+            scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+            callback: async (response: any) => {
+              if (response.access_token) {
+                await loginWithAccessToken(response.access_token);
+              } else if (response.error) {
+                setError(`Google OAuth Error: ${response.error}`);
+              }
+            },
+          });
+          client.requestAccessToken();
+          return;
+        }
+      } catch (fallbackErr: any) {
+        setShowManualInput(true);
+        setError(err.message || 'Please provide a Google Access Token to connect your Google Sheet.');
+      }
     }
   };
 
@@ -86,25 +95,6 @@ export default function AuthPage() {
             <p className="text-xs font-semibold text-slate-400 mt-1">
               Personal Wealth Vault
             </p>
-          </div>
-        </div>
-
-        {/* Feature Highlights Grid */}
-        <div className="space-y-2.5 pt-2">
-          <div className="p-3 bg-[#12131A] rounded-lg border border-slate-800/80 flex items-start space-x-3 text-xs">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold text-slate-200 block">100% Private Local & Drive Storage</span>
-              <span className="text-slate-400 text-[11px]">Your financial data stays exclusively in your personal Google Sheet.</span>
-            </div>
-          </div>
-
-          <div className="p-3 bg-[#12131A] rounded-lg border border-slate-800/80 flex items-start space-x-3 text-xs">
-            <FileSpreadsheet className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold text-slate-200 block">Real-Time Live Read & Write</span>
-              <span className="text-slate-400 text-[11px]">Every deposit, withdrawal, and source update is written live to Sheets.</span>
-            </div>
           </div>
         </div>
 
