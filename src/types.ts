@@ -3,71 +3,53 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type HoldingCategory =
-  | 'cash'
+export type BuiltInCategory =
+  | 'mutual_fund'
   | 'stocks'
+  | 'savings_certificate'
   | 'crypto'
   | 'real_estate'
-  | 'retirement'
   | 'precious_metals'
-  | 'bonds'
+  | 'cash_bank'
   | 'other';
 
-export interface Pool {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-  categories?: HoldingCategory[]; // tags for the pool
+export interface CategoryDetails {
+  key: string;
+  label: string;
+  color: string;
+  icon: string;
+  bg: string;
+  text: string;
 }
 
-export interface Instrument {
+export interface InvestmentSource {
   id: string;
-  poolId: string;             // Segregation parent pool ID
-  name: string;               // e.g. "Apple Inc." or "Vanguard Index"
-  ticker: string;             // Symbol (e.g. AAPL, BTC) - optional/empty if not applicable
-  category: HoldingCategory;  // Category of asset
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Holding {
-  id: string;
-  poolId: string;             // Segregation parent pool ID
-  instrumentId: string;       // Link to the available Instrument/Fund
-  quantity?: number;          // Optional quantity/units held
-  investedAmount: number;     // The net cash capital injected (Deposits - Withdrawals)
-  currentValuation: number;   // The latest net market value (can be direct sum or user-updated value)
+  name: string;
+  category: string; // Built-in key or custom string
+  investedAmount: number; // Cumulative net cash invested
+  currentValuation: number; // Current valuation / net market value
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export type TransactionType =
-  | 'creation'
-  | 'deposit'
-  | 'withdrawal'
-  | 'transfer'
-  | 'valuation_adjustment';
+export type TransactionType = 'invest' | 'withdraw' | 'transfer' | 'revalue';
 
-export interface Transaction {
+export interface LedgerTransaction {
   id: string;
-  holdingId: string;
-  sourceHoldingId?: string;       // For transfers
-  destinationHoldingId?: string;  // For transfers
   type: TransactionType;
-  amount: number;                 // The amount transferred or deposited or withdrawn
-  previousValuation?: number;     // Specifically for valuation updates
-  newValuation?: number;          // Specifically for valuation updates
+  sourceId: string; // Primary investment source ID
+  targetId?: string; // For 'transfer' type: target investment source ID
+  amount: number;
+  previousValuation?: number; // For 'revalue' type
+  newValuation?: number; // For 'revalue' type
   note: string;
   timestamp: string;
+  syncedToSheet?: boolean;
 }
 
-export interface ValuationHistoryPoint {
-  id: string;
-  holdingId: string;
-  value: number;
-  invested: number;
-  timestamp: string;
+export interface GoogleSheetConfig {
+  webAppUrl: string; // User's personal Google Apps Script Web App URL
+  autoSync: boolean;
+  lastSyncedAt?: string;
 }

@@ -1,65 +1,89 @@
-import { Holding, Transaction, HoldingCategory, Pool, Instrument } from './types';
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-export const CATEGORY_DETAILS: Record<
-  HoldingCategory,
-  { label: string; color: string; icon: string; bg: string; text: string }
- > = {
-  cash: {
-    label: 'Cash Savings',
-    color: '#10b981', // emerald-500
-    icon: 'PiggyBank',
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
+import { CategoryDetails, InvestmentSource, LedgerTransaction, GoogleSheetConfig } from './types';
+
+export const DEFAULT_CATEGORIES: Record<string, CategoryDetails> = {
+  mutual_fund: {
+    key: 'mutual_fund',
+    label: 'Mutual Funds',
+    color: '#06b6d4',
+    icon: 'Layers',
+    bg: 'bg-cyan-50',
+    text: 'text-cyan-800',
   },
   stocks: {
-    label: 'Stocks & ETFs',
-    color: '#3b82f6', // blue-500
+    key: 'stocks',
+    label: 'Stock Market',
+    color: '#3b82f6',
     icon: 'TrendingUp',
     bg: 'bg-blue-50',
-    text: 'text-blue-700',
+    text: 'text-blue-800',
+  },
+  savings_certificate: {
+    key: 'savings_certificate',
+    label: 'Savings Certificates',
+    color: '#8b5cf6',
+    icon: 'Award',
+    bg: 'bg-violet-50',
+    text: 'text-violet-800',
   },
   crypto: {
+    key: 'crypto',
     label: 'Crypto Assets',
-    color: '#f59e0b', // amber-500
+    color: '#f59e0b',
     icon: 'Coins',
     bg: 'bg-amber-50',
-    text: 'text-amber-700',
+    text: 'text-amber-800',
   },
   real_estate: {
+    key: 'real_estate',
     label: 'Real Estate',
-    color: '#8b5cf6', // violet-500
+    color: '#10b981',
     icon: 'Home',
-    bg: 'bg-violet-50',
-    text: 'text-violet-700',
-  },
-  retirement: {
-    label: 'Retirement Account',
-    color: '#06b6d4', // cyan-500
-    icon: 'Shield',
-    bg: 'bg-cyan-50',
-    text: 'text-cyan-700',
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-800',
   },
   precious_metals: {
+    key: 'precious_metals',
     label: 'Precious Metals',
-    color: '#eab308', // yellow-500
+    color: '#eab308',
     icon: 'Sparkles',
     bg: 'bg-yellow-50',
-    text: 'text-yellow-700',
+    text: 'text-yellow-800',
   },
-  bonds: {
-    label: 'Bonds & Fixed Income',
-    color: '#ec4899', // pink-500
-    icon: 'FileText',
-    bg: 'bg-pink-50',
-    text: 'text-pink-700',
+  cash_bank: {
+    key: 'cash_bank',
+    label: 'Cash & Bank Accounts',
+    color: '#059669',
+    icon: 'Landmark',
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-900',
   },
   other: {
+    key: 'other',
     label: 'Other Investments',
-    color: '#64748b', // slate-500
-    icon: 'HelpCircle',
+    color: '#64748b',
+    icon: 'Folder',
     bg: 'bg-slate-50',
-    text: 'text-slate-700',
+    text: 'text-slate-800',
   },
+};
+
+export const getCategoryDetails = (categoryKey: string): CategoryDetails => {
+  if (DEFAULT_CATEGORIES[categoryKey]) {
+    return DEFAULT_CATEGORIES[categoryKey];
+  }
+  return {
+    key: categoryKey,
+    label: categoryKey,
+    color: '#475569',
+    icon: 'Folder',
+    bg: 'bg-slate-50',
+    text: 'text-slate-800',
+  };
 };
 
 const dateXDaysAgo = (days: number): string => {
@@ -68,196 +92,104 @@ const dateXDaysAgo = (days: number): string => {
   return d.toISOString();
 };
 
-export const INITIAL_POOLS: Pool[] = [
+export const INITIAL_INVESTMENTS: InvestmentSource[] = [
   {
-    id: 'pool-1',
-    title: 'Personal Finances',
-    description: 'Daily expenses, emergency reserve, and personal growth stocks.',
-    createdAt: dateXDaysAgo(150),
-    updatedAt: dateXDaysAgo(5),
-    categories: ['cash', 'stocks'],
-  },
-  {
-    id: 'pool-2',
-    title: 'Retirement & Long-term',
-    description: 'Tax-sheltered accounts, retirement plans, and metals.',
-    createdAt: dateXDaysAgo(150),
-    updatedAt: dateXDaysAgo(1),
-    categories: ['retirement', 'precious_metals'],
-  }
-];
-
-export const INITIAL_INSTRUMENTS: Instrument[] = [
-  {
-    id: 'instrument-1',
-    poolId: 'pool-1',
-    name: 'High-Yield Savings Account',
-    ticker: 'HYSA',
-    category: 'cash',
-    description: 'High-Yield Savings Account (4.5% APY)',
-    createdAt: dateXDaysAgo(150),
-    updatedAt: dateXDaysAgo(5),
-  },
-  {
-    id: 'instrument-2',
-    poolId: 'pool-1',
-    name: 'Vanguard Growth ETF',
-    ticker: 'VUG',
-    category: 'stocks',
-    description: 'Vanguard Growth Index Fund ETF Shares',
-    createdAt: dateXDaysAgo(150),
-    updatedAt: dateXDaysAgo(2),
-  },
-  {
-    id: 'instrument-3',
-    poolId: 'pool-2',
-    name: 'Bitcoin',
-    ticker: 'BTC',
-    category: 'crypto',
-    description: 'Digital Gold Cryptographic Reserve Asset',
-    createdAt: dateXDaysAgo(150),
-    updatedAt: dateXDaysAgo(1),
-  },
-  {
-    id: 'instrument-4',
-    poolId: 'pool-2',
-    name: 'Vanguard Target Retirement 2060',
-    ticker: 'VTTSX',
-    category: 'retirement',
-    description: 'Vanguard Target Retirement 2060 Fund',
-    createdAt: dateXDaysAgo(150),
-    updatedAt: dateXDaysAgo(10),
-  }
-];
-
-export const INITIAL_HOLDINGS: Holding[] = [
-  {
-    id: 'holding-1',
-    poolId: 'pool-1',
-    instrumentId: 'instrument-1',
-    quantity: 1,
-    investedAmount: 10000,
-    currentValuation: 10180, // Accrued interest
-    createdAt: dateXDaysAgo(120),
-    updatedAt: dateXDaysAgo(5),
-  },
-  {
-    id: 'holding-2',
-    poolId: 'pool-1',
-    instrumentId: 'instrument-2',
-    quantity: 75,
-    investedAmount: 18000,
-    currentValuation: 21450, // Capital appreciation
+    id: 'inv-1',
+    name: 'Cash Fund (Money Market)',
+    category: 'mutual_fund',
+    investedAmount: 15000,
+    currentValuation: 15450,
+    notes: 'Low risk liquidity fund',
     createdAt: dateXDaysAgo(90),
+    updatedAt: dateXDaysAgo(5),
+  },
+  {
+    id: 'inv-2',
+    name: 'Tech Equity Stock Fund',
+    category: 'mutual_fund',
+    investedAmount: 20000,
+    currentValuation: 23800,
+    notes: 'High growth index fund',
+    createdAt: dateXDaysAgo(120),
     updatedAt: dateXDaysAgo(2),
   },
   {
-    id: 'holding-3',
-    poolId: 'pool-2',
-    instrumentId: 'instrument-3',
-    quantity: 0.15,
-    investedAmount: 6000,
-    currentValuation: 8650, // High ROI
-    createdAt: dateXDaysAgo(60),
+    id: 'inv-3',
+    name: 'Bluechip Dividend Stocks Portfolio',
+    category: 'stocks',
+    investedAmount: 30000,
+    currentValuation: 32400,
+    notes: 'Quarterly dividend reinvestment',
+    createdAt: dateXDaysAgo(150),
     updatedAt: dateXDaysAgo(1),
   },
   {
-    id: 'holding-4',
-    poolId: 'pool-2',
-    instrumentId: 'instrument-4',
-    quantity: 500,
-    investedAmount: 25000,
-    currentValuation: 26800,
-    createdAt: dateXDaysAgo(150),
+    id: 'inv-4',
+    name: 'National Savings Certificate #1',
+    category: 'savings_certificate',
+    investedAmount: 10000,
+    currentValuation: 10800,
+    notes: '3-Year fixed certificate',
+    createdAt: dateXDaysAgo(200),
     updatedAt: dateXDaysAgo(10),
-  }
+  },
 ];
 
-export const INITIAL_TRANSACTIONS: Transaction[] = [
+export const INITIAL_TRANSACTIONS: LedgerTransaction[] = [
   {
     id: 'tx-1',
-    holdingId: 'holding-1',
-    type: 'creation',
-    amount: 8000,
-    note: 'Initial emergency fund allocation',
-    timestamp: dateXDaysAgo(120),
-  },
-  {
-    id: 'tx-2',
-    holdingId: 'holding-4',
-    type: 'creation',
-    amount: 25000,
-    note: 'Lump-sum Roth IRA deposit',
-    timestamp: dateXDaysAgo(110),
-  },
-  {
-    id: 'tx-3',
-    holdingId: 'holding-2',
-    type: 'creation',
+    type: 'invest',
+    sourceId: 'inv-1',
     amount: 15000,
-    note: 'Starting tech portfolio',
+    note: 'Initial cash fund capital contribution',
     timestamp: dateXDaysAgo(90),
   },
   {
+    id: 'tx-2',
+    type: 'invest',
+    sourceId: 'inv-2',
+    amount: 20000,
+    note: 'Lump-sum stock fund deposit',
+    timestamp: dateXDaysAgo(120),
+  },
+  {
+    id: 'tx-3',
+    type: 'invest',
+    sourceId: 'inv-3',
+    amount: 30000,
+    note: 'Purchased dividend portfolio',
+    timestamp: dateXDaysAgo(150),
+  },
+  {
     id: 'tx-4',
-    holdingId: 'holding-1',
-    type: 'deposit',
-    amount: 2000,
-    note: 'Transfer from checking (monthly savings)',
-    timestamp: dateXDaysAgo(60),
+    type: 'invest',
+    sourceId: 'inv-4',
+    amount: 10000,
+    note: 'Purchased 3-year savings certificate',
+    timestamp: dateXDaysAgo(200),
   },
   {
     id: 'tx-5',
-    holdingId: 'holding-3',
-    type: 'creation',
-    amount: 6000,
-    note: 'Injected 0.1 BTC + 1 ETH core holdings',
-    timestamp: dateXDaysAgo(60),
-  },
-  {
-    id: 'tx-6',
-    holdingId: 'holding-2',
-    type: 'deposit',
-    amount: 3000,
-    note: 'Purchased extra MSFT shares on dip',
+    type: 'transfer',
+    sourceId: 'inv-1',
+    targetId: 'inv-2',
+    amount: 2000,
+    note: 'Reallocated capital from cash fund into stock fund',
     timestamp: dateXDaysAgo(30),
   },
   {
-    id: 'tx-7',
-    holdingId: 'holding-1',
-    type: 'withdrawal',
-    amount: 500,
-    note: 'Car repairs cost coverage',
-    timestamp: dateXDaysAgo(20),
-  },
-  {
-    id: 'tx-8',
-    holdingId: 'holding-1',
-    type: 'valuation_adjustment',
+    id: 'tx-6',
+    type: 'revalue',
+    sourceId: 'inv-3',
     amount: 0,
-    previousValuation: 9500,
-    newValuation: 10180,
-    note: 'Quarterly yield compounding & adjustment',
-    timestamp: dateXDaysAgo(5),
-  },
-  {
-    id: 'tx-9',
-    holdingId: 'holding-2',
-    type: 'valuation_adjustment',
-    amount: 0,
-    previousValuation: 21000,
-    newValuation: 21450,
-    note: 'Weekly portfolio mark-to-market revaluation',
-    timestamp: dateXDaysAgo(2),
-  },
-  {
-    id: 'tx-10',
-    holdingId: 'holding-3',
-    type: 'valuation_adjustment',
-    amount: 0,
-    previousValuation: 8520,
-    newValuation: 8650,
-    note: 'Crypto market spot rate update',
+    previousValuation: 31000,
+    newValuation: 32400,
+    note: 'Updated market closing balance',
     timestamp: dateXDaysAgo(1),
   },
 ];
+
+export const DEFAULT_SHEET_CONFIG: GoogleSheetConfig = {
+  webAppUrl: '',
+  autoSync: true,
+};
