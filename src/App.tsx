@@ -1201,233 +1201,209 @@ export default function App() {
           />
         </section>
 
-        {/* Double Column content (Analytics and Pool selection) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Pool Holdings & Assets Section */}
+        <div className="space-y-5">
           
-          {/* LEFT PANEL: Pools Explorer Selector */}
-          <div className="lg:col-span-2 space-y-5">
-            
-            <div className="bg-white border border-[#DCDAD2] rounded-none p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#DCDAD2] pb-4">
-                {/* Modern Tabs */}
-                <div className="flex space-x-6">
-                  <button
-                    onClick={() => setActiveTab('holdings')}
-                    className={`pb-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-b-2 ${
-                      activeTab === 'holdings'
-                        ? 'border-[#1A1A1A] text-[#1A1A1A]'
-                        : 'border-transparent text-[#8C8C85] hover:text-[#1A1A1A]'
-                    }`}
-                  >
-                    Investments ({filteredHoldings.length})
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('instruments')}
-                    className={`pb-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-b-2 ${
-                      activeTab === 'instruments'
-                        ? 'border-[#1A1A1A] text-[#1A1A1A]'
-                        : 'border-transparent text-[#8C8C85] hover:text-[#1A1A1A]'
-                    }`}
-                  >
-                    Funds / Assets ({activePoolInstruments.length})
-                  </button>
-                </div>
+          <div className="bg-white border border-[#DCDAD2] rounded-none p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#DCDAD2] pb-4">
+              {/* Modern Tabs */}
+              <div className="flex space-x-6">
+                <button
+                  onClick={() => setActiveTab('holdings')}
+                  className={`pb-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-b-2 ${
+                    activeTab === 'holdings'
+                      ? 'border-[#1A1A1A] text-[#1A1A1A]'
+                      : 'border-transparent text-[#8C8C85] hover:text-[#1A1A1A]'
+                  }`}
+                >
+                  Investments ({filteredHoldings.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab('instruments')}
+                  className={`pb-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-b-2 ${
+                    activeTab === 'instruments'
+                      ? 'border-[#1A1A1A] text-[#1A1A1A]'
+                      : 'border-transparent text-[#8C8C85] hover:text-[#1A1A1A]'
+                  }`}
+                >
+                  Funds / Assets ({activePoolInstruments.length})
+                </button>
+              </div>
 
-                {/* Tab specific action buttons */}
-                <div className="flex space-x-2">
-                  {activeTab === 'holdings' ? (
-                    <>
-                      <button
-                        onClick={() => triggerTxForm('deposit')}
-                        disabled={activePoolHoldings.length === 0}
-                        className="px-3 py-2 bg-[#F9F8F6] hover:bg-[#F3F1EC] text-[#1A1A1A] border border-[#DCDAD2] text-[10px] uppercase tracking-wider font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                      >
-                        + Capital Inflow
-                      </button>
-                      <button
-                        onClick={() => triggerTxForm('transfer')}
-                        disabled={activePoolHoldings.length < 2}
-                        className="px-3 py-2 bg-[#F9F8F6] hover:bg-[#F3F1EC] text-[#1A1A1A] border border-[#DCDAD2] text-[10px] uppercase tracking-wider font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                      >
-                        Transfer Funds
-                      </button>
-                    </>
-                  ) : (
+              {/* Tab specific action buttons */}
+              <div className="flex space-x-2">
+                {activeTab === 'holdings' ? (
+                  <>
                     <button
-                      onClick={() => {
-                        setInstrumentToEdit(null);
-                        setIsInstrumentModalOpen(true);
-                      }}
-                      className="px-3 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-[#F9F8F6] text-[10px] uppercase tracking-wider font-bold transition-colors cursor-pointer"
+                      onClick={() => triggerTxForm('deposit')}
+                      disabled={activePoolHoldings.length === 0}
+                      className="px-3 py-2 bg-[#F9F8F6] hover:bg-[#F3F1EC] text-[#1A1A1A] border border-[#DCDAD2] text-[10px] uppercase tracking-wider font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                     >
-                      + Create Fund / Asset
+                      + Capital Inflow
                     </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Pool Search */}
-              <div className="mt-5">
-                <div className="relative w-full">
-                  <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3.5 top-3.5" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={
-                      activeTab === 'holdings'
-                        ? "Search investments by name or notes..."
-                        : "Search funds or assets by name, ticker..."
-                    }
-                    className="w-full pl-10 pr-4 py-3 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold focus:outline-hidden focus:bg-white focus:border-[#1A1A1A] transition-all text-[#1A1A1A]"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* TAB CONTENT */}
-            {activeTab === 'holdings' ? (
-              /* Holdings Grid */
-              filteredHoldings.length === 0 ? (
-                <div className="bg-white border border-dashed border-[#DCDAD2] rounded-none p-12 text-center max-w-lg mx-auto">
-                  <div className="w-12 h-12 bg-[#F9F8F6] border border-[#DCDAD2] flex items-center justify-center mx-auto text-[#8C8C85] mb-4">
-                    <Info className="w-5 h-5" />
-                  </div>
-                  <h4 className="text-base font-serif font-bold text-[#1A1A1A]">No investments match your criteria</h4>
-                  <p className="text-xs text-[#8C8C85] mt-1.5 max-w-sm mx-auto font-serif italic">
-                    Try clearing your search query. Click Create Holding above or invest from the Funds tab.
-                  </p>
-                  <button
-                    onClick={() => { setSearchQuery(''); }}
-                    className="mt-4 text-[10px] uppercase tracking-wider font-bold px-4 py-2 bg-white border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] transition-colors cursor-pointer"
-                  >
-                    Clear Selection Filter
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5" id="asset-holdings-grid">
-                  <AnimatePresence mode="popLayout">
-                    {filteredHoldings.map((holding) => {
-                      const instrument = instruments.find(i => i.id === holding.instrumentId) || {
-                        id: 'fallback',
-                        poolId: activePoolId,
-                        name: 'Unknown Asset',
-                        ticker: '',
-                        category: 'other' as HoldingCategory,
-                        description: '',
-                        createdAt: '',
-                        updatedAt: ''
-                      };
-                      return (
-                        <motion.div key={holding.id} layout>
-                          <HoldingCard
-                            holding={holding}
-                            instrument={instrument}
-                            onDeposit={(h) => triggerTxForm('deposit', h)}
-                            onWithdraw={(h) => triggerTxForm('withdrawal', h)}
-                            onTransfer={(h) => triggerTxForm('transfer', h)}
-                            onAdjustValuation={(h) => triggerTxForm('valuation_adjustment', h)}
-                            onEdit={(h) => triggerHoldingForm(h)}
-                          />
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
-                </div>
-              )
-            ) : (
-              /* Instruments Grid */
-              activePoolInstruments.length === 0 ? (
-                <div className="bg-white border border-dashed border-[#DCDAD2] rounded-none p-12 text-center max-w-lg mx-auto">
-                  <div className="w-12 h-12 bg-[#F9F8F6] border border-[#DCDAD2] flex items-center justify-center mx-auto text-[#8C8C85] mb-4">
-                    <Plus className="w-5 h-5" />
-                  </div>
-                  <h4 className="text-base font-serif font-bold text-[#1A1A1A]">No investment funds available</h4>
-                  <p className="text-xs text-[#8C8C85] mt-1.5 max-w-sm mx-auto font-serif italic">
-                    To start investing, first define the available funds/assets (stocks, ETFs, mutual funds) for this pool.
-                  </p>
+                    <button
+                      onClick={() => triggerTxForm('transfer')}
+                      disabled={activePoolHoldings.length < 2}
+                      className="px-3 py-2 bg-[#F9F8F6] hover:bg-[#F3F1EC] text-[#1A1A1A] border border-[#DCDAD2] text-[10px] uppercase tracking-wider font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      Transfer Funds
+                    </button>
+                  </>
+                ) : (
                   <button
                     onClick={() => {
                       setInstrumentToEdit(null);
                       setIsInstrumentModalOpen(true);
                     }}
-                    className="mt-4 text-[10px] uppercase tracking-wider font-bold px-4 py-2 bg-[#1A1A1A] text-white hover:bg-[#3E3E39] transition-colors cursor-pointer"
+                    className="px-3 py-2 bg-[#1A1A1A] hover:bg-[#3E3E39] text-[#F9F8F6] text-[10px] uppercase tracking-wider font-bold transition-colors cursor-pointer"
                   >
-                    + Create Your First Fund
+                    + Create Fund / Asset
                   </button>
+                )}
+              </div>
+            </div>
+
+            {/* Pool Search */}
+            <div className="mt-5">
+              <div className="relative w-full">
+                <Search className="w-3.5 h-3.5 text-[#8C8C85] absolute left-3.5 top-3.5" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={
+                    activeTab === 'holdings'
+                      ? "Search investments by name or notes..."
+                      : "Search funds or assets by name, ticker..."
+                  }
+                  className="w-full pl-10 pr-4 py-3 bg-[#F9F8F6] border border-[#DCDAD2] rounded-none text-xs font-semibold focus:outline-hidden focus:bg-white focus:border-[#1A1A1A] transition-all text-[#1A1A1A]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* TAB CONTENT */}
+          {activeTab === 'holdings' ? (
+            /* Holdings Grid */
+            filteredHoldings.length === 0 ? (
+              <div className="bg-white border border-dashed border-[#DCDAD2] rounded-none p-12 text-center max-w-lg mx-auto">
+                <div className="w-12 h-12 bg-[#F9F8F6] border border-[#DCDAD2] flex items-center justify-center mx-auto text-[#8C8C85] mb-4">
+                  <Info className="w-5 h-5" />
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5" id="asset-instruments-grid">
-                  <AnimatePresence mode="popLayout">
-                    {activePoolInstruments
-                      .filter((inst) => {
-                        const query = searchQuery.toLowerCase().trim();
-                        return inst.name.toLowerCase().includes(query) ||
-                               inst.ticker.toLowerCase().includes(query) ||
-                               inst.description.toLowerCase().includes(query);
-                      })
-                      .map((inst) => {
-                        const catDetails = CATEGORY_DETAILS[inst.category];
-                        return (
-                          <motion.div
-                            key={inst.id}
-                            layout
-                            className="bg-white border border-[#DCDAD2] rounded-none hover:border-[#1A1A1A] transition-all p-5 flex flex-col justify-between"
-                          >
-                            <div>
-                              <div className="flex items-start justify-between">
-                                <span className="inline-flex items-center text-[9px] font-bold tracking-widest uppercase text-[#8C8C85] border border-[#DCDAD2] px-2 py-0.5 rounded-none bg-[#F9F8F6]">
-                                  <span className="mr-1">{getCategoryIcon(inst.category)}</span>
-                                  {catDetails.label}
-                                </span>
-                                <div className="flex space-x-1">
-                                  <button
-                                    onClick={() => {
-                                      setInstrumentToEdit(inst);
-                                      setIsInstrumentModalOpen(true);
-                                    }}
-                                    className="p-1.5 text-[#8C8C85] hover:text-[#1A1A1A] hover:bg-[#F9F8F6] border border-transparent hover:border-[#DCDAD2] transition-colors"
-                                    title="Edit Fund Details"
-                                  >
-                                    <Settings className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
+                <h4 className="text-base font-serif font-bold text-[#1A1A1A]">No investments match your criteria</h4>
+                <p className="text-xs text-[#8C8C85] mt-1.5 max-w-sm mx-auto font-serif italic">
+                  Try clearing your search query. Click Create Holding above or invest from the Funds tab.
+                </p>
+                <button
+                  onClick={() => { setSearchQuery(''); }}
+                  className="mt-4 text-[10px] uppercase tracking-wider font-bold px-4 py-2 bg-white border border-[#DCDAD2] text-[#1A1A1A] hover:bg-[#F9F8F6] transition-colors cursor-pointer"
+                >
+                  Clear Selection Filter
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" id="asset-holdings-grid">
+                <AnimatePresence mode="popLayout">
+                  {filteredHoldings.map((holding) => {
+                    const instrument = instruments.find(i => i.id === holding.instrumentId) || {
+                      id: 'fallback',
+                      poolId: activePoolId,
+                      name: 'Unknown Asset',
+                      ticker: '',
+                      category: 'other' as HoldingCategory,
+                      description: '',
+                      createdAt: '',
+                      updatedAt: ''
+                    };
+                    return (
+                      <motion.div key={holding.id} layout>
+                        <HoldingCard
+                          holding={holding}
+                          instrument={instrument}
+                          onDeposit={(h) => triggerTxForm('deposit', h)}
+                          onWithdraw={(h) => triggerTxForm('withdrawal', h)}
+                          onTransfer={(h) => triggerTxForm('transfer', h)}
+                          onAdjustValuation={(h) => triggerTxForm('valuation_adjustment', h)}
+                          onEdit={(h) => triggerHoldingForm(h)}
+                        />
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            )
+          ) : (
+            /* Instruments Grid */
+            activePoolInstruments.length === 0 ? (
+              <div className="bg-white border border-dashed border-[#DCDAD2] rounded-none p-12 text-center max-w-lg mx-auto">
+                <div className="w-12 h-12 bg-[#F9F8F6] border border-[#DCDAD2] flex items-center justify-center mx-auto text-[#8C8C85] mb-4">
+                  <Plus className="w-5 h-5" />
+                </div>
+                <h4 className="text-base font-serif font-bold text-[#1A1A1A]">No investment funds available</h4>
+                <p className="text-xs text-[#8C8C85] mt-1.5 max-w-sm mx-auto font-serif italic">
+                  To start investing, first define the available funds/assets (stocks, ETFs, mutual funds) for this pool.
+                </p>
+                <button
+                  onClick={() => {
+                    setInstrumentToEdit(null);
+                    setIsInstrumentModalOpen(true);
+                  }}
+                  className="mt-4 text-[10px] uppercase tracking-wider font-bold px-4 py-2 bg-[#1A1A1A] text-white hover:bg-[#3E3E39] transition-colors cursor-pointer"
+                >
+                  + Create Your First Fund
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" id="asset-instruments-grid">
+                <AnimatePresence mode="popLayout">
+                  {activePoolInstruments
+                    .filter((inst) => {
+                      const query = searchQuery.toLowerCase().trim();
+                      return inst.name.toLowerCase().includes(query) ||
+                             inst.ticker.toLowerCase().includes(query) ||
+                             inst.description.toLowerCase().includes(query);
+                    })
+                    .map((inst) => {
+                      const catDetails = CATEGORY_DETAILS[inst.category];
+                      return (
+                        <motion.div
+                          key={inst.id}
+                          layout
+                          className="bg-white border border-[#DCDAD2] rounded-none hover:border-[#1A1A1A] transition-all p-5 flex flex-col justify-between"
+                        >
+                          <div>
+                            <div className="flex items-start justify-between">
+                              <span className="inline-flex items-center text-[9px] font-bold tracking-widest uppercase text-[#8C8C85] border border-[#DCDAD2] px-2 py-0.5 rounded-none bg-[#F9F8F6]">
+                                <span className="mr-1">{getCategoryIcon(inst.category)}</span>
+                                {catDetails.label}
+                              </span>
+                              <div className="flex space-x-1">
+                                <button
+                                  onClick={() => {
+                                    setInstrumentToEdit(inst);
+                                    setIsInstrumentModalOpen(true);
+                                  }}
+                                  className="p-1.5 text-[#8C8C85] hover:text-[#1A1A1A] hover:bg-[#F9F8F6] border border-transparent hover:border-[#DCDAD2] transition-colors"
+                                  title="Edit Fund Details"
+                                >
+                                  <Settings className="w-3.5 h-3.5" />
+                                </button>
                               </div>
-                              <h4 className="text-xl font-serif text-[#1A1A1A] tracking-tight mt-3">
-                                {inst.name} {inst.ticker ? `(${inst.ticker})` : ''}
-                              </h4>
-                              <p className="text-xs text-[#6B6B66] line-clamp-2 mt-2 leading-relaxed min-h-[32px] font-serif italic">
-                                {inst.description || 'No description provided.'}
-                              </p>
                             </div>
-                          </motion.div>
-                        );
-                      })}
-                  </AnimatePresence>
-                </div>
-              )
-            )}
-          </div>
-
-          {/* RIGHT PANEL: Side Charts and ledger stream */}
-          <div className="space-y-6">
-            
-            {/* Asset Donut distribution */}
-            <section id="allocation-card">
-              <DistributionChart holdings={activePoolHoldings} />
-            </section>
-
-            {/* Historical ledgers listing */}
-            <section id="ledger-history-card">
-              <TransactionHistory
-                transactions={activePoolTransactions}
-                holdings={activePoolHoldings}
-                instruments={activePoolInstruments}
-              />
-            </section>
-
-          </div>
-
+                            <h4 className="text-xl font-serif text-[#1A1A1A] tracking-tight mt-3">
+                              {inst.name} {inst.ticker ? `(${inst.ticker})` : ''}
+                            </h4>
+                            <p className="text-xs text-[#6B6B66] line-clamp-2 mt-2 leading-relaxed min-h-[32px] font-serif italic">
+                              {inst.description || 'No description provided.'}
+                            </p>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                </AnimatePresence>
+              </div>
+            )
+          )}
         </div>
       </main>
 

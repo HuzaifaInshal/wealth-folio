@@ -348,12 +348,14 @@ export default function LedgerFlowVisualizer({
     const destHolding = holdings.find((p) => p.id === destId);
 
     if (srcHolding && destHolding && srcHolding.id !== destHolding.id) {
+      const destInst = instruments.find((i) => i.id === destHolding.instrumentId);
+      const destName = destInst ? destInst.name : 'Target Holding';
       setTxType('transfer');
       setSourceHoldingId(srcHolding.id);
       setSelectedHolding(srcHolding);
       setDestinationHoldingId(destHolding.id);
       setTxAmount('');
-      setTxNote(`Rebalancing reallocation to ${destHolding.name}`);
+      setTxNote(`Rebalancing reallocation to ${destName}`);
       setFormError('');
       setIsTxModalOpen(true);
     }
